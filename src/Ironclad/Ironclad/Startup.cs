@@ -27,7 +27,7 @@ namespace Ironclad
 
             app.Run(async (context) =>
             {
-                await context.Response.WriteAsync("Hello World!").ConfigureAwait(false);
+                await context.Response.WriteAsync($"Hello World from {System.Runtime.InteropServices.RuntimeInformation.OSDescription}").ConfigureAwait(false);
             });
         }
     }
