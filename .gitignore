@@ -1,0 +1,21 @@
+# VS Files
+*.suo
+*.user
+*.sln.ide
+*.sln.cache
+*.sln.docstates
+
+# VS Folders
+.vs/
+[Bb]in/
+[Oo]bj/
+[Tt]est[Rr]esult*/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+**/Properties/launchSettings.json
+
+# Other
+Thumbs.db

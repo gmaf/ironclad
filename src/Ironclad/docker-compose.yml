@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  ironclad:
+    image: ironclad
+    build:
+      context: .
+      dockerfile: Ironclad/Dockerfile

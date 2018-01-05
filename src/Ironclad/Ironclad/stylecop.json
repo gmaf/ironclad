@@ -1,0 +1,14 @@
+﻿{
+  "settings": {
+    "orderingRules": {
+      "blankLinesBetweenUsingGroups": "omit"
+    },
+    "namingRules": {
+      "allowedHungarianPrefixes": []
+    },
+    "documentationRules": {
+      "companyName": "Lykke",
+      "copyrightText": "Copyright (c) {companyName}. All rights reserved."
+    }
+  }
+}
