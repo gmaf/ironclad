@@ -5,7 +5,7 @@
     <DockerTargetOS>Linux</DockerTargetOS>
     <ProjectGuid>65bdbbc8-bd4d-46e4-a19c-e01a01d59f8b</ProjectGuid>
     <DockerLaunchBrowser>True</DockerLaunchBrowser>
-    <DockerServiceUrl>http://localhost:{ServicePort}</DockerServiceUrl>
+    <DockerServiceUrl>http://localhost:5006</DockerServiceUrl>
     <DockerServiceName>ironclad</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
@@ -15,5 +15,6 @@
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
     <None Include="docker-compose.ci.build.yml" />
+    <None Include="nginx\Dockerfile" />
   </ItemGroup>
 </Project>

@@ -4,5 +4,5 @@ services:
   ironclad:
     image: ironclad
     build:
-      context: .
+      context: ../
       dockerfile: Ironclad/Dockerfile

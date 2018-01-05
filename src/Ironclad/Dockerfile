@@ -4,8 +4,8 @@ EXPOSE 80
 
 FROM microsoft/aspnetcore-build:2.0 AS build
 WORKDIR /src
-COPY *.sln ./
-COPY Ironclad/Ironclad.csproj Ironclad/
+COPY /*.sln ./
+COPY /Ironclad/Ironclad.csproj Ironclad/
 RUN dotnet restore
 COPY . .
 WORKDIR /src/Ironclad
