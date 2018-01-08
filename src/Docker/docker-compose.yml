@@ -3,6 +3,15 @@ version: '3'
 services:
   ironclad:
     image: ironclad
+    container_name: ironclad
     build:
       context: ../
       dockerfile: Ironclad/Dockerfile
+  nginx:
+    image: nginx
+    container_name: nginx
+    build:
+      context: nginx/
+      dockerfile: Dockerfile
+    ports:
+      - "5005:80"
