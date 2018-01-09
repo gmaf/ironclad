@@ -18,7 +18,6 @@ namespace Ironclad
             // HACK (Cameron): Currently, there is no nice way to get a handle on IHostingEnvironment inside of Main() so we work around this...
             // LINK (Cameron): https://github.com/aspnet/KestrelHttpServer/issues/1334
             var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            var container = Environment.GetEnvironmentVariable("CONTAINER");
 
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")

@@ -16,6 +16,10 @@
     <WarningsAsErrors />
   </PropertyGroup>
 
+  <PropertyGroup>
+    <TrimUnusedDependencies>true</TrimUnusedDependencies>
+  </PropertyGroup>
+  
   <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
@@ -30,9 +34,16 @@
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <PackageReference Include="ILLink.Tasks" Version="0.1.4-preview-981901" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <AdditionalFiles Include="../stylecop.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\.dockerignore" Link=".dockerignore">
+      <DependentUpon>Dockerfile</DependentUpon>
+    </None>
+    <None Include="..\Dockerfile" Link="Dockerfile" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,6 +53,9 @@
     </None>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="VisualStudio.Dockerfile">
+      <DependentUpon>Dockerfile</DependentUpon>
     </None>
   </ItemGroup>
 

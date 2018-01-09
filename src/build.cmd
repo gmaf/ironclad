@@ -1,1 +1,1 @@
-dotnet build -c Release Ironclad.sln
+docker build .
