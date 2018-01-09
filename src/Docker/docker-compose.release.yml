@@ -1,6 +1,10 @@
 version: '3'
 
 services:
+  ironclad:
+    build:
+      context: ../
+      dockerfile: Dockerfile
   nginx:
     ports:
-      - "80"
+      - "80:80"

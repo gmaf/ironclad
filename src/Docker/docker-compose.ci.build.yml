@@ -1,9 +1,0 @@
-version: '3'
-
-services:
-  ci-build:
-    image: microsoft/aspnetcore-build:1.0-2.0
-    volumes:
-      - .:/src
-    working_dir: /src
-    command: /bin/bash -c "dotnet restore ./Ironclad.sln && dotnet publish ./Ironclad.sln -c Release -r linux-x64 -o ./obj/Docker/publish"
