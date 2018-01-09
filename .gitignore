@@ -7,6 +7,7 @@
 
 # VS Folders
 .vs/
+.vscode/
 [Bb]in/
 [Oo]bj/
 [Tt]est[Rr]esult*/

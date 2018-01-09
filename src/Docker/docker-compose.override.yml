@@ -2,7 +2,8 @@ version: '3'
 
 services:
   ironclad:
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
     ports:
       - "5006:80"
+  nginx:
+    ports:
+      - "5005:80"
