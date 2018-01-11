@@ -1,5 +1,5 @@
 ﻿// <copyright file="Startup.cs" company="Lykke">
-// Copyright (c) Lykke. All rights reserved.
+// Copyright (c) Ironclad Contributors. All rights reserved.
 // </copyright>
 
 namespace Ironclad

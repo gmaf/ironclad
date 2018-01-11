@@ -17,6 +17,9 @@ project.lock.json
 project.fragment.lock.json
 artifacts/
 
+# Ironclad
+appsettings.Custom.json
+
 # Other
 Thumbs.db
 /[Bb]uild/*
