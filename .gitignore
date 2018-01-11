@@ -19,3 +19,4 @@ artifacts/
 
 # Other
 Thumbs.db
+/[Bb]uild/*

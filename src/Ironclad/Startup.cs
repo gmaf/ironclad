@@ -30,7 +30,10 @@ namespace Ironclad
 
             app.Run(async (context) =>
             {
-                await context.Response.WriteAsync($"Hello World from {System.Runtime.InteropServices.RuntimeInformation.OSDescription}").ConfigureAwait(false);
+                await context.Response.WriteAsync(
+                    $@"Hello World from {System.Runtime.InteropServices.RuntimeInformation.OSDescription}
+[Version: {System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion}]")
+                    .ConfigureAwait(false);
             });
         }
     }

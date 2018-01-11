@@ -7,17 +7,16 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <NoWarn></NoWarn>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <CodeAnalysisRuleSet>../Ironclad.ruleset</CodeAnalysisRuleSet>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningsAsErrors />
+    <TrimUnusedDependencies>true</TrimUnusedDependencies>
   </PropertyGroup>
 
   <PropertyGroup>
-    <TrimUnusedDependencies>true</TrimUnusedDependencies>
+    <Version>0.0.1-developer</Version>
+    <Authors>Ironclad Contributers</Authors>
+    <Company>Lykke</Company>
   </PropertyGroup>
   
   <ItemGroup>

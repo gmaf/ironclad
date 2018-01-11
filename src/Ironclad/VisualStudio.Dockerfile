@@ -1,3 +1,5 @@
+# NOTE (Cameron): Visual Studio tooling does not currently offer the flexibility to use the actual Dockerfile so this is included as a workaround.
+
 FROM microsoft/aspnetcore:2.0 AS base
 WORKDIR /app
 EXPOSE 80

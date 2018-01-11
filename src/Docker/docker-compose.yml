@@ -2,16 +2,19 @@ version: '3'
 
 services:
   ironclad:
-    image: ironclad:$version
+    image: ironclad:${VERSION:-0.0.1-developer}
     container_name: ironclad
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
     build:
       context: ../Ironclad/
       dockerfile: VisualStudio.Dockerfile
+      args:
+        version: ${VERSION:-0.0.1-developer}
+
   nginx:
-    image: ironclad_nginx:$version
-    container_name: nginx
+    image: ironclad_nginx
+    container_name: ironclad_nginx
     build:
       context: nginx/
       dockerfile: Dockerfile
