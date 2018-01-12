@@ -4,19 +4,26 @@
 
 namespace Ironclad
 {
+    using System.Reflection;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.HttpOverrides;
-    ////using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection;
 
     public class Startup
     {
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        ////public void ConfigureServices(IServiceCollection services)
-        ////{
-        ////}
+        private static readonly string VersionJson = GetVersionJson();
+
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddIdentityServer()
+                .AddInMemoryClients(Config.Clients.GetInMemoryClients())
+                .AddInMemoryIdentityResources(Config.Resources.GetIdentityResources())
+                .AddInMemoryApiResources(Config.Resources.GetApiResources())
+                .AddTestUsers(Config.Users.GetTestUsers())
+                .AddDeveloperSigningCredential();
+        }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -27,14 +34,29 @@ namespace Ironclad
             }
 
             app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto });
+            app.UseIdentityServer();
 
+            // TODO (Cameron): Introduce common status code handling (somehow).
             app.Run(async (context) =>
             {
-                await context.Response.WriteAsync(
-                    $@"Hello World from {System.Runtime.InteropServices.RuntimeInformation.OSDescription}
-[Version: {System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion}]")
-                    .ConfigureAwait(false);
+                if (context.Request.Path == "/")
+                {
+                    await context.Response.WriteAsync(VersionJson).ConfigureAwait(false);
+                }
+                else
+                {
+                    context.Response.StatusCode = 404;
+                }
             });
+        }
+
+        private static string GetVersionJson()
+        {
+            var assembly = typeof(Program).Assembly;
+            var title = assembly.Attribute<AssemblyTitleAttribute>(attribute => attribute.Title);
+            var version = assembly.Attribute<AssemblyInformationalVersionAttribute>(attribute => attribute.InformationalVersion);
+
+            return $@"{{""title"":""{title}"",""version"":""{version}"",""os"":""{System.Runtime.InteropServices.RuntimeInformation.OSDescription}""}}";
         }
     }
 }
