@@ -17,7 +17,7 @@
     <Version>0.0.1-developer</Version>
     <Authors>Ironclad Contributers</Authors>
     <Company>Lykke</Company>
-    <Copyright>Copyright (c) Lykke. All rights reserved.</Copyright>
+    <Copyright>Copyright (c) Ironclad Contributers. All rights reserved.</Copyright>
   </PropertyGroup>
   
   <ItemGroup>

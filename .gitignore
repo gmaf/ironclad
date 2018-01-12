@@ -18,7 +18,8 @@ project.fragment.lock.json
 artifacts/
 
 # Ironclad
-appsettings.Custom.json
+*.Custom.*
+[Ll]ogs/
 
 # Other
 Thumbs.db

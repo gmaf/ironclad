@@ -4,8 +4,6 @@ services:
   ironclad:
     ports:
       - "5006:80"
-    volumes:
-      - S:/Logs:/app/logs
   nginx:
     ports:
       - "5005:80"

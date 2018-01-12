@@ -9,9 +9,15 @@
     <DockerServiceName>ironclad</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="build.cmd" />
-    <None Include="clean.cmd" />
+    <None Include="start.cmd" />
+    <None Include="start.Custom.cmd">
+      <DependentUpon>start.cmd</DependentUpon>
+    </None>
+    <None Include="stop.cmd" />
     <None Include="docker-compose.override.yml">
+      <DependentUpon>docker-compose.yml</DependentUpon>
+    </None>
+    <None Include="docker-compose.custom.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.release.yml">
@@ -20,7 +26,8 @@
     <None Include="docker-compose.yml" />
     <None Include="nginx\Dockerfile" />
     <None Include="nginx\nginx.conf" />
-    <None Include="start.cmd" />
-    <None Include="stop.cmd" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="cmd\" />
   </ItemGroup>
 </Project>
