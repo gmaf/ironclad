@@ -1,6 +1,5 @@
-﻿// <copyright file="Program.cs" company="Lykke">
-// Copyright (c) Ironclad Contributors. All rights reserved.
-// </copyright>
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
 
 namespace Ironclad
 {

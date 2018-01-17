@@ -1,6 +1,5 @@
-﻿// <copyright file="Startup.cs" company="Lykke">
-// Copyright (c) Ironclad Contributors. All rights reserved.
-// </copyright>
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
 
 namespace Ironclad
 {
@@ -18,10 +17,10 @@ namespace Ironclad
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddIdentityServer()
-                .AddInMemoryClients(Config.Clients.GetInMemoryClients())
-                .AddInMemoryIdentityResources(Config.Resources.GetIdentityResources())
-                .AddInMemoryApiResources(Config.Resources.GetApiResources())
-                .AddTestUsers(Config.Users.GetTestUsers())
+                .AddInMemoryClients(Config.GetInMemoryClients())
+                .AddInMemoryIdentityResources(Config.GetIdentityResources())
+                .AddInMemoryApiResources(Config.GetApiResources())
+                .AddTestUsers(Config.GetTestUsers())
                 .AddDeveloperSigningCredential();
         }
 
