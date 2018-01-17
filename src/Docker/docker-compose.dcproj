@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" Sdk="Microsoft.Docker.Sdk">
+  <PropertyGroup Label="Globals">
+    <ProjectVersion>2.0</ProjectVersion>
+    <DockerTargetOS>Linux</DockerTargetOS>
+    <ProjectGuid>65bdbbc8-bd4d-46e4-a19c-e01a01d59f8b</ProjectGuid>
+    <DockerLaunchBrowser>True</DockerLaunchBrowser>
+    <DockerServiceUrl>http://localhost:5006</DockerServiceUrl>
+    <DockerServiceName>ironclad</DockerServiceName>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="start.cmd" />
+    <None Include="start.Custom.cmd">
+      <DependentUpon>start.cmd</DependentUpon>
+    </None>
+    <None Include="stop.cmd" />
+    <None Include="docker-compose.override.yml">
+      <DependentUpon>docker-compose.yml</DependentUpon>
+    </None>
+    <None Include="docker-compose.custom.yml">
+      <DependentUpon>docker-compose.yml</DependentUpon>
+    </None>
+    <None Include="docker-compose.release.yml">
+      <DependentUpon>docker-compose.yml</DependentUpon>
+    </None>
+    <None Include="docker-compose.yml" />
+    <None Include="nginx\Dockerfile" />
+    <None Include="nginx\nginx.conf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="cmd\" />
+  </ItemGroup>
+</Project>
