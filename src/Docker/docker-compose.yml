@@ -18,3 +18,16 @@ services:
     build:
       context: nginx/
       dockerfile: Dockerfile
+  
+  postgres:
+    image: postgres:9.6-alpine
+    environment:
+      - POSTGRES_DB=IronClad
+      - POSTGRES_USER=ironClad
+      - POSTGRES_PASSWORD=secureKey
+      - POSTGRES_ROOT_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

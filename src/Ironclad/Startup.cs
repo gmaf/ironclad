@@ -11,6 +11,11 @@ namespace Ironclad
     using Microsoft.AspNetCore.HttpOverrides;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
+    using IdentityServer4.Postgresql.Extensions;
+    using Ironclad.Configurations;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.HttpOverrides;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
 
@@ -53,9 +58,8 @@ namespace Ironclad
                     ////options.PublicOrigin = "http://localhost:5005";
                 })
                 .AddDeveloperSigningCredential()
-                .AddInMemoryClients(Config.GetInMemoryClients())
-                .AddInMemoryIdentityResources(Config.GetIdentityResources())
-                .AddInMemoryApiResources(Config.GetApiResources())
+                .AddConfigurationStore(postgresConfig.ToString())
+                .AddOperationalStore()
                 .AddAspNetIdentity<ApplicationUser>();
 
             services.AddAuthentication()
@@ -75,6 +79,11 @@ namespace Ironclad
                 app.UseBrowserLink();
                 app.UseDatabaseErrorPage();
             }
+
+            app
+                .ApplicationServices
+                .GetService<IDatabaseSeeder>()
+                .Seed(app);
 
             app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto });
 
