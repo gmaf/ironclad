@@ -14,16 +14,18 @@ namespace Ironclad
         public static IEnumerable<Client> GetInMemoryClients() =>
             new List<Client>
             {
+                // NOTE (Cameron): This is the sample client (console app; representing server-to-server communication).
                 new Client
                 {
-                    ClientId = "oauthClient",
-                    ClientName = "Example Client Credentials Client Application",
+                    ClientId = "sample_client",
+                    ClientName = "Sample Client Application",
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
                     ClientSecrets = new List<Secret>
                     {
-                        new Secret("superSecretPassword".Sha256())
+                        new Secret("secret".Sha256())
                     },
-                    AllowedScopes = new List<string> { "customAPI.read" },
+                    AllowedScopes = new List<string> { "sample_api.read", "sample_api.write" },
+                    AccessTokenType = AccessTokenType.Reference,
                 },
             };
 
@@ -43,35 +45,27 @@ namespace Ironclad
         public static IEnumerable<ApiResource> GetApiResources() =>
             new List<ApiResource>
             {
-                new ApiResource
+                new ApiResource("sample_api", "Sample Web API")
                 {
-                    Name = "users_api",
-                    DisplayName = "Users API",
-                    Description = "Users API Access",
-                    UserClaims = new List<string> { "role" },
                     ApiSecrets = new List<Secret> { new Secret("secret".Sha256()) },
-                    Scopes = new List<Scope>
-                    {
-                        new Scope("users_api.read"),
-                        new Scope("users_api.write")
-                    }
-                }
+                    Scopes = new List<Scope> { new Scope("sample_api.read"), new Scope("sample_api.write") }
+                },
             };
 
-        public static List<TestUser> GetTestUsers() =>
-            new List<TestUser>
-            {
-                new TestUser
-                {
-                    SubjectId = "af4ecfd06dc4489ead44c0b3aa639b11",
-                    Username = "test",
-                    Password = "test",
-                    Claims = new List<Claim>
-                    {
-                        new Claim(JwtClaimTypes.Email, "test@lykke.com"),
-                        new Claim(JwtClaimTypes.Role, "admin")
-                    }
-                }
-            };
+        ////public static List<TestUser> GetTestUsers() =>
+        ////    new List<TestUser>
+        ////    {
+        ////        new TestUser
+        ////        {
+        ////            SubjectId = "af4ecfd06dc4489ead44c0b3aa639b11",
+        ////            Username = "sample",
+        ////            Password = "sample",
+        ////            Claims = new List<Claim>
+        ////            {
+        ////                new Claim(JwtClaimTypes.Email, "sample@lykke.com"),
+        ////                new Claim(JwtClaimTypes.Role, "admin")
+        ////            }
+        ////        }
+        ////    };
     }
 }

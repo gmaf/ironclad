@@ -20,6 +20,14 @@
     <Copyright>Copyright (c) Ironclad Contributers. All rights reserved.</Copyright>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;1705;CA2007</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;1705;CA2007</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="logs\**" />
     <EmbeddedResource Remove="logs\**" />

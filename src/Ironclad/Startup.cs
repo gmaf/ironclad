@@ -20,7 +20,7 @@ namespace Ironclad
                 .AddInMemoryClients(Config.GetInMemoryClients())
                 .AddInMemoryIdentityResources(Config.GetIdentityResources())
                 .AddInMemoryApiResources(Config.GetApiResources())
-                .AddTestUsers(Config.GetTestUsers())
+                .AddTestUsers(IdentityServer4.Quickstart.UI.TestUsers.Users)
                 .AddDeveloperSigningCredential();
         }
 
