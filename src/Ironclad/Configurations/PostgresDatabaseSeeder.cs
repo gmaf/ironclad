@@ -3,29 +3,26 @@
     using System.Linq;
     using IdentityServer4.Postgresql.Mappers;
     using Marten;
-    using Microsoft.AspNetCore.Builder;
     using Serilog;
 
     public class PostgresDatabaseSeeder : IDatabaseSeeder
     {
-        private readonly PostgresConfig config;
+        private readonly IDocumentStore context;
 
-        public PostgresDatabaseSeeder(PostgresConfig config)
+        public PostgresDatabaseSeeder(IDocumentStore context)
         {
-            this.config = config;
+            this.context = context;
         }
 
-        public void Seed(IApplicationBuilder app)
+        public void Seed()
         {
-            Log.Information($"Seeding postgres database: {this.config.Database}");
+            Log.Information($"Start Seeding postgres database");
 
-            var store = DocumentStore.For(this.config.ToString());
+            Log.Information($"Clearing all data from database");
 
-            Log.Information($"Clearing all data from database: {this.config.Database}");
+            this.context.Advanced.Clean.CompletelyRemoveAll();
 
-            store.Advanced.Clean.CompletelyRemoveAll();
-
-            using (var session = store.LightweightSession())
+            using (var session = this.context.LightweightSession())
             {
                 if (!session.Query<IdentityServer4.Postgresql.Entities.Client>().Any())
                 {
@@ -50,7 +47,7 @@
 
                 session.SaveChanges();
 
-                Log.Information($"Saving all changes to database: {this.config.Database}");
+                Log.Information($"Saving all changes to database");
             }
 
             Log.Information($"Seed Completed");

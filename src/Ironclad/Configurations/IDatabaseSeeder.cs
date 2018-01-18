@@ -4,6 +4,6 @@
 
     public interface IDatabaseSeeder
     {
-        void Seed(IApplicationBuilder app);
+        void Seed();
     }
 }
