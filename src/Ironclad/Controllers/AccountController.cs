@@ -1,7 +1,7 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable CA1054
+#pragma warning disable CA1054, CA1081
 
 namespace IdentityServer4.Quickstart.UI
 {

@@ -26,11 +26,25 @@
                         // not to be set in production!
                         options.RequireHttpsMetadata = false;           // allow non-HTTPS for testing only
                     });
+
+            // we have to enable CORS for any clients that come via the browser; this will allow calls to the API from the Singe Page Application
+            services.AddCors(options =>
+            {
+                // this defines a CORS policy called "default"
+                options.AddPolicy("default", policy =>
+                {
+                    policy.WithOrigins("http://localhost:5008")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UseDeveloperExceptionPage();
+
+            app.UseCors("default");
 
             // we should always place the authentication middleware call above the middleware that we want to secure; typically, MVC
             app.UseAuthentication();

@@ -16,6 +16,7 @@ namespace Ironclad
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMvc();
             services.AddIdentityServer()
                 .AddInMemoryClients(Config.GetInMemoryClients())
                 .AddInMemoryIdentityResources(Config.GetIdentityResources())
@@ -33,7 +34,10 @@ namespace Ironclad
             }
 
             app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto });
+
+            app.UseStaticFiles();
             app.UseIdentityServer();
+            app.UseMvcWithDefaultRoute();
 
             // TODO (Cameron): Introduce common status code handling (somehow).
             app.Run(async (context) =>

@@ -11,6 +11,7 @@
 [Bb]in/
 [Oo]bj/
 [Tt]est[Rr]esult*/
+node_modules/
 
 # .NET Core
 project.lock.json

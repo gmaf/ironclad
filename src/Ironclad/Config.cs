@@ -6,6 +6,7 @@ namespace Ironclad
     using System.Collections.Generic;
     using System.Security.Claims;
     using IdentityModel;
+    using IdentityServer4;
     using IdentityServer4.Models;
     using IdentityServer4.Test;
 
@@ -20,13 +21,31 @@ namespace Ironclad
                     ClientId = "sample_client",
                     ClientName = "Sample Client Application",
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
-                    ClientSecrets = new List<Secret>
-                    {
-                        new Secret("secret".Sha256())
-                    },
-                    AllowedScopes = new List<string> { "sample_api.read", "sample_api.write" },
-                    AccessTokenType = AccessTokenType.Reference,
+                    ClientSecrets = { new Secret("secret".Sha256()) },
+                    AllowedScopes = { "sample_api.read", "sample_api.write" },
+                    ////AccessTokenType = AccessTokenType.Reference,
                 },
+
+                // NOTE (Cameron): This is the sample client (console app; representing server-to-server communication).
+                new Client
+                {
+                    ClientId = "spa",
+                    ClientName = "Single Page Application",
+                    AllowedGrantTypes = GrantTypes.Implicit,
+                    AllowAccessTokensViaBrowser = true,
+
+                    RedirectUris = { "http://localhost:5008/callback.html" },
+                    PostLogoutRedirectUris = { "http://localhost:5008/index.html" },
+                    AllowedCorsOrigins = { "http://localhost:5008" },
+
+                    AllowedScopes =
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
+                        "role",
+                        "sample_api.read",
+                    },
+                }
             };
 
         public static IEnumerable<IdentityResource> GetIdentityResources() =>
