@@ -1,7 +1,0 @@
-{
-  "name": "spa",
-  "version": "0.1.0",
-  "devDependencies": {
-    "oidc-client": "^1.4.1"
-  }
-}
