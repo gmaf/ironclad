@@ -28,6 +28,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <TrimFilesRootFiles Include="Microsoft.AspNetCore.ApplicationInsights.HostingStartup.dll" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <Compile Remove="logs\**" />
     <EmbeddedResource Remove="logs\**" />
     <None Remove="logs\**" />

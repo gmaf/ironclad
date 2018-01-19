@@ -3,10 +3,11 @@
 
 #pragma warning disable CA1054
 
-namespace IdentityServer4.Quickstart.UI
+namespace Ironclad.Controllers
 {
     using System.Linq;
     using System.Threading.Tasks;
+    using IdentityServer4;
     using IdentityServer4.Models;
     using IdentityServer4.Services;
     using IdentityServer4.Stores;

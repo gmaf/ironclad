@@ -3,7 +3,7 @@
 
 #pragma warning disable CA1054, CA1081
 
-namespace IdentityServer4.Quickstart.UI
+namespace Ironclad.Controllers
 {
     using System;
     using System.Collections.Generic;
@@ -12,6 +12,7 @@ namespace IdentityServer4.Quickstart.UI
     using System.Security.Principal;
     using System.Threading.Tasks;
     using IdentityModel;
+    using IdentityServer4;
     using IdentityServer4.Events;
     using IdentityServer4.Extensions;
     using IdentityServer4.Models;
@@ -46,7 +47,7 @@ namespace IdentityServer4.Quickstart.UI
         {
             // if the TestUserStore is not in DI, then we'll just use the global users collection
             // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
-            this.users = users ?? new TestUserStore(TestUsers.Users);
+            this.users = users ?? new TestUserStore(Ironclad.Config.GetTestUsers());
 
             this.interaction = interaction;
             this.clientStore = clientStore;
@@ -187,15 +188,13 @@ namespace IdentityServer4.Quickstart.UI
             var additionalLocalClaims = new List<Claim>();
             var localSignInProps = new AuthenticationProperties();
             this.ProcessLoginCallbackForOidc(result, additionalLocalClaims, localSignInProps);
-            this.ProcessLoginCallbackForWsFed(result, additionalLocalClaims, localSignInProps);
-            this.ProcessLoginCallbackForSaml2p(result, additionalLocalClaims, localSignInProps);
 
             // issue authentication cookie for user
             await this.events.RaiseAsync(new UserLoginSuccessEvent(provider, providerUserId, user.SubjectId, user.Username));
             await this.HttpContext.SignInAsync(user.SubjectId, user.Username, provider, localSignInProps, additionalLocalClaims.ToArray());
 
             // delete temporary cookie used during external authentication
-            await this.HttpContext.SignOutAsync(IdentityServer4.IdentityServerConstants.ExternalCookieAuthenticationScheme);
+            await this.HttpContext.SignOutAsync(IdentityServerConstants.ExternalCookieAuthenticationScheme);
 
             // validate return URL and redirect back to authorization endpoint or a local page
             var returnUrl = result.Properties.Items["returnUrl"];
@@ -215,8 +214,7 @@ namespace IdentityServer4.Quickstart.UI
 
             if (model.ShowLogoutPrompt == false)
             {
-                // if the request for logout was properly authenticated from IdentityServer, then
-                // we don't need to show the prompt and can just log the user out directly.
+                // if the request for logout was properly authenticated from IdentityServer, then we don't need to show the prompt and can just log the user out directly.
                 return await this.Logout(model);
             }
 
@@ -457,8 +455,7 @@ namespace IdentityServer4.Quickstart.UI
 
         private void ProcessLoginCallbackForOidc(AuthenticateResult externalResult, List<Claim> localClaims, AuthenticationProperties localSignInProps)
         {
-            // if the external system sent a session id claim, copy it over
-            // so we can use it for single sign-out
+            // if the external system sent a session id claim, copy it over so we can use it for single sign-out
             var sid = externalResult.Principal.Claims.FirstOrDefault(x => x.Type == JwtClaimTypes.SessionId);
             if (sid != null)
             {
@@ -471,14 +468,6 @@ namespace IdentityServer4.Quickstart.UI
             {
                 localSignInProps.StoreTokens(new[] { new AuthenticationToken { Name = "id_token", Value = id_token } });
             }
-        }
-
-        private void ProcessLoginCallbackForWsFed(AuthenticateResult externalResult, List<Claim> localClaims, AuthenticationProperties localSignInProps)
-        {
-        }
-
-        private void ProcessLoginCallbackForSaml2p(AuthenticateResult externalResult, List<Claim> localClaims, AuthenticationProperties localSignInProps)
-        {
         }
     }
 }

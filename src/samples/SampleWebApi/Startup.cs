@@ -31,9 +31,9 @@
             services.AddCors(options =>
             {
                 // this defines a CORS policy called "default"
-                options.AddPolicy("default", policy =>
+                options.AddPolicy("spa", policy =>
                 {
-                    policy.WithOrigins("http://localhost:5008")
+                    policy.WithOrigins("http://localhost:5008")         // the origin specified is for the Single Page Application
                         .AllowAnyHeader()
                         .AllowAnyMethod();
                 });
@@ -44,7 +44,7 @@
         {
             app.UseDeveloperExceptionPage();
 
-            app.UseCors("default");
+            app.UseCors("spa");
 
             // we should always place the authentication middleware call above the middleware that we want to secure; typically, MVC
             app.UseAuthentication();

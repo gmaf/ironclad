@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-namespace IdentityServer4.Quickstart.UI
+namespace Ironclad.Controllers
 {
     public static class ConsentOptions
     {

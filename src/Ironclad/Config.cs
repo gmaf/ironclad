@@ -23,7 +23,7 @@ namespace Ironclad
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
                     ClientSecrets = { new Secret("secret".Sha256()) },
                     AllowedScopes = { "sample_api.read", "sample_api.write" },
-                    ////AccessTokenType = AccessTokenType.Reference,
+                    AccessTokenType = AccessTokenType.Reference,
                 },
 
                 // NOTE (Cameron): This is the sample client (console app; representing server-to-server communication).
@@ -71,20 +71,42 @@ namespace Ironclad
                 },
             };
 
-        ////public static List<TestUser> GetTestUsers() =>
-        ////    new List<TestUser>
-        ////    {
-        ////        new TestUser
-        ////        {
-        ////            SubjectId = "af4ecfd06dc4489ead44c0b3aa639b11",
-        ////            Username = "sample",
-        ////            Password = "sample",
-        ////            Claims = new List<Claim>
-        ////            {
-        ////                new Claim(JwtClaimTypes.Email, "sample@lykke.com"),
-        ////                new Claim(JwtClaimTypes.Role, "admin")
-        ////            }
-        ////        }
-        ////    };
+        public static List<TestUser> GetTestUsers() =>
+            new List<TestUser>
+            {
+                new TestUser
+            {
+                SubjectId = "818727",
+                Username = "alice",
+                Password = "alice",
+                Claims =
+                {
+                    new Claim(JwtClaimTypes.Name, "Alice Smith"),
+                    new Claim(JwtClaimTypes.GivenName, "Alice"),
+                    new Claim(JwtClaimTypes.FamilyName, "Smith"),
+                    new Claim(JwtClaimTypes.Email, "AliceSmith@email.com"),
+                    new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+                    new Claim(JwtClaimTypes.WebSite, "http://alice.com"),
+                    new Claim(JwtClaimTypes.Address, @"{ 'street_address': 'One Hacker Way', 'locality': 'Heidelberg', 'postal_code': 69118, 'country': 'Germany' }", IdentityServerConstants.ClaimValueTypes.Json)
+                }
+            },
+            new TestUser
+            {
+                SubjectId = "88421113",
+                Username = "bob",
+                Password = "bob",
+                Claims =
+                {
+                    new Claim(JwtClaimTypes.Name, "Bob Smith"),
+                    new Claim(JwtClaimTypes.GivenName, "Bob"),
+                    new Claim(JwtClaimTypes.FamilyName, "Smith"),
+                    new Claim(JwtClaimTypes.Email, "BobSmith@email.com"),
+                    new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+                    new Claim(JwtClaimTypes.WebSite, "http://bob.com"),
+                    new Claim(JwtClaimTypes.Address, @"{ 'street_address': 'One Hacker Way', 'locality': 'Heidelberg', 'postal_code': 69118, 'country': 'Germany' }", IdentityServerConstants.ClaimValueTypes.Json),
+                    new Claim("location", "somewhere")
+                }
+            }
+        };
     }
 }
