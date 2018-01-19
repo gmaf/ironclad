@@ -22,8 +22,8 @@ namespace Ironclad
                     ClientName = "Sample Client Application",
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
                     ClientSecrets = { new Secret("secret".Sha256()) },
-                    AllowedScopes = { "sample_api.read", "sample_api.write" },
-                    AccessTokenType = AccessTokenType.Reference,
+                    AllowedScopes = { "sample_api" },
+                    ////AccessTokenType = AccessTokenType.Reference,
                 },
 
                 // NOTE (Cameron): This is the sample client (console app; representing server-to-server communication).
@@ -42,9 +42,11 @@ namespace Ironclad
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
-                        "role",
-                        "sample_api.read",
+                        ////"role",
+                        "sample_api",
                     },
+
+                    AccessTokenType = AccessTokenType.Reference,
                 }
             };
 
@@ -67,7 +69,7 @@ namespace Ironclad
                 new ApiResource("sample_api", "Sample Web API")
                 {
                     ApiSecrets = new List<Secret> { new Secret("secret".Sha256()) },
-                    Scopes = new List<Scope> { new Scope("sample_api.read"), new Scope("sample_api.write") }
+                    UserClaims = new[] { "name", "role" }, // NOTE (Cameron): These are the user claims that are required by the web API.
                 },
             };
 
@@ -87,7 +89,8 @@ namespace Ironclad
                     new Claim(JwtClaimTypes.Email, "AliceSmith@email.com"),
                     new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
                     new Claim(JwtClaimTypes.WebSite, "http://alice.com"),
-                    new Claim(JwtClaimTypes.Address, @"{ 'street_address': 'One Hacker Way', 'locality': 'Heidelberg', 'postal_code': 69118, 'country': 'Germany' }", IdentityServerConstants.ClaimValueTypes.Json)
+                    new Claim(JwtClaimTypes.Address, @"{ 'street_address': 'One Hacker Way', 'locality': 'Heidelberg', 'postal_code': 69118, 'country': 'Germany' }", IdentityServerConstants.ClaimValueTypes.Json),
+                    new Claim("role", "manager")
                 }
             },
             new TestUser
@@ -104,7 +107,9 @@ namespace Ironclad
                     new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
                     new Claim(JwtClaimTypes.WebSite, "http://bob.com"),
                     new Claim(JwtClaimTypes.Address, @"{ 'street_address': 'One Hacker Way', 'locality': 'Heidelberg', 'postal_code': 69118, 'country': 'Germany' }", IdentityServerConstants.ClaimValueTypes.Json),
-                    new Claim("location", "somewhere")
+                    new Claim("location", "somewhere"),
+                    new Claim("role", "employee"),
+                    new Claim("role", "admin")
                 }
             }
         };

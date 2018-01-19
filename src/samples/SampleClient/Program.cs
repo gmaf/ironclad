@@ -21,7 +21,7 @@
             // make a token request to the token endpoint (this is the server-to-server auth endpoint eg. no user input required/permitted)
             // this call needs to be done every time a new token is required - a refresh token could also be requested for this purpose
             var tokenClient = new TokenClient(discoveryResponse.TokenEndpoint, "sample_client", "secret");
-            var tokenResponse = await tokenClient.RequestClientCredentialsAsync("sample_api.read");
+            var tokenResponse = await tokenClient.RequestClientCredentialsAsync("sample_api");
 
             // now we're into standard .NET HTTP calls
             // ensure the request has the token in the header - this should be set for a single HTTP client which should be reused for all required calls

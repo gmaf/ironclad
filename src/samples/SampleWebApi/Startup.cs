@@ -1,6 +1,7 @@
 ﻿namespace SampleWebApi
 {
     using IdentityServer4.AccessTokenValidation;
+    using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,9 @@
                         // not to be set in production!
                         options.RequireHttpsMetadata = false;           // allow non-HTTPS for testing only
                     });
+
+            // https://stackoverflow.com/questions/37916051/claims-in-jwt-vs-claims-transformation-in-resource
+            ////services.AddSingleton<IClaimsTransformation, ClaimsTransformation>();
 
             // we have to enable CORS for any clients that come via the browser; this will allow calls to the API from the Singe Page Application
             services.AddCors(options =>

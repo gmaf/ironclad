@@ -18,7 +18,7 @@
         <div class="row">
             <ul class="list-unstyled list-inline">
                 <li><a class="btn btn-primary" href="index.html">Home</a></li>
-                <li><button class="btn btn-default request" data-scope='openid profile sample_api.read' data-type='id_token token'>Login</button></li>
+                <li><button class="btn btn-default request" data-scope='openid profile sample_api' data-type='id_token token'>Login</button></li>
                 <li><button class="btn btn-primary call">Call Service</button></li>
                 <li><button class="btn btn-info revoke">Revoke Access Token</button></li>
                 <li><button class="btn btn-info logout">Logout</button></li>
@@ -82,7 +82,7 @@
 
             // these two will be done dynamically from the buttons clicked, but are needed if you want to use the silent_renew
             response_type: "id_token token",
-            scope: "openid profile email sample_api.read",
+            scope: "openid profile email sample_api",
 
             // this will toggle if profile endpoint is used
             loadUserInfo: true,
