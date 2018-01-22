@@ -3,6 +3,7 @@
 
 namespace Ironclad.Controllers
 {
+    using System.Reflection;
     using System.Threading.Tasks;
     using IdentityServer4.Services;
     using Ironclad.Models;
@@ -11,6 +12,14 @@ namespace Ironclad.Controllers
     [SecurityHeaders]
     public class HomeController : Controller
     {
+        private static readonly object Version =
+            new VersionModel
+            {
+                Title = typeof(Program).Assembly.Attribute<AssemblyTitleAttribute>(attribute => attribute.Title),
+                Version = typeof(Program).Assembly.Attribute<AssemblyInformationalVersionAttribute>(attribute => attribute.InformationalVersion),
+                OS = System.Runtime.InteropServices.RuntimeInformation.OSDescription.TrimEnd(),
+            };
+
         private readonly IIdentityServerInteractionService interaction;
 
         public HomeController(IIdentityServerInteractionService interaction)
@@ -18,7 +27,7 @@ namespace Ironclad.Controllers
             this.interaction = interaction;
         }
 
-        public IActionResult Index() => this.View();
+        public IActionResult Index() => this.View(Version);
 
         public async Task<IActionResult> Error(string errorId)
         {

@@ -1,5 +1,6 @@
 ﻿namespace SampleSinglePageApp
 {
+    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
 
@@ -9,15 +10,17 @@
         {
             app.UseDeveloperExceptionPage();
 
-            // enable to test w/ CSP
+            // NOTE (Cameron): CSP won't work because I've inlined all the scripts!
+            // this introduces Content Security Policy (CSP)
             //app.Use(async (ctx, next) =>
             //{
             //    ctx.Response.OnStarting(() =>
             //    {
             //        if (ctx.Response.ContentType?.StartsWith("text/html") == true)
             //        {
-            //            ctx.Response.Headers.Add("Content-Security-Policy", "default-src 'self'; connect-src http://localhost:5000 http://localhost:3721; frame-src 'self' http://localhost:5000");
+            //            ctx.Response.Headers.Add("Content-Security-Policy", "default-src 'self'; connect-src http://localhost:5000 http://localhost:5007; frame-src 'self' http://localhost:5000;");
             //        }
+
             //        return Task.CompletedTask;
             //    });
 
