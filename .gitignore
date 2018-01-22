@@ -11,12 +11,16 @@
 [Bb]in/
 [Oo]bj/
 [Tt]est[Rr]esult*/
-node_modules/
 
 # .NET Core
 project.lock.json
 project.fragment.lock.json
 artifacts/
+
+# npm
+node_modules/
+npm-debug.log
+package-lock.json
 
 # Ironclad
 *.Custom.*
