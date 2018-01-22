@@ -17,9 +17,15 @@ project.lock.json
 project.fragment.lock.json
 artifacts/
 
+# npm
+node_modules/
+npm-debug.log
+package-lock.json
+
 # Ironclad
 *.Custom.*
 [Ll]ogs/
+tempkey.rsa
 
 # Other
 Thumbs.db

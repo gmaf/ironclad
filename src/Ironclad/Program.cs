@@ -1,11 +1,9 @@
-﻿// <copyright file="Program.cs" company="Lykke">
-// Copyright (c) Ironclad Contributors. All rights reserved.
-// </copyright>
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
 
 namespace Ironclad
 {
     using System;
-    using System.Linq;
     using System.Reflection;
     using System.Runtime.InteropServices;
     using Microsoft.AspNetCore;
@@ -70,11 +68,5 @@ namespace Ironclad
                 .UseStartup<Startup>()
                 .UseSerilog()
                 .Build();
-
-        private static string Attribute<T>(this ICustomAttributeProvider provider, Func<T, string> property)
-        {
-            var value = provider.GetCustomAttributes(typeof(T), false).Cast<T>().FirstOrDefault();
-            return value == null ? string.Empty : property(value);
-        }
     }
 }
