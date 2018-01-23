@@ -1,0 +1,37 @@
+sudo: required
+
+language: generic
+
+services:
+  - docker
+
+env:
+  global:
+    - CACHE_DIR=$HOME/.cache/docker
+    - CACHE_FILE_NGINX=$CACHE_DIR/nginx.tar.gz
+    - CACHE_FILE_ASPNETCORE=$CACHE_DIR/aspnetcore.tar.gz
+    - CACHE_FILE_ASPNETCOREBUILD=$CACHE_DIR/aspnetcore-build.tar.gz
+
+cache:
+  directories:
+  - $CACHE_DIR
+
+before_install:
+  - if [ -f ${CACHE_FILE_NGINX} ]; then gunzip -c ${CACHE_FILE_NGINX} | docker load; fi
+  - if [ -f ${CACHE_FILE_ASPNETCORE} ]; then gunzip -c ${CACHE_FILE_ASPNETCORE} | docker load; fi
+  - if [ -f ${CACHE_FILE_ASPNETCOREBUILD} ]; then gunzip -c ${CACHE_FILE_ASPNETCOREBUILD} | docker load; fi
+
+install:
+  - mkdir -p $CACHE_DIR
+  - if [ ! -f ${CACHE_FILE_NGINX} ]; then docker save nginx:1.13.8-alpine | gzip > ${CACHE_FILE_NGINX}; fi
+  - if [ ! -f ${CACHE_FILE_ASPNETCORE} ]; then docker save microsoft/aspnetcore:2.0 | gzip > ${CACHE_FILE_ASPNETCORE}; fi
+  - if [ ! -f ${CACHE_FILE_ASPNETCOREBUILD} ]; then docker save microsoft/aspnetcore-build:2.0 | gzip > ${CACHE_FILE_ASPNETCOREBUILD}; fi
+
+script:
+  - docker --version  # document the version travis is using
+  - docker login lykkecloud.azurecr.io -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+  - docker-compose -f src/Docker/docker-compose.yml -f src/Docker/docker-compose.release.yml -p ironclad build
+  - docker tag ironclad_nginx:latest lykkecloud.azurecr.io/ironclad_nginx:latest
+  - docker push lykkecloud.azurecr.io/ironclad_nginx:latest
+  - docker tag ironclad:$VERSION lykkecloud.azurecr.io/ironclad:$VERSION
+  - docker push lykkecloud.azurecr.io/ironclad:$VERSION
