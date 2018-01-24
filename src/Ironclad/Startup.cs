@@ -6,14 +6,26 @@ namespace Ironclad
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.HttpOverrides;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
 
     public class Startup
     {
+        private readonly IConfiguration configuration;
+
+        public Startup(IConfiguration configuration)
+        {
+            this.configuration = configuration;
+        }
+
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-            services.AddIdentityServer()
+            services.AddIdentityServer(
+                options =>
+                {
+                    ////options.PublicOrigin = "http://localhost:5005";
+                })
                 .AddInMemoryClients(Config.GetInMemoryClients())
                 .AddInMemoryIdentityResources(Config.GetIdentityResources())
                 .AddInMemoryApiResources(Config.GetApiResources())
