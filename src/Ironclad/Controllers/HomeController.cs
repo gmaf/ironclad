@@ -7,6 +7,7 @@ namespace Ironclad.Controllers
     using System.Threading.Tasks;
     using IdentityServer4.Services;
     using Ironclad.Models;
+    using Ironclad.Sdk;
     using Microsoft.AspNetCore.Mvc;
 
     [SecurityHeaders]
@@ -28,6 +29,8 @@ namespace Ironclad.Controllers
         }
 
         public IActionResult Index() => this.View(Version);
+
+        public IActionResult About() => this.View();
 
         public async Task<IActionResult> Error(string errorId)
         {

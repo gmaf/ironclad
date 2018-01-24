@@ -44,6 +44,8 @@ namespace Ironclad
             Log.Information($"{title} [{version}] {copyright}");
             Log.Information($"Running on: {RuntimeInformation.OSDescription}");
 
+            Console.Title = $"{title} [{version}]";
+
             try
             {
                 Log.Information($"Starting {title} web API");

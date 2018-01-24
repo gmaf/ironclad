@@ -8,6 +8,7 @@ namespace Ironclad.Controllers
     using IdentityServer4.Services;
     using IdentityServer4.Stores;
     using Ironclad.Models;
+    using Ironclad.Sdk;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
 

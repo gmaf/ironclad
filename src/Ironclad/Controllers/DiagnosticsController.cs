@@ -6,6 +6,7 @@ namespace Ironclad.Controllers
     using System.Linq;
     using System.Threading.Tasks;
     using Ironclad.Models;
+    using Ironclad.Sdk;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
