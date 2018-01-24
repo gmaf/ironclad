@@ -41,10 +41,7 @@ namespace Ironclad.Controllers
             SignInManager<ApplicationUser> signInManager,
             IEmailSender emailSender,
             ILogger<AccountController> logger,
-            IIdentityServerInteractionService interaction,
-            IClientStore clientStore,
-            IHttpContextAccessor httpContextAccessor,
-            IAuthenticationSchemeProvider schemeProvider)
+            IIdentityServerInteractionService interaction)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
@@ -114,7 +111,6 @@ namespace Ironclad.Controllers
         {
             // Ensure the user has gone through the username & password screen first
             var user = await this.signInManager.GetTwoFactorAuthenticationUserAsync();
-
             if (user == null)
             {
                 throw new ApplicationException($"Unable to load two-factor authentication user.");

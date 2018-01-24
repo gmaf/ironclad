@@ -3,6 +3,7 @@
 
 namespace Ironclad
 {
+    using IdentityServer4;
     using Ironclad.Application;
     using Ironclad.Data;
     using Ironclad.Services;
@@ -58,12 +59,13 @@ namespace Ironclad
                 .AddInMemoryApiResources(Config.GetApiResources())
                 .AddAspNetIdentity<ApplicationUser>();
 
-            ////services.AddAuthentication()
-            ////    .AddGoogle(options =>
-            ////    {
-            ////        options.ClientId = "998042782978-s07498t8i8jas7npj4crve1skpromf37.apps.googleusercontent.com";
-            ////        options.ClientSecret = "HsnwJri_53zn7VcO1Fm7THBb";
-            ////    });
+            services.AddAuthentication()
+                .AddGoogle(
+                    options =>
+                    {
+                        options.ClientId = "835517018777-4hnr0i9s8750kb10uaejdokel68bhtbb.apps.googleusercontent.com";
+                        options.ClientSecret = "LCPH4fgebc-i4JR99GmoYU-X";
+                    });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

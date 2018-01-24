@@ -9,7 +9,7 @@
     <CodeAnalysisRuleSet>../Ironclad.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningsAsErrors />
-    <TrimUnusedDependencies>true</TrimUnusedDependencies>
+    <!--<TrimUnusedDependencies>true</TrimUnusedDependencies>-->
   </PropertyGroup>
 
   <PropertyGroup>
@@ -29,6 +29,8 @@
 
   <ItemGroup>
     <TrimFilesRootFiles Include="Microsoft.AspNetCore.ApplicationInsights.HostingStartup.dll" />
+    <!--<TrimFilesRootFiles Include="Microsoft.AspNetCore.Authentication.Google.dll" />
+    <LinkerRootAssemblies Include="Microsoft.AspNetCore.Authentication.Google" />-->
   </ItemGroup>
   
   <ItemGroup>
@@ -48,7 +50,7 @@
   <ItemGroup>
     <Folder Include="Data\" />
     <Folder Include="Views\Manage\" />
-    <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot\lib\qrcode\" />
   </ItemGroup>
 
   <ItemGroup>

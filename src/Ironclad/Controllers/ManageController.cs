@@ -501,7 +501,7 @@ namespace Ironclad.Controllers
             string.Format(
                 CultureInfo.InvariantCulture,
                 AuthenicatorUriFormat,
-                this.urlEncoder.Encode("IdentityServerWithAspNetIdentity"),
+                this.urlEncoder.Encode("Lykke Cloud"),
                 this.urlEncoder.Encode(email),
                 unformattedKey);
     }
