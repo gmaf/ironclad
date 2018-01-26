@@ -298,8 +298,7 @@ namespace Ironclad.Controllers
                 // complete our single sign-out processing.
                 string url = this.Url.Action("Logout", new { logoutId = model.LogoutId });
 
-                // this triggers a redirect to the external provider for sign-out
-                // hack: try/catch to handle social providers that throw
+                // this triggers a redirect to the external provider for sign-out hack try/catch to handle social providers that throw
                 return this.SignOut(new AuthenticationProperties { RedirectUri = url }, model.ExternalAuthenticationScheme);
             }
 

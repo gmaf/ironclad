@@ -3,7 +3,6 @@
 
 namespace Ironclad
 {
-    using IdentityServer4;
     using Ironclad.Application;
     using Ironclad.Data;
     using Ironclad.Services;
@@ -63,12 +62,11 @@ namespace Ironclad
                 .AddGoogle(
                     options =>
                     {
-                        options.ClientId = "835517018777-4hnr0i9s8750kb10uaejdokel68bhtbb.apps.googleusercontent.com";
-                        options.ClientSecret = "LCPH4fgebc-i4JR99GmoYU-X";
+                        options.ClientId = this.configuration.GetValue<string>("Google-ClientId");
+                        options.ClientSecret = this.configuration.GetValue<string>("Google-Secret");
                     });
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())

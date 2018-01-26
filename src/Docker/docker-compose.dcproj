@@ -5,7 +5,7 @@
     <DockerTargetOS>Linux</DockerTargetOS>
     <ProjectGuid>65bdbbc8-bd4d-46e4-a19c-e01a01d59f8b</ProjectGuid>
     <DockerLaunchBrowser>True</DockerLaunchBrowser>
-    <DockerServiceUrl>http://localhost:5006</DockerServiceUrl>
+    <DockerServiceUrl>http://localhost:5005</DockerServiceUrl>
     <DockerServiceName>ironclad</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>

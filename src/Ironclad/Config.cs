@@ -43,7 +43,7 @@ namespace Ironclad
                         "sample_api",
                     },
 
-                    ////AccessTokenType = AccessTokenType.Reference,
+                    AccessTokenType = AccessTokenType.Reference,
                 }
             };
 
