@@ -26,6 +26,7 @@ namespace Ironclad
                 .AddJsonFile($"appsettings.Custom.json", optional: true)
                 .AddJsonFile($"appsettings.{environmentName}.json", optional: true)
                 .AddCommandLine(args)
+                .AddUserSecrets<Startup>()
                 .Build();
 
             // LINK (Cameron): https://mitchelsellers.com/blogs/2017/10/09/real-world-aspnet-core-logging-configuration
@@ -43,6 +44,8 @@ namespace Ironclad
             var copyright = assembly.Attribute<AssemblyCopyrightAttribute>(attribute => attribute.Copyright);
             Log.Information($"{title} [{version}] {copyright}");
             Log.Information($"Running on: {RuntimeInformation.OSDescription}");
+
+            Console.Title = $"{title} [{version}]";
 
             try
             {
