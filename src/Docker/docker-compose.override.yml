@@ -4,9 +4,13 @@ services:
   ironclad:
     ports:
       - "5006:80"
+    volumes:
+      - S:\Logs:/app/logs
   nginx:
     ports:
       - "5005:80"
   postgres:
     ports:
       - "5432:5432"
+    volumes:
+      - S:\Data\postgres:/var/lib/postgresql/data

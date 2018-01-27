@@ -3,9 +3,7 @@
 
 namespace Ironclad
 {
-    using IdentityServer4.Postgresql.Extensions;
     using Ironclad.Application;
-    using Ironclad.Configurations;
     using Ironclad.Data;
     using Ironclad.Services;
     using Microsoft.AspNetCore.Builder;
@@ -52,18 +50,21 @@ namespace Ironclad
             services.AddIdentityServer(
                 options =>
                 {
-                    ////options.PublicOrigin = "http://localhost:5005";
+                    options.PublicOrigin = "http://localhost:5005";
                 })
                 .AddDeveloperSigningCredential()
-                .AddConfigurationStore(this.configuration.GetConnectionString("Ironclad"))
-                .AddOperationalStore()
+                ////.AddConfigurationStore(this.configuration.GetConnectionString("Ironclad"))
+                .AddInMemoryClients(Config.GetInMemoryClients())
+                .AddInMemoryIdentityResources(Config.GetIdentityResources())
+                .AddInMemoryApiResources(Config.GetApiResources())
+                ////.AddOperationalStore()
                 .AddAspNetIdentity<ApplicationUser>();
 
             services.AddAuthentication()
                 .AddGoogle(
                     options =>
                     {
-                        options.ClientId = this.configuration.GetValue<string>("Google-ClientId");
+                        options.ClientId = this.configuration.GetValue<string>("Google-ClientId") ;
                         options.ClientSecret = this.configuration.GetValue<string>("Google-Secret");
                     });
         }
@@ -77,18 +78,11 @@ namespace Ironclad
                 app.UseDatabaseErrorPage();
             }
 
-            ////app
-            ////    .ApplicationServices
-            ////    .GetService<IDatabaseSeeder>()
-            ////    .Seed();
-
             app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto });
-
             app.UseStaticFiles();
-
             app.UseIdentityServer();
-
             app.UseMvcWithDefaultRoute();
+            app.InitializeDatabase();
         }
     }
 }
