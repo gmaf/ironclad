@@ -25,7 +25,7 @@ namespace Ironclad
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(this.configuration.GetConnectionString("Ironclad")));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(this.configuration.GetConnectionString("Ironclad")));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(
                 options =>

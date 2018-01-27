@@ -19,7 +19,7 @@ namespace Ironclad.Data
                 .Build();
 
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseSqlServer(configuration.GetConnectionString("Ironclad"))
+                .UseNpgsql(configuration.GetConnectionString("Ironclad"))
                 .Options;
 
             return new ApplicationDbContext(options);
