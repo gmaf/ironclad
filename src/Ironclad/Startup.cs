@@ -3,6 +3,7 @@
 
 namespace Ironclad
 {
+    using IdentityServer4.Postgresql.Extensions;
     using Ironclad.Application;
     using Ironclad.Data;
     using Ironclad.Services;
@@ -25,6 +26,8 @@ namespace Ironclad
 
         public void ConfigureServices(IServiceCollection services)
         {
+            var migrationsAssembly = typeof(Startup).GetType().Assembly.GetName().Name;
+
             services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(this.configuration.GetConnectionString("Ironclad")));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(
@@ -53,18 +56,15 @@ namespace Ironclad
                     options.PublicOrigin = "http://localhost:5005";
                 })
                 .AddDeveloperSigningCredential()
-                ////.AddConfigurationStore(this.configuration.GetConnectionString("Ironclad"))
-                .AddInMemoryClients(Config.GetInMemoryClients())
-                .AddInMemoryIdentityResources(Config.GetIdentityResources())
-                .AddInMemoryApiResources(Config.GetApiResources())
-                ////.AddOperationalStore()
+                .AddConfigurationStore(this.configuration.GetConnectionString("Ironclad"))
+                .AddOperationalStore()
                 .AddAspNetIdentity<ApplicationUser>();
 
             services.AddAuthentication()
                 .AddGoogle(
                     options =>
                     {
-                        options.ClientId = this.configuration.GetValue<string>("Google-ClientId") ;
+                        options.ClientId = this.configuration.GetValue<string>("Google-ClientId");
                         options.ClientSecret = this.configuration.GetValue<string>("Google-Secret");
                     });
         }
