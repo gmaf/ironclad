@@ -19,8 +19,17 @@ namespace Ironclad
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
                 // NOTE (Cameron): Set up ASP.NET Core Identity using Entity Framework (with Postgres).
-                serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
+                var applicationDbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                applicationDbContext.Database.Migrate();
+            }
 
+            return app;
+        }
+
+        public static IApplicationBuilder SeedDatabase(this IApplicationBuilder app)
+        {
+            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            {
                 // NOTE (Cameron): Set up default clients in Postgres.
                 var store = serviceScope.ServiceProvider.GetRequiredService<IDocumentStore>();
                 using (var session = store.LightweightSession())

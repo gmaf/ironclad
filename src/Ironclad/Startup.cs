@@ -50,11 +50,7 @@ namespace Ironclad
 
             services.AddMvc();
 
-            services.AddIdentityServer(
-                options =>
-                {
-                    options.PublicOrigin = "http://localhost:5005";
-                })
+            services.AddIdentityServer(options => options.PublicOrigin = this.configuration.GetValue<string>("PUBLIC_ORIGIN"))
                 .AddDeveloperSigningCredential()
                 .AddConfigurationStore(this.configuration.GetConnectionString("Ironclad"))
                 .AddOperationalStore()
@@ -82,7 +78,7 @@ namespace Ironclad
             app.UseStaticFiles();
             app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();
-            app.InitializeDatabase();
+            app.InitializeDatabase().SeedDatabase();
         }
     }
 }

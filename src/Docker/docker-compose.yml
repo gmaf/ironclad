@@ -3,33 +3,18 @@ version: '3'
 services:
 
   ironclad:
-    image: ironclad:${VERSION:-dev}
+    image: ironclad:${TAG:-dev}
     container_name: ironclad
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
-      - IRONCLAD_CONNECTIONSTRING=${IRONCLAD_CONNECTIONSTRING:-Host=ironclad_postgres;Database=ironclad;Username=postgres;Password=postgres;}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-519195177062-l9k2sbgda49fn2lccp0jnqt3u950g1ha.apps.googleusercontent.com}
-      - GOOGLE_SECRET=${GOOGLE_SECRET:-NKuZi631Gh09XmfespBjp101}
+    env_file:
+      - ./.env
+      - ./default.env
     build:
       context: ../Ironclad/
       dockerfile: VisualStudio.Dockerfile
       args:
-        version: ${VERSION:-dev}
-
-  nginx:
-    image: ironclad_nginx:latest
-    container_name: ironclad_nginx
-    build:
-      context: nginx/
-      dockerfile: Dockerfile
-
-  postgres:
-    image: postgres:10.1-alpine
-    container_name: ironclad_postgres
-    environment:
-      - POSTGRES_DB=ironclad
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-
-networks:
-  default:
+        version: ${VERSION:-0.1.0-developer}
+    volumes:
+      - ${LOG_PATH:-/logs}:/app/logs
+#    network_mode: bridge
