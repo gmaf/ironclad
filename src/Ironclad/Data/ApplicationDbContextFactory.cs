@@ -13,13 +13,9 @@ namespace Ironclad.Data
     {
         public ApplicationDbContext CreateDbContext(string[] args)
         {
-            var configuration = new ConfigurationBuilder()
-                .AddUserSecrets<Startup>()
-                .AddEnvironmentVariables()
-                .Build();
-
+            var configuration = new ConfigurationBuilder().AddEnvironmentSecrets().Build();
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseSqlServer(configuration.GetConnectionString("Ironclad"))
+                .UseNpgsql(configuration.GetConnectionString("Ironclad"))
                 .Options;
 
             return new ApplicationDbContext(options);

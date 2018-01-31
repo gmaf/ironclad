@@ -1,16 +1,15 @@
-# VS Files
+# workspace
 *.suo
 *.user
 *.sln.ide
 *.sln.cache
 *.sln.docstates
-
-# VS Folders
 .vs/
 .vscode/
 [Bb]in/
 [Oo]bj/
 [Tt]est[Rr]esult*/
+.idea/
 
 # .NET Core
 project.lock.json
@@ -22,11 +21,12 @@ node_modules/
 npm-debug.log
 package-lock.json
 
-# Ironclad
-*.Custom.*
+# project
+*.[Cc]ustom.*
 [Ll]ogs/
 tempkey.rsa
+.env
 
-# Other
+# other
 Thumbs.db
 /[Bb]uild/*

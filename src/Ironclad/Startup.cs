@@ -3,6 +3,7 @@
 
 namespace Ironclad
 {
+    using IdentityServer4.Postgresql.Extensions;
     using Ironclad.Application;
     using Ironclad.Data;
     using Ironclad.Services;
@@ -25,7 +26,9 @@ namespace Ironclad
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(this.configuration.GetConnectionString("Ironclad")));
+            var migrationsAssembly = typeof(Startup).GetType().Assembly.GetName().Name;
+
+            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(this.configuration.GetConnectionString("Ironclad")));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(
                 options =>
@@ -47,15 +50,10 @@ namespace Ironclad
 
             services.AddMvc();
 
-            services.AddIdentityServer(
-                options =>
-                {
-                    ////options.PublicOrigin = "http://localhost:5005";
-                })
+            services.AddIdentityServer(options => options.PublicOrigin = this.configuration.GetValue<string>("PUBLIC_ORIGIN"))
                 .AddDeveloperSigningCredential()
-                .AddInMemoryClients(Config.GetInMemoryClients())
-                .AddInMemoryIdentityResources(Config.GetIdentityResources())
-                .AddInMemoryApiResources(Config.GetApiResources())
+                .AddConfigurationStore(this.configuration.GetConnectionString("Ironclad"))
+                .AddOperationalStore()
                 .AddAspNetIdentity<ApplicationUser>();
 
             services.AddAuthentication()
@@ -77,12 +75,10 @@ namespace Ironclad
             }
 
             app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto });
-
             app.UseStaticFiles();
-
             app.UseIdentityServer();
-
             app.UseMvcWithDefaultRoute();
+            app.InitializeDatabase().SeedDatabase();
         }
     }
 }

@@ -1,20 +1,19 @@
 version: '3'
 
 services:
+
   ironclad:
-    image: ironclad:${VERSION:-0.0.1-developer}
+    image: ironclad:${TAG:-dev}
     container_name: ironclad
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
+    env_file:
+      - ./.env
+      - ./default.env
     build:
       context: ../Ironclad/
       dockerfile: VisualStudio.Dockerfile
       args:
-        version: ${VERSION:-0.0.1-developer}
-
-  nginx:
-    image: ironclad_nginx
-    container_name: ironclad_nginx
-    build:
-      context: nginx/
-      dockerfile: Dockerfile
+        version: ${VERSION:-0.1.0-developer}
+    volumes:
+      - ${LOG_PATH:-/logs}:/app/logs
