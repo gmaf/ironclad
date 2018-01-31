@@ -17,4 +17,3 @@ services:
         version: ${VERSION:-0.1.0-developer}
     volumes:
       - ${LOG_PATH:-/logs}:/app/logs
-#    network_mode: bridge
