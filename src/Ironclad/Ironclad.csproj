@@ -74,11 +74,7 @@
     <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="2.0.1" />
     <DotNetCliToolReference Include="Microsoft.Extensions.SecretManager.Tools" Version="2.0.0" />
   </ItemGroup>
-  
-  <ItemGroup Condition="'$(Configuration)' == 'Release'">
-    <PackageReference Include="ILLink.Tasks" Version="0.1.4-preview-981901" />
-  </ItemGroup>
-  
+
   <ItemGroup>
     <AdditionalFiles Include="../stylecop.json" />
   </ItemGroup>
