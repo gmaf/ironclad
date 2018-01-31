@@ -11,6 +11,7 @@ It is further possible to install Postgres as a [stand-alone installation](http:
 ```
 docker run --name postgres -e POSTGRES_PASSWORD={password} -e POSTGRES_DB=ironclad -d -p 5432:5432 postgres
 ```
+NOTE: If you are running Ironclad inside a docker container pointing to Postgres running on your Windows machine then make sure to set the host in the connection string to ```docker.for.win.localhost```.
 
 ### Configuration
 
