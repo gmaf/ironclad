@@ -9,7 +9,7 @@ This project requires a running instance of [Postgres](https://www.postgresql.or
 To download and install Postgres you can follow the instructions [here](https://www.postgresql.org/download/).
 It is further possible to install Postgres as a [stand-alone installation](http://www.postgresonline.com/journal/archives/172-Starting-PostgreSQL-in-windows-without-install.html) from the binaries or run postgres in a docker container using the following command:
 ```
-docker run --name postgres -e POSTGRES_PASSWORD=<password> -e POSTGRES_DB=ironclad -d -p 5432:5432 postgres
+docker run --name postgres -e POSTGRES_PASSWORD=<password> -e POSTGRES_DB=ironclad -d -p 5432:5432 postgres:10.1-alpine
 ```
 NOTE: If you are running Ironclad inside a docker container pointing to Postgres running on your Windows machine then make sure to set the host in the connection string to ```docker.for.win.localhost```.
 
@@ -21,7 +21,7 @@ This project requires specification of user secrets in order to function. The se
 
 - If running the project from Visual Studio:  
 You need to configure the [user secrets](https://blogs.msdn.microsoft.com/mihansen/2017/09/10/managing-secrets-in-net-core-2-0-apps/) for the project.
-The contents of the `secrets.json` configuration file should match the [expected required configuration](src/Ironclad/Extensions/ConfigurationExtensions.cs?at=2&fileviewer=file-view-default#ConfigurationExtensions.cs-21).  
+The contents of the `secrets.json` configuration file should match the [expected required configuration](src/Ironclad/Extensions/ConfigurationExtensions.cs?fileviewer=file-view-default#ConfigurationExtensions.cs-21).  
 eg. (please note: secret values are invalid)
 
     ```json
@@ -47,7 +47,7 @@ You need to configure the [user secrets](https://blogs.msdn.microsoft.com/mihans
 - If running the project inside a container:  
 You need to configure the [environment variables](https://docs.docker.com/compose/environment-variables/#the-env_file-configuration-option) used to run the docker container.
 To do this you need to create an `.env` file in the `src/Docker` folder and enter key/value pairs in the format `KEY=VALUE` for each secret.
-The contents of the `.env` configuration file should match the [expected required configuration](src/Ironclad/Extensions/ConfigurationExtensions.cs?at=2&fileviewer=file-view-default#ConfigurationExtensions.cs-21).  
+The contents of the `.env` configuration file should match the [expected required configuration](src/Ironclad/Extensions/ConfigurationExtensions.cs?fileviewer=file-view-default#ConfigurationExtensions.cs-21).  
 eg.  (please note: secret values are invalid)
 
     ```cmd
