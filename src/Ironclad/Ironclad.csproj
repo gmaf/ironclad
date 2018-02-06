@@ -20,11 +20,7 @@
     <UserSecretsId>bbc9d7a3-f19b-4bec-baf1-68d158cca1a9</UserSecretsId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <NoWarn>1701;1702;1705;CA2007</NoWarn>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+  <PropertyGroup>
     <NoWarn>1701;1702;1705;CA2007</NoWarn>
   </PropertyGroup>
 
@@ -39,18 +35,9 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Compile Remove="Controllers\AccountController_Old.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="tempkey.rsa" />
   </ItemGroup>
   
-  <ItemGroup>
-    <Folder Include="Views\Manage\" />
-    <Folder Include="wwwroot\lib\qrcode\" />
-  </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="IdentityServer4" Version="2.1.1" />
     <PackageReference Include="IdentityServer4.AspNetIdentity" Version="2.1.0" />
