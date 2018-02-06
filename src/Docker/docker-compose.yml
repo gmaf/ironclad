@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+
+  ironclad:
+    image: ironclad:${TAG:-dev}
+    container_name: ironclad
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - IRONCLAD_CONNECTIONSTRING=${IRONCLAD_CONNECTIONSTRING}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_SECRET=${GOOGLE_SECRET}
+    env_file:
+      - ./default.env
+    build:
+      context: ../Ironclad/
+      dockerfile: VisualStudio.Dockerfile
+      args:
+        version: ${VERSION:-0.1.0-developer}
+    volumes:
+      - ${LOG_PATH:-/logs}:/app/logs
