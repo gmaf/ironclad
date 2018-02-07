@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+using System.Net.Http;
+
 namespace Ironclad.Controllers
 {
     using System;
@@ -103,7 +105,8 @@ namespace Ironclad.Controllers
                 await session.SaveChangesAsync();
             }
 
-            this.Response.Headers.Add("Location", this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + client.ClientId));
+            this.Response.Headers.Add("Location",
+                this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + client.ClientId));
 
             return this.Ok();
         }
@@ -132,7 +135,7 @@ namespace Ironclad.Controllers
                 // NOTE (Cameron): If the secret is updated we want to add the new secret...
                 if (!string.IsNullOrEmpty(model.Secret))
                 {
-                    client.ClientSecrets = new List<Secret> { new Secret(model.Secret.Sha256()) };
+                    client.ClientSecrets = new List<Secret> {new Secret(model.Secret.Sha256())};
                 }
 
                 var entity = client.ToEntity();
