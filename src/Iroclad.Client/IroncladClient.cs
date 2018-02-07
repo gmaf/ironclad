@@ -44,7 +44,8 @@ namespace Ironclad.Client
         /// <param name="size">The total size of the client set.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The clients.</returns>
-        public async Task<ResourceSet<ClientSummary>> GetClientSummariesAsync(int start = default, int size = default, CancellationToken cancellationToken = default)
+        public async Task<ResourceSet<ClientSummary>> GetClientSummariesAsync(int start = default, int size = default,
+            CancellationToken cancellationToken = default)
         {
             var url = this.authority + $"/api/clients?skip={start}&take={(size == 0 ? 20 : size)}";
 
@@ -92,7 +93,8 @@ namespace Ironclad.Client
         {
             var url = this.authority + $"/api/clients";
 
-            using (var httpContent = new StringContent(JsonConvert.SerializeObject(client, Settings), Encoding.UTF8, "application/json"))
+            using (var httpContent = new StringContent(JsonConvert.SerializeObject(client, Settings), Encoding.UTF8,
+                "application/json"))
             {
                 var response = await this.client.PostAsync(url, httpContent, cancellationToken).ConfigureAwait(false);
                 if (!response.IsSuccessStatusCode)
@@ -100,6 +102,24 @@ namespace Ironclad.Client
                     // TODO (Cameron): Fix exception type.
                     throw new Exception($"Error connecting to {url}: {response.ReasonPhrase}");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Unregisters the specified client.
+        /// </summary>
+        /// <param name="client">The client.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task.</returns>
+        public async Task UnregisterClientAsync(Client client, CancellationToken cancellationToken = default)
+        {
+            var url = this.authority + $"/api/clients/{client.Id}";
+
+            var response = await this.client.DeleteAsync(url, cancellationToken).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                // TODO (Cameron): Fix exception type.
+                throw new Exception($"Error connecting to {url}: {response.ReasonPhrase}");
             }
         }
 
@@ -113,13 +133,15 @@ namespace Ironclad.Client
         {
             var url = this.authority + $"/api/clients/{client.Id}";
 
-            using (var httpContent = new StringContent(JsonConvert.SerializeObject(client, Settings), Encoding.UTF8, "application/json"))
+            using (var httpContent = new StringContent(JsonConvert.SerializeObject(client, Settings), Encoding.UTF8,
+                "application/json"))
             {
                 var response = await this.client.PutAsync(url, httpContent, cancellationToken).ConfigureAwait(false);
                 if (!response.IsSuccessStatusCode)
                 {
                     // TODO (Cameron): Fix exception type.
-                    throw new Exception($"Error connecting to {url}: {response.ReasonPhrase} / {await response.Content.ReadAsStringAsync()}");
+                    throw new Exception(
+                        $"Error connecting to {url}: {response.ReasonPhrase} / {await response.Content.ReadAsStringAsync()}");
                 }
             }
         }
@@ -142,7 +164,7 @@ namespace Ironclad.Client
         {
             var settings = new JsonSerializerSettings
             {
-                ContractResolver = new DefaultContractResolver { NamingStrategy = new SnakeCaseNamingStrategy() },
+                ContractResolver = new DefaultContractResolver {NamingStrategy = new SnakeCaseNamingStrategy()},
                 NullValueHandling = NullValueHandling.Ignore,
             };
 
