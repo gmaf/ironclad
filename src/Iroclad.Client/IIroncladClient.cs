@@ -20,18 +20,31 @@ namespace Ironclad.Client
         /// <returns>The client summaries.</returns>
         Task<ResourceSet<ClientSummary>> GetClientSummariesAsync(int start = default, int size = default, CancellationToken cancellationToken = default);
 
-        /*
+        /// <summary>
+        /// Gets the client.
+        /// </summary>
+        /// <param name="clientId">The client identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The client.</returns>
         Task<Client> GetClientAsync(string clientId, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Registers the specified client.
+        /// </summary>
+        /// <param name="client">The client.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task.</returns>
         Task RegisterClientAsync(Client client, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Modifies the client.
+        /// </summary>
+        /// <param name="client">The client.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task.</returns>
         Task ModifyClientAsync(Client client, CancellationToken cancellationToken = default);
 
-        Task EnableClientAsync(string clientId, CancellationToken cancellationToken = default);
-
-        // update client
-        Task DisableClientAsync(string clientId, CancellationToken cancellationToken = default);
-
+        /*
         // delete
         Task UnregisterClientAsync(string clientId, CancellationToken cancellationToken = default);
         */

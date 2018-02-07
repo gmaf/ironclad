@@ -4,8 +4,7 @@
 namespace Ironclad.Console.Commands
 {
     using System.Reflection;
-    using Ironclad.Console.Sdk;
-    using Microsoft.Extensions.CommandLineUtils;
+    using McMaster.Extensions.CommandLineUtils;
 
     public class CommandLineOptions
     {
@@ -20,7 +19,7 @@ namespace Ironclad.Console.Commands
             // NOTE (Cameron): We need to pass the options through each of the commands before we can evaluate the result of the parsing.
             var options = new CommandLineOptions();
 
-            var app = new CommandLineApplication
+            var app = new CommandLineApplication()
             {
                 Out = console.Out,
                 Error = console.Error,

@@ -5,6 +5,7 @@ namespace Ironclad.Client
 {
     using System;
     using System.Net.Http;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
@@ -57,6 +58,70 @@ namespace Ironclad.Client
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             return JsonConvert.DeserializeObject<ResourceSet<ClientSummary>>(content, Settings);
+        }
+
+        /// <summary>
+        /// Gets the client.
+        /// </summary>
+        /// <param name="clientId">The client identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The client.</returns>
+        public async Task<Client> GetClientAsync(string clientId, CancellationToken cancellationToken = default)
+        {
+            var url = this.authority + $"/api/clients/{clientId}";
+
+            var response = await this.client.GetAsync(url, cancellationToken).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                // TODO (Cameron): Fix exception type.
+                throw new Exception($"Error connecting to {url}: {response.ReasonPhrase}");
+            }
+
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            return JsonConvert.DeserializeObject<Client>(content, Settings);
+        }
+
+        /// <summary>
+        /// Registers the specified client.
+        /// </summary>
+        /// <param name="client">The client.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task.</returns>
+        public async Task RegisterClientAsync(Client client, CancellationToken cancellationToken = default)
+        {
+            var url = this.authority + $"/api/clients";
+
+            using (var httpContent = new StringContent(JsonConvert.SerializeObject(client, Settings), Encoding.UTF8, "application/json"))
+            {
+                var response = await this.client.PostAsync(url, httpContent, cancellationToken).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                {
+                    // TODO (Cameron): Fix exception type.
+                    throw new Exception($"Error connecting to {url}: {response.ReasonPhrase}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Modifies the client.
+        /// </summary>
+        /// <param name="client">The client.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task.</returns>
+        public async Task ModifyClientAsync(Client client, CancellationToken cancellationToken = default)
+        {
+            var url = this.authority + $"/api/clients/{client.Id}";
+
+            using (var httpContent = new StringContent(JsonConvert.SerializeObject(client, Settings), Encoding.UTF8, "application/json"))
+            {
+                var response = await this.client.PutAsync(url, httpContent, cancellationToken).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                {
+                    // TODO (Cameron): Fix exception type.
+                    throw new Exception($"Error connecting to {url}: {response.ReasonPhrase}");
+                }
+            }
         }
 
         /// <summary>

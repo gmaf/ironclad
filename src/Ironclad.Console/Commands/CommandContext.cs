@@ -4,7 +4,7 @@
 namespace Ironclad.Console.Commands
 {
     using Ironclad.Client;
-    using Ironclad.Console.Sdk;
+    using McMaster.Extensions.CommandLineUtils;
 
     public class CommandContext
     {

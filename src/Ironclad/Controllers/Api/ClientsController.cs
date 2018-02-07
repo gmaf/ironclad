@@ -15,6 +15,8 @@ namespace Ironclad.Controllers
     using Marten;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using IdentityServerClient = IdentityServer4.Models.Client;
+    using IroncladClient = Ironclad.Client.Client;
     using PostgresClient = IdentityServer4.Postgresql.Entities.Client;
 
     [Route("api/[controller]")]
@@ -68,62 +70,91 @@ namespace Ironclad.Controllers
                 }
 
                 return this.Ok(
-                    new
+                    new ClientResource
                     {
                         Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + client.ClientId),
-                        client.ClientId,
-                        client.ClientName,
-                        AllowedCorsOrigins = client.AllowedCorsOrigins.Select(item => item.Origin).ToArray(),
-                        RedirectUris = client.RedirectUris.Select(item => item.RedirectUri).ToArray(),
-                        PostLogoutRedirectUris = client.PostLogoutRedirectUris.Select(item => item.PostLogoutRedirectUri).ToArray(),
-                        AllowedScopes = client.AllowedScopes.Select(item => item.Scope).ToArray(),
+                        Id = client.ClientId,
+                        Name = client.ClientName,
+                        AllowedCorsOrigins = client.AllowedCorsOrigins.Select(item => item.Origin).ToList(),
+                        RedirectUris = client.RedirectUris.Select(item => item.RedirectUri).ToList(),
+                        PostLogoutRedirectUris = client.PostLogoutRedirectUris.Select(item => item.PostLogoutRedirectUri).ToList(),
+                        AllowedScopes = client.AllowedScopes.Select(item => item.Scope).ToList(),
                         AccessTokenType = ((AccessTokenType)client.AccessTokenType).ToString(),
-                        client.Enabled,
+                        Enabled = client.Enabled,
                     });
             }
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody]CustomClient model)
+        public async Task<IActionResult> Post([FromBody]IroncladClient model)
         {
-            // NOTE (Cameron): We create a single client secret from the passed secret property. This is by design.
-            model.ClientSecrets = new List<Secret> { new Secret(model.Secret.Sha256()) };
+            var client = new IdentityServerClient
+            {
+                ClientId = model.Id,
+                ClientSecrets = new List<Secret> { new Secret(model.Secret.Sha256()) },
+                ClientName = model.Name,
+            };
 
             using (var session = this.store.LightweightSession())
             {
-                if (session.Query<PostgresClient>().Any(client => client.ClientId == model.ClientId))
+                if (session.Query<PostgresClient>().Any(document => document.ClientId == client.ClientId))
                 {
                     return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "Client already exists" });
                 }
 
-                session.Insert(model.ToEntity());
+                session.Insert(client.ToEntity());
 
                 await session.SaveChangesAsync();
             }
 
-            this.Response.Headers.Add("Location", this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + model.ClientId));
+            this.Response.Headers.Add("Location", this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + client.ClientId));
 
             return this.Ok();
         }
 
         [HttpPut("{clientId}")]
-        public async Task<IActionResult> Put(string clientId, [FromBody]CustomClient model)
+        public async Task<IActionResult> Put(string clientId, [FromBody]IroncladClient model)
         {
-            model.ClientId = clientId;
-            model.ClientSecrets = new List<Secret> { new Secret(model.Secret.Sha256()) };
-
             using (var session = this.store.LightweightSession())
             {
-                var client = await session.Query<PostgresClient>().SingleOrDefaultAsync(item => item.ClientId == model.ClientId);
-                if (client == null)
+                var document = await session.Query<PostgresClient>().SingleOrDefaultAsync(item => item.ClientId == clientId);
+                if (document == null)
                 {
                     return this.NotFound(new { Message = "Client not found" });
                 }
 
-                var entity = model.ToEntity();
-                entity.Id = client.Id;
+                // NOTE (Cameron): Because of the mapping/conversion unknowns we rely upon the Postgres integration to perform that operation which is why we do this...
+                var client = new IdentityServerClient
+                {
+                    AllowedCorsOrigins = model.AllowedCorsOrigins,
+                    RedirectUris = model.RedirectUris,
+                    PostLogoutRedirectUris = model.PostLogoutRedirectUris,
+                    AllowedScopes = model.AllowedScopes,
+                };
 
-                session.Store(entity);
+                // NOTE (Cameron): If the secret is updated we want to add the new secret...
+                if (!string.IsNullOrEmpty(model.Secret))
+                {
+                    client.ClientSecrets = new List<Secret> { new Secret(model.Secret.Sha256()) };
+                }
+
+                var entity = client.ToEntity();
+
+                // update properties (everything supported is an optional update eg. if null is passed we will not update)
+                document.ClientName = model.Name ?? document.ClientName;
+                document.AllowedCorsOrigins = entity.AllowedCorsOrigins ?? document.AllowedCorsOrigins;
+                document.RedirectUris = entity.RedirectUris ?? document.RedirectUris;
+                document.PostLogoutRedirectUris = entity.PostLogoutRedirectUris ?? document.PostLogoutRedirectUris;
+                document.AllowedScopes = entity.AllowedScopes ?? document.AllowedScopes;
+                document.AccessTokenType = Enum.TryParse<AccessTokenType>(model.AccessTokenType, out var accessTokenType) ? (int)accessTokenType : document.AccessTokenType;
+                document.Enabled = model.Enabled ?? document.Enabled;
+
+                if (!string.IsNullOrEmpty(model.Secret))
+                {
+                    document.ClientSecrets.Add(entity.ClientSecrets.First());
+                }
+
+                session.Update(document);
 
                 await session.SaveChangesAsync();
             }
@@ -143,10 +174,10 @@ namespace Ironclad.Controllers
             return this.Ok();
         }
 
-#pragma warning disable CA1034
-        public class CustomClient : Client
+#pragma warning disable CA1034, CA1056
+        public class ClientResource : IroncladClient
         {
-            public string Secret { get; set; }
+            public string Url { get; set; }
         }
 
         private class ClientSummaryResource : ClientSummary

@@ -3,9 +3,10 @@
 
 namespace Ironclad.Console.Commands
 {
+    using System.Globalization;
+    using System.Linq;
     using System.Threading.Tasks;
-    using Ironclad.Console.Sdk;
-    using Microsoft.Extensions.CommandLineUtils;
+    using McMaster.Extensions.CommandLineUtils;
 
     internal class ListCommand : ICommand
     {
@@ -49,9 +50,14 @@ namespace Ironclad.Console.Commands
         public async Task ExecuteAsync(CommandContext context)
         {
             var clients = await context.Client.GetClientSummariesAsync(this.skip, this.take).ConfigureAwait(false);
+            var maxClientIdLength = clients.Max(c => c.Id?.Length ?? 0);
+            var outputFormat = string.Format(CultureInfo.InvariantCulture, "  {{0, -{0}}}{{1}}", maxClientIdLength + 2);
+
+            await context.Console.Out.WriteLineAsync("Clients:").ConfigureAwait(false);
+
             foreach (var client in clients)
             {
-                await context.Console.Out.WriteLineAsync($"{client.Id}: ({client.Name})").ConfigureAwait(false);
+                context.Console.Out.WriteLine(outputFormat, client.Id, client.Name);
             }
 
             await context.Console.Out.WriteLineAsync($"Showing from {clients.Start + 1} to {clients.Start + clients.Size} of {clients.TotalSize} in total.")

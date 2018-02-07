@@ -3,8 +3,7 @@
 
 namespace Ironclad.Console.Commands
 {
-    using Ironclad.Console.Sdk;
-    using Microsoft.Extensions.CommandLineUtils;
+    using McMaster.Extensions.CommandLineUtils;
 
     // NOTE (Cameron): This command is informational only and cannot be executed (only 'show help' works) so inheriting ICommand is unnecessary.
     internal static class ClientsCommand
@@ -18,6 +17,8 @@ namespace Ironclad.Console.Commands
             // commands
             app.Command("list", command => ListCommand.Configure(command, options, console));
             app.Command("show", command => ShowCommand.Configure(command, options, console));
+            app.Command("register", command => RegisterCommand.Configure(command, options, console));
+            app.Command("scopes", command => ModifyScopesCommand.Configure(command, options, console));
 
             // action (for this command)
             app.OnExecute(() => app.ShowHelp());

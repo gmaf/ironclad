@@ -7,8 +7,7 @@ namespace Ironclad.Console
     using System.Threading.Tasks;
     using Ironclad.Client;
     using Ironclad.Console.Commands;
-    using Ironclad.Console.Sdk;
-    using Microsoft.Extensions.CommandLineUtils;
+    using McMaster.Extensions.CommandLineUtils;
 
     internal class Program
     {
@@ -21,7 +20,7 @@ namespace Ironclad.Console
 
         public static Task<int> Main(string[] args)
         {
-            DebugHelper.HandleDebugSwitch(ref args);
+            Sdk.DebugHelper.HandleDebugSwitch(ref args);
 
             return new Program(PhysicalConsole.Singleton).TryRunAsync(args);
         }

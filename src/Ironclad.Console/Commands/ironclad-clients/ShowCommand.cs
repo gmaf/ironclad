@@ -4,8 +4,8 @@
 namespace Ironclad.Console.Commands
 {
     using System.Threading.Tasks;
-    using Ironclad.Console.Sdk;
-    using Microsoft.Extensions.CommandLineUtils;
+    using McMaster.Extensions.CommandLineUtils;
+    using Newtonsoft.Json;
 
     internal class ShowCommand : ICommand
     {
@@ -18,8 +18,7 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
-            app.Description = "Lists the registered clients";
-            app.Syntax = "Syntax";
+            app.Description = "Lists the specified client";
             app.HelpOption();
 
             // arguments
@@ -41,7 +40,8 @@ namespace Ironclad.Console.Commands
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            await context.Console.Out.WriteLineAsync($"Show {this.clientId}").ConfigureAwait(false);
+            var client = await context.Client.GetClientAsync(this.clientId).ConfigureAwait(false);
+            await context.Console.Out.WriteLineAsync(JsonConvert.SerializeObject(client, Formatting.Indented)).ConfigureAwait(false);
         }
     }
 }
