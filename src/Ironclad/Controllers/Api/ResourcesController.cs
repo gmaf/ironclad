@@ -8,5 +8,16 @@ namespace Ironclad.Controllers.Api
     [Route("api/[controller]")]
     public class ResourcesController : Controller
     {
+        // api/clients
+        // api/resources?type=api
+
+        // api/resources/api
+        // api/resources/identity
+
+        // manage identity resources
+        // list, add, remove
+
+        // manage api resources
+        // list, add, remove
     }
 }

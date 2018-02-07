@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <CodeAnalysisRuleSet>../Ironclad.ruleset</CodeAnalysisRuleSet>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <TrimUnusedDependencies>true</TrimUnusedDependencies>
+    <AssemblyName>ironclad</AssemblyName>
+    <Copyright>Copyright (c) Ironclad Contributers. All rights reserved.</Copyright>
+    <Product>Ironclad</Product>
+    <Company>Lykke</Company>
+    <Authors>Ironclad Contributers</Authors>
+    <PackageId>Ironclad.Console</PackageId>
+    <Version>0.0.1-developer</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Iroclad.Client\Ironclad.Client.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="../stylecop.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Commands\Users\" />
+    <Folder Include="Commands\Resources\" />
+  </ItemGroup>
+
+</Project>

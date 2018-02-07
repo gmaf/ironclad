@@ -5,13 +5,13 @@ namespace Ironclad.Controllers
 {
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
     using IdentityServer4.Extensions;
     using IdentityServer4.Models;
     using IdentityServer4.Postgresql.Mappers;
+    using Ironclad.Client;
     using Marten;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -29,23 +29,28 @@ namespace Ironclad.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get(int skip = default, int take = 20)
         {
+            skip = Math.Max(0, skip);
+            take = take < 0 ? 20 : Math.Min(take, 100);
+
             using (var session = this.store.LightweightSession())
             {
-                var clients = await session.Query<PostgresClient>()
-                    .ToListAsync();
+                var totalSize = await session.Query<PostgresClient>().CountAsync();
+                var clients = await session.Query<PostgresClient>().Skip(skip).Take(take).ToListAsync();
+                var resources = clients.Select(
+                    item =>
+                    new ClientSummaryResource
+                    {
+                        Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + item.ClientId),
+                        Id = item.ClientId,
+                        Name = item.ClientName,
+                        Enabled = item.Enabled,
+                    });
 
-                return this.Ok(
-                    clients.Select(
-                        item =>
-                        new
-                        {
-                            Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + item.ClientId),
-                            item.ClientId,
-                            item.ClientName,
-                            item.Enabled,
-                        }));
+                var resourceSet = new ResourceSet<ClientSummaryResource>(skip, totalSize, resources);
+
+                return this.Ok(resourceSet);
             }
         }
 
@@ -142,6 +147,11 @@ namespace Ironclad.Controllers
         public class CustomClient : Client
         {
             public string Secret { get; set; }
+        }
+
+        private class ClientSummaryResource : ClientSummary
+        {
+            public string Url { get; set; }
         }
     }
 }

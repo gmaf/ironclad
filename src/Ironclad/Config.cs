@@ -6,14 +6,15 @@ namespace Ironclad
     using System.Collections.Generic;
     using IdentityServer4;
     using IdentityServer4.Models;
+    using client = IdentityServer4.Models.Client;
 
     internal static class Config
     {
-        public static IEnumerable<Client> GetInMemoryClients() =>
-            new List<Client>
+        public static IEnumerable<client> GetInMemoryClients() =>
+            new List<client>
             {
                 // NOTE (Cameron): This is the sample client (console app; representing server-to-server communication).
-                new Client
+                new client
                 {
                     ClientId = "sample_client",
                     ClientName = "Sample Client Application",
@@ -24,7 +25,7 @@ namespace Ironclad
                 },
 
                 // NOTE (Cameron): This is the sample client (console app; representing server-to-server communication).
-                new Client
+                new client
                 {
                     ClientId = "spa",
                     ClientName = "Single Page Application",
