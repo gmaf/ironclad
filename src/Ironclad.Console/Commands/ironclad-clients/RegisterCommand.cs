@@ -46,7 +46,6 @@ namespace Ironclad.Console.Commands
 
         public async Task ExecuteAsync(CommandContext context)
         {
-
             var client = new Ironclad.Client.Client
             {
                 Id = this.clientId,

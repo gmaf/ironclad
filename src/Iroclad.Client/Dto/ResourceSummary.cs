@@ -4,20 +4,20 @@
 namespace Ironclad.Client
 {
     /// <summary>
-    /// Represents a Resource summary.
+    /// Represents a resource summary.
     /// </summary>
     public class ResourceSummary
     {
         /// <summary>
-        /// Gets or sets the Resource name.
+        /// Gets or sets the name of the resource.
         /// </summary>
-        /// <value>The resource name.</value>
+        /// <value>The name.</value>
         public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets the Resource display name.
+        /// Gets or sets the display name for the resource.
         /// </summary>
-        /// <value>The Resource display name.</value>
+        /// <value>The display name.</value>
         public string DisplayName { get; set; }
 
         /// <summary>

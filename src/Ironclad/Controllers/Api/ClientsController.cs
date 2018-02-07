@@ -13,7 +13,6 @@ namespace Ironclad.Controllers
     using IdentityServer4.Postgresql.Mappers;
     using Ironclad.Client;
     using Marten;
-    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using IdentityServerClient = IdentityServer4.Models.Client;
     using IroncladClient = Ironclad.Client.Client;
@@ -30,7 +29,6 @@ namespace Ironclad.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IActionResult> Get(int skip = default, int take = 20)
         {
             skip = Math.Max(0, skip);
@@ -50,9 +48,7 @@ namespace Ironclad.Controllers
                         Enabled = item.Enabled,
                     });
 
-                var resourceSet = new ResourceSet<ClientSummaryResource>(skip, totalSize, resources);
-
-                return this.Ok(resourceSet);
+                return this.Ok(new ResourceSet<ClientSummaryResource>(skip, totalSize, resources));
             }
         }
 
@@ -75,10 +71,10 @@ namespace Ironclad.Controllers
                         Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + client.ClientId),
                         Id = client.ClientId,
                         Name = client.ClientName,
-                        AllowedCorsOrigins = client.AllowedCorsOrigins.Select(item => item.Origin).ToList(),
-                        RedirectUris = client.RedirectUris.Select(item => item.RedirectUri).ToList(),
-                        PostLogoutRedirectUris = client.PostLogoutRedirectUris.Select(item => item.PostLogoutRedirectUri).ToList(),
-                        AllowedScopes = client.AllowedScopes.Select(item => item.Scope).ToList(),
+                        AllowedCorsOrigins = client.AllowedCorsOrigins?.Select(item => item.Origin).ToList(),
+                        RedirectUris = client.RedirectUris?.Select(item => item.RedirectUri).ToList(),
+                        PostLogoutRedirectUris = client.PostLogoutRedirectUris?.Select(item => item.PostLogoutRedirectUri).ToList(),
+                        AllowedScopes = client.AllowedScopes?.Select(item => item.Scope).ToList(),
                         AccessTokenType = ((AccessTokenType)client.AccessTokenType).ToString(),
                         Enabled = client.Enabled,
                     });
@@ -91,8 +87,8 @@ namespace Ironclad.Controllers
             var client = new IdentityServerClient
             {
                 ClientId = model.Id,
-                ClientSecrets = new List<Secret> { new Secret(model.Secret.Sha256()) },
                 ClientName = model.Name,
+                ClientSecrets = new List<Secret> { new Secret(model.Secret.Sha256()) },
             };
 
             using (var session = this.store.LightweightSession())
@@ -175,7 +171,7 @@ namespace Ironclad.Controllers
         }
 
 #pragma warning disable CA1034, CA1056
-        public class ClientResource : IroncladClient
+        private class ClientResource : IroncladClient
         {
             public string Url { get; set; }
         }

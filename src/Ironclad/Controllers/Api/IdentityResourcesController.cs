@@ -8,12 +8,13 @@ namespace Ironclad.Controllers.Api
     using System.Net;
     using System.Threading.Tasks;
     using IdentityServer4.Extensions;
-    using IdentityServer4.Models;
     using IdentityServer4.Postgresql.Mappers;
     using Ironclad.Client;
     using Marten;
     using Microsoft.AspNetCore.Mvc;
-    using PostgresIdentityResource = IdentityServer4.Postgresql.Entities.IdentityResource;
+    using IdentityServerResource = IdentityServer4.Models.IdentityResource;
+    using IroncladResource = Ironclad.Client.Resource;
+    using PostgresResource = IdentityServer4.Postgresql.Entities.IdentityResource;
 
     [Route("api/[controller]")]
     public class IdentityResourcesController : Controller
@@ -33,11 +34,11 @@ namespace Ironclad.Controllers.Api
 
             using (var session = this.store.LightweightSession())
             {
-                var totalSize = await session.Query<PostgresIdentityResource>().CountAsync();
-                var identityResources = await session.Query<PostgresIdentityResource>().Skip(skip).Take(take).ToListAsync();
+                var totalSize = await session.Query<PostgresResource>().CountAsync();
+                var identityResources = await session.Query<PostgresResource>().Skip(skip).Take(take).ToListAsync();
 
                 var resources = identityResources.Select(item =>
-                new IdentityResourceSummaryResource
+                new ResourceSummaryResource
                 {
                     Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/identityresources/" + item.Name),
                     Name = item.Name,
@@ -45,20 +46,7 @@ namespace Ironclad.Controllers.Api
                     Enabled = item.Enabled
                 });
 
-                var resourceSet = new ResourceSet<IdentityResourceSummaryResource>(skip, totalSize, resources);
-
-                return this.Ok(resourceSet);
-
-                /*
-                 * Name
-                 * DisplayName
-                 * UserClaims
-                 * Required
-                 * Emphasize
-                 * ShowInDiscoverDocument
-                 * Description
-                 * Enabled
-                 */
+                return this.Ok(new ResourceSet<ResourceSummaryResource>(skip, totalSize, resources));
             }
         }
 
@@ -67,65 +55,73 @@ namespace Ironclad.Controllers.Api
         {
             using (var session = this.store.LightweightSession())
             {
-                var totalSize = await session.Query<PostgresIdentityResource>().CountAsync();
-                var identityResource = await session.Query<PostgresIdentityResource>()
+                var resource = await session.Query<PostgresResource>()
                     .SingleOrDefaultAsync(item => item.Name == name);
 
-                if (identityResource == null)
+                if (resource == null)
                 {
                     return this.NotFound();
                 }
 
                 return this.Ok(
-                    new
+                    new ResourceResource
                     {
-                        Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/identityresources/" + identityResource.Name),
-                        identityResource.Name,
-                        identityResource.DisplayName,
-                        UserClaims = identityResource.UserClaims?.Select(item => item.Type).ToArray(),
-                        identityResource.Description,
-                        identityResource.Enabled
+                        Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/identityresources/" + resource.Name),
+                        Name = resource.Name,
+                        DisplayName = resource.DisplayName,
+                        UserClaims = resource.UserClaims?.Select(item => item.Type).ToList(),
+                        Enabled = resource.Enabled,
                     });
             }
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody]IdentityResource model)
+        public async Task<IActionResult> Post([FromBody]IroncladResource model)
         {
+            var resource = new IdentityServerResource(model.Name, model.DisplayName, model.UserClaims);
+
             using (var session = this.store.LightweightSession())
             {
-                if (session.Query<PostgresIdentityResource>().Any(client => client.Name == model.Name))
+                if (session.Query<PostgresResource>().Any(client => client.Name == model.Name))
                 {
                     return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "Identity resource already exists" });
                 }
 
-                session.Insert(model.ToEntity());
+                session.Insert(resource.ToEntity());
 
                 await session.SaveChangesAsync();
             }
 
-            this.Response.Headers.Add("Location", this.HttpContext.GetIdentityServerRelativeUrl("~/api/identityresources/" + model.Name));
+            this.Response.Headers.Add("Location", this.HttpContext.GetIdentityServerRelativeUrl("~/api/apiresources/" + resource.Name));
 
             return this.Ok();
         }
 
         [HttpPut("{name}")]
-        public async Task<IActionResult> Put(string name, [FromBody]IdentityResource model)
+        public async Task<IActionResult> Put(string name, [FromBody]IroncladResource model)
         {
-            model.Name = name;
-
             using (var session = this.store.LightweightSession())
             {
-                var identityResource = await session.Query<PostgresIdentityResource>().SingleOrDefaultAsync(item => item.Name == model.Name);
-                if (identityResource == null)
+                var document = await session.Query<PostgresResource>().SingleOrDefaultAsync(item => item.Name == name);
+                if (document == null)
                 {
-                    return this.NotFound(new { Message = "Identity resource not found" });
+                    return this.NotFound(new { Message = "API resource not found" });
                 }
 
-                var entity = model.ToEntity();
-                entity.Id = identityResource.Id;
+                // NOTE (Cameron): Because of the mapping/conversion unknowns we rely upon the Postgres integration to perform that operation which is why we do this...
+                var resource = new IdentityServerResource
+                {
+                    UserClaims = model.UserClaims,
+                };
 
-                session.Store(entity);
+                var entity = resource.ToEntity();
+
+                // update properties (everything supported is an optional update eg. if null is passed we will not update)
+                document.DisplayName = model.DisplayName ?? document.DisplayName;
+                document.UserClaims = entity.UserClaims ?? document.UserClaims;
+                document.Enabled = model.Enabled ?? document.Enabled;
+
+                session.Update(document);
 
                 await session.SaveChangesAsync();
             }
@@ -138,15 +134,20 @@ namespace Ironclad.Controllers.Api
         {
             using (var session = this.store.LightweightSession())
             {
-                session.DeleteWhere<PostgresIdentityResource>(item => item.Name == name);
+                session.DeleteWhere<PostgresResource>(item => item.Name == name);
                 await session.SaveChangesAsync();
             }
 
             return this.Ok();
         }
 
-#pragma warning disable CA1034
-        private class IdentityResourceSummaryResource : ResourceSummary
+#pragma warning disable CA1034, CA1056
+        public class ResourceResource : IroncladResource
+        {
+            public string Url { get; set; }
+        }
+
+        private class ResourceSummaryResource : ResourceSummary
         {
             public string Url { get; set; }
         }

@@ -17,16 +17,16 @@ namespace Ironclad.Client
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets the client secret.
-        /// </summary>
-        /// <value>The client secret.</value>
-        public string Secret { get; set; }
-
-        /// <summary>
         /// Gets or sets the client name.
         /// </summary>
         /// <value>The client name.</value>
         public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets the client secret.
+        /// </summary>
+        /// <value>The client secret.</value>
+        public string Secret { get; set; }
 
         /// <summary>
         /// Gets or sets the allowed CORS origins.

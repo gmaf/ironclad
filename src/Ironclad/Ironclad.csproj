@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="..\Iroclad.Client\Dto\Client.cs" Link="Controllers\Api\Dto\Client.cs" />
     <Compile Include="..\Iroclad.Client\Dto\ClientSummary.cs" Link="Controllers\Api\Dto\ClientSummary.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\Resource.cs" Link="Controllers\Api\Dto\Resource.cs" />
     <Compile Include="..\Iroclad.Client\Dto\ResourceSet.cs" Link="Controllers\Api\Dto\ResourceSet.cs" />
     <Compile Include="..\Iroclad.Client\Dto\ResourceSummary.cs" Link="Controllers\Api\Dto\ResourceSummary.cs" />
   </ItemGroup>
@@ -114,10 +115,6 @@
     <None Update="VisualStudio.Dockerfile">
       <DependentUpon>Dockerfile</DependentUpon>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\Api\Dto\" />
   </ItemGroup>
 
 </Project>
