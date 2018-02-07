@@ -24,6 +24,6 @@ namespace Ironclad.Client
         /// Gets or sets a value indicating whether this <see cref="Resource"/> is enabled.
         /// </summary>
         /// <value>Returns <c>true</c> if enabled; otherwise, <c>false</c>.</value>
-        public bool Enabled { get; set; }
+        public bool? Enabled { get; set; }
     }
 }
