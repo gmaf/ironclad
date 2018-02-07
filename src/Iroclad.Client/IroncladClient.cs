@@ -119,7 +119,7 @@ namespace Ironclad.Client
                 if (!response.IsSuccessStatusCode)
                 {
                     // TODO (Cameron): Fix exception type.
-                    throw new Exception($"Error connecting to {url}: {response.ReasonPhrase}");
+                    throw new Exception($"Error connecting to {url}: {response.ReasonPhrase} / {await response.Content.ReadAsStringAsync()}");
                 }
             }
         }
