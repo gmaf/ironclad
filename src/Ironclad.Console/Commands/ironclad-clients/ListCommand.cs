@@ -16,27 +16,30 @@ namespace Ironclad.Console.Commands
         {
         }
 
-        public static void Configure(CommandLineApplication command, CommandLineOptions options, IConsole console)
+        public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
-            command.Description = "Lists the registered clients";
-            command.HelpOption("-?|-h|--help");
+            // description
+            app.Description = "Lists the registered clients";
+            app.HelpOption();
 
-            var skipArg = command.Argument("[skip]", "The number of clients to skip");
-            var takeArg = command.Argument("[take]", "The number of clients to take");
+            // options
+            var optionSkip = app.Option("-s|--skip", "The number of clients to skip", CommandOptionType.SingleValue);
+            var optionTake = app.Option("-t|--take", "The number of clients to take", CommandOptionType.SingleValue);
 
-            command.OnExecute(
+            // action (for this command)
+            app.OnExecute(
                 () =>
                 {
                     var skip = 0;
-                    if (!string.IsNullOrEmpty(skipArg.Value) && !int.TryParse(skipArg.Value, out skip))
+                    if (optionSkip.HasValue() && !int.TryParse(optionSkip.Value(), out skip))
                     {
-                        throw new CommandParsingException(command, $"Unable to parse [skip] value of '{skipArg.Value}'");
+                        throw new CommandParsingException(app, $"Unable to parse [skip] value of '{optionSkip.Value()}'");
                     }
 
                     var take = 20;
-                    if (!string.IsNullOrEmpty(takeArg.Value) && !int.TryParse(takeArg.Value, out take))
+                    if (optionTake.HasValue() && !int.TryParse(optionTake.Value(), out skip))
                     {
-                        throw new CommandParsingException(command, $"Unable to parse [take] value of '{takeArg.Value}'");
+                        throw new CommandParsingException(app, $"Unable to parse [take] value of '{optionTake.Value()}'");
                     }
 
                     options.Command = new ListCommand { skip = skip, take = take };

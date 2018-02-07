@@ -17,7 +17,7 @@
     <Product>Ironclad</Product>
     <Company>Lykke</Company>
     <Authors>Ironclad Contributers</Authors>
-    <PackageId>Ironclad</PackageId>
+    <PackageId>Ironclad.Client</PackageId>
     <Version>0.0.1-developer</Version>
   </PropertyGroup>
 

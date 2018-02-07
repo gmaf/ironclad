@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>ironclad</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -10,7 +11,6 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningsAsErrors />
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
-    <AssemblyName>ironclad</AssemblyName>
     <Copyright>Copyright (c) Ironclad Contributers. All rights reserved.</Copyright>
     <Product>Ironclad</Product>
     <Company>Lykke</Company>
@@ -32,12 +32,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.0-beta2" />
     <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Commands\Users\" />
-    <Folder Include="Commands\Resources\" />
+    <Folder Include="Commands\ironclad-users\" />
+    <Folder Include="Commands\ironclad-resources\" />
   </ItemGroup>
 
 </Project>
