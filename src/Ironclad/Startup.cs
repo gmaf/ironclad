@@ -64,6 +64,7 @@ namespace Ironclad
                 .AddDeveloperSigningCredential()
                 .AddConfigurationStore(this.configuration.GetConnectionString("Ironclad"))
                 .AddOperationalStore()
+                .AddAppAuthRedirectUriValidator()
                 .AddAspNetIdentity<ApplicationUser>();
 
             services.AddAuthentication()

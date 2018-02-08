@@ -35,7 +35,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{5C5E2419
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ironclad.Client", "Iroclad.Client\Ironclad.Client.csproj", "{F5D6F6C2-B170-4213-91F0-9B98E8D12578}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ironclad.Console", "Ironclad.Console\Ironclad.Console.csproj", "{028E06F4-62F9-462A-BC60-4DB1F91A825A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ironclad.Console", "Ironclad.Console\Ironclad.Console.csproj", "{028E06F4-62F9-462A-BC60-4DB1F91A825A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleConsoleApp", "samples\SampleConsoleApp\SampleConsoleApp.csproj", "{9C6C5D6F-8812-4180-8E19-673217AA6F95}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -70,6 +72,9 @@ Global
 		{028E06F4-62F9-462A-BC60-4DB1F91A825A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{028E06F4-62F9-462A-BC60-4DB1F91A825A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{028E06F4-62F9-462A-BC60-4DB1F91A825A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C6C5D6F-8812-4180-8E19-673217AA6F95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C6C5D6F-8812-4180-8E19-673217AA6F95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C6C5D6F-8812-4180-8E19-673217AA6F95}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -79,6 +84,7 @@ Global
 		{CE159F1C-7249-4ADB-A3B3-42CB86373405} = {008344D0-EA64-4D6B-8EAA-F03592B863BF}
 		{8DA2AC69-6399-4EBC-BF52-4A8C67CCD1D2} = {008344D0-EA64-4D6B-8EAA-F03592B863BF}
 		{27AC5BE9-C964-4236-863A-D3E808AE55C0} = {5C5E2419-C45C-4F86-940D-34B22735BF52}
+		{9C6C5D6F-8812-4180-8E19-673217AA6F95} = {008344D0-EA64-4D6B-8EAA-F03592B863BF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {103955DF-4821-4F03-BDE0-4C37306353D2}
