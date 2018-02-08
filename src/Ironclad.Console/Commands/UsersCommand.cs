@@ -15,7 +15,7 @@ namespace Ironclad.Console.Commands
             app.HelpOption();
 
             // commands
-            ////app.Command("list", command => ListCommand.Configure(command, options, console));
+            app.Command("register", command => RegisterUserCommand.Configure(command, options, console));
 
             // action (for this command)
             app.OnExecute(() => app.ShowHelp());

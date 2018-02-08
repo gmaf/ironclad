@@ -14,9 +14,9 @@ namespace Ironclad.Client
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets the user name for this user.
+        /// Gets or sets the username for this user.
         /// </summary>
-        public string UserName { get; set; }
+        public string Username { get; set; }
 
         /// <summary>
         /// Gets or sets the email address for this user.

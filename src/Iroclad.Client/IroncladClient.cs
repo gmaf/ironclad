@@ -162,6 +162,29 @@ namespace Ironclad.Client
         }
 
         /// <summary>
+        /// Registers the user.
+        /// </summary>
+        /// <param name="user">The user.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task.</returns>
+        public async Task RegisterUserAsync(User user, CancellationToken cancellationToken = default)
+        {
+            var url = this.authority + $"/api/users";
+
+            try
+            {
+                using (var httpContent = new StringContent(JsonConvert.SerializeObject(user, Settings), Encoding.UTF8, "application/json"))
+                using (var response = await this.client.PostAsync(url, httpContent, cancellationToken).EnsureSuccess().ConfigureAwait(false))
+                {
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpException(HttpMethod.Post, new Uri(url), ex);
+            }
+        }
+
+        /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public void Dispose()

@@ -29,13 +29,13 @@ namespace Ironclad.Tests.Feature
                 Name = "Test Client",
             };
 
+            // act
             await httpClient.RegisterClientAsync(expectedClient).ConfigureAwait(false);
 
-            // act
+            // assert
             var clientSummaries = await httpClient.GetClientSummariesAsync().ConfigureAwait(false);
             var actualClient = await httpClient.GetClientAsync(expectedClient.Id).ConfigureAwait(false);
 
-            // assert
             clientSummaries.Should().NotBeNull();
             clientSummaries.Should().Contain(clientSummary => clientSummary.Id == expectedClient.Id && clientSummary.Name == expectedClient.Name);
             actualClient.Should().NotBeNull();

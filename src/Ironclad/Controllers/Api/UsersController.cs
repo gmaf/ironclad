@@ -41,7 +41,7 @@ namespace Ironclad.Controllers.Api
                 {
                     Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + item.Id),
                     Id = item.Id,
-                    UserName = item.UserName,
+                    Username = item.UserName,
                     Email = item.Email
                 });
 
@@ -65,7 +65,7 @@ namespace Ironclad.Controllers.Api
                 {
                     Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + user.Id),
                     Id = user.Id,
-                    UserName = user.UserName,
+                    Username = user.UserName,
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber
                 });
@@ -76,12 +76,12 @@ namespace Ironclad.Controllers.Api
         {
             var user = new ApplicationUser
             {
-                UserName = model.UserName,
+                UserName = model.Username,
                 Email = model.Email,
                 PhoneNumber = model.PhoneNumber,
             };
 
-            if (await this.userManager.FindByNameAsync(model.UserName) != null)
+            if (await this.userManager.FindByNameAsync(model.Username) != null)
             {
                 return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "Username already used" });
             }

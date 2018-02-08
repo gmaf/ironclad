@@ -5,7 +5,6 @@ namespace Ironclad.Console.Commands
 {
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
-    using Newtonsoft.Json;
 
     internal class RegisterCommand : ICommand
     {
