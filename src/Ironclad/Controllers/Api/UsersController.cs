@@ -21,9 +21,6 @@ namespace Ironclad.Controllers.Api
         private readonly UserManager<ApplicationUser> userManager;
         private readonly RoleManager<IdentityRole> roleManager;
 
-        // manage users
-        // list, add, remove, manage roles
-
         public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             this.userManager = userManager;

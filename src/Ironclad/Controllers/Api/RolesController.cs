@@ -1,4 +1,7 @@
-﻿namespace Ironclad.Controllers.Api
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Ironclad.Controllers.Api
 {
     using System;
     using System.Linq;
