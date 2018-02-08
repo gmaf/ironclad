@@ -49,8 +49,8 @@ namespace Ironclad.Console.Commands
             var client = new Ironclad.Client.Client
             {
                 Id = this.clientId,
-                Secret = this.clientSecret,
                 Name = this.clientName,
+                Secret = this.clientSecret,
             };
 
             await context.Client.RegisterClientAsync(client).ConfigureAwait(false);

@@ -1,4 +1,7 @@
-﻿namespace Ironclad.Tests.Feature
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Ironclad.Tests.Feature
 {
     using Ironclad.Tests.Sdk;
     using Xbehave;
@@ -8,15 +11,14 @@
     // In order to access system data that is specific to me
     // I want to be able to sign-in to the system
     [TestCaseOrderer("Ironclad.Tests.Sdk.OrderStrategy", "Ironclad.Tests")]
-    public class InteractiveEndUserFeature : Feature
+    public class InteractiveEndUserFeature : IntegrationTest
     {
-
         public InteractiveEndUserFeature(IroncladFixture fixture)
             : base(fixture)
         {
         }
 
-        [Scenario]
+        [Scenario(Skip = "Incomplete")]
         public void CanSignIn(string username, string password)
         {
             "Given some hard-coded credentials eg. bob/bob"
@@ -35,7 +37,7 @@
             "Then I am able to view the restricted data".x(() => { });
         }
 
-        [Scenario]
+        [Scenario(Skip = "Incomplete")]
         public void CanSignOut(string username, string password)
         {
             "Given some hard-coded credentials eg. bob/bob"
@@ -55,4 +57,3 @@
         }
     }
 }
- 

@@ -1,4 +1,7 @@
-﻿namespace Ironclad.Tests.Sdk
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Ironclad.Tests.Sdk
 {
     using System;
     using System.Linq;
@@ -14,8 +17,11 @@
         private CookieContainer _cookieContainer = new CookieContainer();
 
         public bool AllowCookies { get; set; } = true;
+
         public bool AllowAutoRedirect { get; set; } = true;
+
         public int ErrorRedirectLimit { get; set; } = 20;
+
         public int StopRedirectingAfter { get; set; } = Int32.MaxValue;
 
         public BrowserHandler(HttpMessageHandler next)

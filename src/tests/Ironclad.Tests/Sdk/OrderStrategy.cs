@@ -1,4 +1,7 @@
-﻿namespace Ironclad.Tests.Sdk
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Ironclad.Tests.Sdk
 {
     using System.Collections.Generic;
     using Xunit.Abstractions;
@@ -6,7 +9,8 @@
 
     public class OrderStrategy : ITestCaseOrderer
     {
-        public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases) where TTestCase : ITestCase
+        public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases)
+            where TTestCase : ITestCase
         {
             return testCases;
         }

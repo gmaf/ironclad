@@ -1,28 +1,31 @@
-﻿namespace Ironclad.Tests.Feature
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Ironclad.Tests.Feature
 {
     using IdentityModel.Client;
     using Ironclad.Tests.Sdk;
     using Xbehave;
 
-    public class ServerClientFeature : Feature
+    public class ServerApplicationFeature : IntegrationTest
     {
-        public ServerClientFeature(IroncladFixture fixture)
+        public ServerApplicationFeature(IroncladFixture fixture)
             : base(fixture)
         {
         }
 
-        [Scenario]
+        [Scenario(Skip = "Incomplete")]
         public void CanCallSecureWebApi(string clientId, string secret)
         {
             "Given some hard-coded credentials eg. bob/bob"
                 .x(async () =>
                 {
                     var discoveryClient = new DiscoveryClient("http://localhost:5005");
-                    var discoveryResponse = await discoveryClient.GetAsync();
+                    var discoveryResponse = await discoveryClient.GetAsync().ConfigureAwait(false);
                 });
 
             "And some restricted data".x(
-                () => 
+                () =>
                 {
                 });
 
