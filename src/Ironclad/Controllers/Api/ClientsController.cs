@@ -1,20 +1,20 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System.Net.Http;
-
 namespace Ironclad.Controllers
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using IdentityServer4.Extensions;
     using IdentityServer4.Models;
     using IdentityServer4.Postgresql.Mappers;
     using Ironclad.Client;
     using Marten;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using IdentityServerClient = IdentityServer4.Models.Client;
     using IroncladClient = Ironclad.Client.Client;
@@ -31,6 +31,7 @@ namespace Ironclad.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> Get(int skip = default, int take = 20)
         {
             skip = Math.Max(0, skip);
@@ -50,7 +51,9 @@ namespace Ironclad.Controllers
                             Enabled = item.Enabled,
                         });
 
-                return this.Ok(new ResourceSet<ClientSummaryResource>(skip, totalSize, resources));
+                var resourceSet = new ResourceSet<ClientSummaryResource>(skip, totalSize, resources);
+
+                return this.Ok(resourceSet);
             }
         }
 
@@ -64,7 +67,7 @@ namespace Ironclad.Controllers
 
                 if (client == null)
                 {
-                    return this.NotFound(new { Message = $"Client '{clientId}' not found" });
+                    return this.NotFound();
                 }
 
                 return this.Ok(
@@ -73,10 +76,11 @@ namespace Ironclad.Controllers
                         Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + client.ClientId),
                         Id = client.ClientId,
                         Name = client.ClientName,
-                        AllowedCorsOrigins = client.AllowedCorsOrigins?.Select(item => item.Origin).ToList(),
-                        RedirectUris = client.RedirectUris?.Select(item => item.RedirectUri).ToList(),
-                        PostLogoutRedirectUris = client.PostLogoutRedirectUris?.Select(item => item.PostLogoutRedirectUri).ToList(),
-                        AllowedScopes = client.AllowedScopes?.Select(item => item.Scope).ToList(),
+                        AllowedCorsOrigins = client.AllowedCorsOrigins.Select(item => item.Origin).ToList(),
+                        RedirectUris = client.RedirectUris.Select(item => item.RedirectUri).ToList(),
+                        PostLogoutRedirectUris =
+                            client.PostLogoutRedirectUris.Select(item => item.PostLogoutRedirectUri).ToList(),
+                        AllowedScopes = client.AllowedScopes.Select(item => item.Scope).ToList(),
                         AccessTokenType = ((AccessTokenType)client.AccessTokenType).ToString(),
                         Enabled = client.Enabled,
                     });
@@ -89,15 +93,15 @@ namespace Ironclad.Controllers
             var client = new IdentityServerClient
             {
                 ClientId = model.Id,
-                ClientName = model.Name,
                 ClientSecrets = new List<Secret> { new Secret(model.Secret.Sha256()) },
+                ClientName = model.Name,
             };
 
             using (var session = this.store.LightweightSession())
             {
                 if (session.Query<PostgresClient>().Any(document => document.ClientId == client.ClientId))
                 {
-                    return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = $"Client '{client.ClientId}' already exists" });
+                    return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "Client already exists" });
                 }
 
                 session.Insert(client.ToEntity());
@@ -105,8 +109,7 @@ namespace Ironclad.Controllers
                 await session.SaveChangesAsync();
             }
 
-            this.Response.Headers.Add("Location",
-                this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + client.ClientId));
+            this.Response.Headers.Add("Location", this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + client.ClientId));
 
             return this.Ok();
         }
@@ -120,7 +123,7 @@ namespace Ironclad.Controllers
                     .SingleOrDefaultAsync(item => item.ClientId == clientId);
                 if (document == null)
                 {
-                    return this.NotFound(new { Message = $"Client '{clientId}' not found" });
+                    return this.NotFound(new { Message = "Client not found" });
                 }
 
                 // NOTE (Cameron): Because of the mapping/conversion unknowns we rely upon the Postgres integration to perform that operation which is why we do this...
@@ -135,14 +138,14 @@ namespace Ironclad.Controllers
                 // NOTE (Cameron): If the secret is updated we want to add the new secret...
                 if (!string.IsNullOrEmpty(model.Secret))
                 {
-                    client.ClientSecrets = new List<Secret> {new Secret(model.Secret.Sha256())};
+                    client.ClientSecrets = new List<Secret> { new Secret(model.Secret.Sha256()) };
                 }
 
                 var entity = client.ToEntity();
 
                 if (!Enum.TryParse<AccessTokenType>(model.AccessTokenType, out var accessTokenType))
                 {
-                    return this.BadRequest(new { Message = $"Invalid token type: '{model.AccessTokenType}'." });
+                    return this.BadRequest(new { Message = $"Token type [{model.AccessTokenType}] does not exists." });
                 }
 
                 // update properties (everything supported is an optional update eg. if null is passed we will not update)
@@ -180,7 +183,7 @@ namespace Ironclad.Controllers
         }
 
 #pragma warning disable CA1034, CA1056
-        private class ClientResource : IroncladClient
+        public class ClientResource : IroncladClient
         {
             public string Url { get; set; }
         }

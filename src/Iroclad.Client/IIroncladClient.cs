@@ -18,7 +18,10 @@ namespace Ironclad.Client
         /// <param name="size">The total size of the client set.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The client summaries.</returns>
-        Task<ResourceSet<ClientSummary>> GetClientSummariesAsync(int start = default, int size = default, CancellationToken cancellationToken = default);
+        Task<ResourceSet<ClientSummary>> GetClientSummariesAsync(
+            int start = default,
+            int size = default,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the client.

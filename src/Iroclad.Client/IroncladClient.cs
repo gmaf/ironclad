@@ -44,7 +44,10 @@ namespace Ironclad.Client
         /// <param name="size">The total size of the client set.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The clients.</returns>
-        public async Task<ResourceSet<ClientSummary>> GetClientSummariesAsync(int start = default, int size = default, CancellationToken cancellationToken = default)
+        public async Task<ResourceSet<ClientSummary>> GetClientSummariesAsync(
+            int start = default,
+            int size = default,
+            CancellationToken cancellationToken = default)
         {
             var url = this.authority + $"/api/clients?skip={start}&take={(size == 0 ? 20 : size)}";
 

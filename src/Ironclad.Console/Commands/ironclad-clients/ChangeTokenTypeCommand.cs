@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
-using McMaster.Extensions.CommandLineUtils;
-
 namespace Ironclad.Console.Commands
 {
+    using System.Threading.Tasks;
+    using McMaster.Extensions.CommandLineUtils;
+
     internal class ChangeTokenTypeCommand : ICommand
     {
         private string clientId;

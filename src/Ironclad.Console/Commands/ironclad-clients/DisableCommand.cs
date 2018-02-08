@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
-using Ironclad.Console.Commands;
-using McMaster.Extensions.CommandLineUtils;
-
 namespace Ironclad.Console.Commands
 {
+    using System.Threading.Tasks;
+    using McMaster.Extensions.CommandLineUtils;
+
     internal class DisableCommand : ICommand
     {
         private string clientId;
@@ -23,7 +22,6 @@ namespace Ironclad.Console.Commands
 
             // arguments
             var argumentClientId = app.Argument("id", "The client ID", false);
-
 
             // action (for this command)
             app.OnExecute(
