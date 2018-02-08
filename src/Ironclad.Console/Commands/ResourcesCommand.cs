@@ -8,7 +8,7 @@ namespace Ironclad.Console.Commands
     // NOTE (Cameron): This command is informational only and cannot be executed (only 'show help' works) so inheriting ICommand is unnecessary.
     internal static class ResourcesCommand
     {
-        public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
+        public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
             app.Description = "Provides resources related operations";

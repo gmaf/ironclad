@@ -143,9 +143,15 @@ namespace Ironclad.Controllers
 
                 var entity = client.ToEntity();
 
-                if (!Enum.TryParse<AccessTokenType>(model.AccessTokenType, out var accessTokenType))
+                int accessTokenType = document.AccessTokenType;
+                if (model.AccessTokenType != null)
                 {
-                    return this.BadRequest(new { Message = $"Token type [{model.AccessTokenType}] does not exists." });
+                    if (!Enum.TryParse<AccessTokenType>(model.AccessTokenType, out var accessTokenTypeEnum))
+                    {
+                        return this.BadRequest(new { Message = $"Token type [{model.AccessTokenType}] does not exists." });
+                    }
+
+                    accessTokenType = (int)accessTokenTypeEnum;
                 }
 
                 // update properties (everything supported is an optional update eg. if null is passed we will not update)

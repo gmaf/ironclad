@@ -153,8 +153,6 @@ namespace Ironclad.Client
                 using (var httpContent = new StringContent(JsonConvert.SerializeObject(client, Settings), Encoding.UTF8, "application/json"))
                 using (var response = await this.client.PutAsync(url, httpContent, cancellationToken).EnsureSuccess().ConfigureAwait(false))
                 {
-                    // TODO (Cameron): Fix exception type.
-                    throw new Exception($"Error connecting to {url}: {response.ReasonPhrase} / {await response.Content.ReadAsStringAsync()}");
                 }
             }
             catch (HttpRequestException ex)

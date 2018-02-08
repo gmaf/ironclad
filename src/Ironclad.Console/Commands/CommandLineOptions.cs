@@ -36,7 +36,7 @@ namespace Ironclad.Console.Commands
 
             // commands
             app.Command("clients", command => ClientsCommand.Configure(command, options, console));
-            app.Command("resources", command => ResourcesCommand.Configure(command, options, console));
+            app.Command("resources", command => ResourcesCommand.Configure(command, options));
             app.Command("users", command => UsersCommand.Configure(command, options, console));
 
             // action (for this command)

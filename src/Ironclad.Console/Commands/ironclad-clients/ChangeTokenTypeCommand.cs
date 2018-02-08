@@ -15,7 +15,7 @@ namespace Ironclad.Console.Commands
         {
         }
 
-        public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
+        public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
             app.Description = "Change the token type of the specified client";
