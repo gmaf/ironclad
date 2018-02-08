@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System.Net.Http;
-
 namespace Ironclad.Controllers
 {
     using System;
@@ -64,7 +62,7 @@ namespace Ironclad.Controllers
 
                 if (client == null)
                 {
-                    return this.NotFound();
+                    return this.NotFound(new { Message = $"Client '{clientId}' not found" });
                 }
 
                 return this.Ok(
@@ -97,7 +95,7 @@ namespace Ironclad.Controllers
             {
                 if (session.Query<PostgresClient>().Any(document => document.ClientId == client.ClientId))
                 {
-                    return this.StatusCode((int) HttpStatusCode.Conflict, new {Message = "Client already exists"});
+                    return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = $"Client '{client.ClientId}' already exists" });
                 }
 
                 session.Insert(client.ToEntity());
@@ -105,8 +103,7 @@ namespace Ironclad.Controllers
                 await session.SaveChangesAsync();
             }
 
-            this.Response.Headers.Add("Location",
-                this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + client.ClientId));
+            this.Response.Headers.Add("Location", this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + client.ClientId));
 
             return this.Ok();
         }
@@ -120,7 +117,7 @@ namespace Ironclad.Controllers
                     .SingleOrDefaultAsync(item => item.ClientId == clientId);
                 if (document == null)
                 {
-                    return this.NotFound(new {Message = "Client not found"});
+                    return this.NotFound(new { Message = $"Client '{clientId}' not found" });
                 }
 
                 // NOTE (Cameron): Because of the mapping/conversion unknowns we rely upon the Postgres integration to perform that operation which is why we do this...
@@ -135,14 +132,14 @@ namespace Ironclad.Controllers
                 // NOTE (Cameron): If the secret is updated we want to add the new secret...
                 if (!string.IsNullOrEmpty(model.Secret))
                 {
-                    client.ClientSecrets = new List<Secret> {new Secret(model.Secret.Sha256())};
+                    client.ClientSecrets = new List<Secret> { new Secret(model.Secret.Sha256()) };
                 }
 
                 var entity = client.ToEntity();
 
                 if (!Enum.TryParse<AccessTokenType>(model.AccessTokenType, out var accessTokenType))
                 {
-                    return this.BadRequest(new {Message = $"Token type [{model.AccessTokenType}] does not exists."});
+                    return this.BadRequest(new { Message = $"Invalid token type: '{model.AccessTokenType}'." });
                 }
 
                 // update properties (everything supported is an optional update eg. if null is passed we will not update)
@@ -151,7 +148,7 @@ namespace Ironclad.Controllers
                 document.RedirectUris = entity.RedirectUris ?? document.RedirectUris;
                 document.PostLogoutRedirectUris = entity.PostLogoutRedirectUris ?? document.PostLogoutRedirectUris;
                 document.AllowedScopes = entity.AllowedScopes ?? document.AllowedScopes;
-                document.AccessTokenType = (int) accessTokenType;
+                document.AccessTokenType = (int)accessTokenType;
                 document.Enabled = model.Enabled ?? document.Enabled;
 
                 if (!string.IsNullOrEmpty(model.Secret))

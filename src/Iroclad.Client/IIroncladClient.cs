@@ -35,7 +35,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task.</returns>
         Task RegisterClientAsync(Client client, CancellationToken cancellationToken = default);
-        
+
         /// <summary>
         /// Unregisters the specified client.
         /// </summary>

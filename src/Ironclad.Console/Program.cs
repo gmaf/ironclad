@@ -4,6 +4,7 @@
 namespace Ironclad.Console
 {
     using System;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using Ironclad.Client;
     using Ironclad.Console.Commands;
