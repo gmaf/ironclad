@@ -80,6 +80,8 @@
     <Compile Include="..\Iroclad.Client\Dto\Resource.cs" Link="Controllers\Api\Dto\Resource.cs" />
     <Compile Include="..\Iroclad.Client\Dto\ResourceSet.cs" Link="Controllers\Api\Dto\ResourceSet.cs" />
     <Compile Include="..\Iroclad.Client\Dto\ResourceSummary.cs" Link="Controllers\Api\Dto\ResourceSummary.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\User.cs" Link="Controllers\Api\Dto\User.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\UserSummary.cs" Link="Controllers\Api\Dto\UserSummary.cs" />
   </ItemGroup>
 
   <ItemGroup>
