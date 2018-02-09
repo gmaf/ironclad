@@ -3,6 +3,9 @@
 
 namespace Ironclad.Client
 {
+    /// <summary>
+    /// Represents a user summary.
+    /// </summary>
     public class UserSummary
     {
         /// <summary>
