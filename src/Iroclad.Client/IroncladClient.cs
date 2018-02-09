@@ -4,6 +4,7 @@
 namespace Ironclad.Client
 {
     using System;
+    using System.Collections.Generic;
     using System.Net.Http;
     using System.Text;
     using System.Threading;
@@ -162,6 +163,59 @@ namespace Ironclad.Client
         }
 
         /// <summary>
+        /// Gets the users (or a subset thereof).
+        /// </summary>
+        /// <param name="start">The zero-based start ordinal of the user set to return.</param>
+        /// <param name="size">The total size of the user set.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The clients.</returns>
+        public async Task<ResourceSet<UserSummary>> GetUserSummariesAsync(int start = 0, int size = 0, CancellationToken cancellationToken = default)
+        {
+            var url = this.authority + $"/api/users?skip={start}&take={(size == 0 ? 20 : size)}";
+
+            var content = default(string);
+            try
+            {
+                using (var response = await this.client.GetAsync(url, cancellationToken).EnsureSuccess().ConfigureAwait(false))
+                {
+                    content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpException(HttpMethod.Get, new Uri(url), ex);
+            }
+
+            return JsonConvert.DeserializeObject<ResourceSet<UserSummary>>(content, Settings);
+        }
+
+        /// <summary>
+        /// Gets the user.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The user.</returns>
+        public async Task<User> GetUserAsync(string userId, CancellationToken cancellationToken = default)
+        {
+            var url = this.authority + $"/api/users/{userId}";
+
+            var content = default(string);
+            try
+            {
+                using (var response = await this.client.GetAsync(url, cancellationToken).EnsureSuccess().ConfigureAwait(false))
+                {
+                    content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpException(HttpMethod.Get, new Uri(url), ex);
+            }
+
+            return JsonConvert.DeserializeObject<User>(content, Settings);
+        }
+
+        /// <summary>
         /// Registers the user.
         /// </summary>
         /// <param name="user">The user.</param>
@@ -181,6 +235,155 @@ namespace Ironclad.Client
             catch (HttpRequestException ex)
             {
                 throw new HttpException(HttpMethod.Post, new Uri(url), ex);
+            }
+        }
+
+        /// <summary>
+        /// Unregisters the specified user.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task.</returns>
+        public async Task UnregisterUserAsync(string userId, CancellationToken cancellationToken = default)
+        {
+            var url = this.authority + $"/api/users/{userId}";
+
+            try
+            {
+                using (var response = await this.client.DeleteAsync(url, cancellationToken).EnsureSuccess().ConfigureAwait(false))
+                {
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpException(HttpMethod.Delete, new Uri(url), ex);
+            }
+        }
+
+        /// <summary>
+        /// Modifies the user.
+        /// </summary>
+        /// <param name="user">The user.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task.</returns>
+        public async Task ModifyUserAsync(User user, CancellationToken cancellationToken = default)
+        {
+            var url = this.authority + $"/api/users/{user.Id}";
+
+            try
+            {
+                using (var httpContent = new StringContent(JsonConvert.SerializeObject(user, Settings), Encoding.UTF8, "application/json"))
+                using (var response = await this.client.PutAsync(url, httpContent, cancellationToken).EnsureSuccess().ConfigureAwait(false))
+                {
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpException(HttpMethod.Put, new Uri(url), ex);
+            }
+        }
+
+        /// <summary>
+        /// Changes password for the specified user.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="currentPassword">Current password of the user.</param>
+        /// <param name="newPassword">New password of the user</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task.</returns>
+        public async Task ChangePasswordAsync(string userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default)
+        {
+            var url = this.authority + $"/api/users/{userId}";
+
+            try
+            {
+                using (var httpContent = new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("currentPassword", currentPassword),
+                    new KeyValuePair<string, string>("newPassword", newPassword)
+                }))
+
+                using (var response = await this.client.PatchAsync(url, httpContent, cancellationToken).EnsureSuccess().ConfigureAwait(false))
+                {
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpException(HttpMethod.Put, new Uri(url), ex);
+            }
+        }
+
+        /// <summary>
+        /// Gets roles assigned to the specified user.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>List of roles assigned to the user.</returns>
+        public async Task<ResourceSet<Role>> GetUserRolesAsync(string userId, CancellationToken cancellationToken = default)
+        {
+            var url = this.authority + $"/api/users/{userId}/roles";
+
+            var content = default(string);
+            try
+            {
+                using (var response = await this.client.GetAsync(url, cancellationToken).EnsureSuccess().ConfigureAwait(false))
+                {
+                    content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpException(HttpMethod.Get, new Uri(url), ex);
+            }
+
+            return JsonConvert.DeserializeObject<ResourceSet<Role>>(content, Settings);
+        }
+
+        /// <summary>
+        /// Assigns specified roles to the specified user.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="roles">List of role name.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task.</returns>
+        public async Task AssignRolesToUserAsync(string userId, List<string> roles, CancellationToken cancellationToken = default)
+        {
+            var url = this.authority + $"/api/users/{userId}/roles";
+
+            try
+            {
+                using (var httpContent = new StringContent(JsonConvert.SerializeObject(roles, Settings), Encoding.UTF8, "application/json"))
+                using (var response = await this.client.PostAsync(url, httpContent, cancellationToken).EnsureSuccess().ConfigureAwait(false))
+                {
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpException(HttpMethod.Put, new Uri(url), ex);
+            }
+        }
+
+        /// <summary>
+        /// Removes specified user from the given roles.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="roles">List of role name.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task.</returns>
+        public async Task UnassignRolesFromUserAsync(string userId, List<string> roles, CancellationToken cancellationToken = default)
+        {
+            var url = this.authority + $"/api/users/{userId}/roles";
+
+            try
+            {
+                using (var httpContent = new StringContent(JsonConvert.SerializeObject(roles, Settings), Encoding.UTF8, "application/json"))
+                using (var response = await this.client.DeleteAsync(url, httpContent, cancellationToken).EnsureSuccess().ConfigureAwait(false))
+                {
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpException(HttpMethod.Put, new Uri(url), ex);
             }
         }
 
