@@ -1,45 +1,46 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-namespace Ironclad.Console.Commands
+namespace Ironclad.Console.Commands.Users
 {
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
-    internal class RegisterUserCommand : ICommand
+    internal class ModifyCommand : ICommand
     {
-        private string username;
+        private string userId;
         private string password;
         private string email;
+        private string phone;
 
-        private RegisterUserCommand()
+        private ModifyCommand()
         {
         }
 
-        public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
+        public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
             app.Description = "Registers the specified user";
             app.HelpOption();
 
             // arguments
-            var argumentUsername = app.Argument("username", "The username", false);
-            var argumentPassword = app.Argument("password", "The password", false);
+            var argumentUserId = app.Argument("userId", "The user ID", false);
 
             // options
             var optionsEmail = app.Option("-e|--email", "The email address for the user", CommandOptionType.SingleValue);
+            var optionsPhone = app.Option("-p|--phone", "The phone number for the user", CommandOptionType.SingleValue);
 
             // action (for this command)
             app.OnExecute(
                 () =>
                 {
-                    if (string.IsNullOrEmpty(argumentUsername.Value) || string.IsNullOrEmpty(argumentPassword.Value))
+                    if (string.IsNullOrEmpty(argumentUserId.Value) || (string.IsNullOrEmpty(optionsEmail.Value()) && string.IsNullOrEmpty(optionsPhone.Value())))
                     {
                         app.ShowHelp();
                         return;
                     }
 
-                    options.Command = new RegisterUserCommand { username = argumentUsername.Value, password = argumentPassword.Value, email = optionsEmail.Value() };
+                    options.Command = new ModifyCommand { userId = argumentUserId.Value, email = optionsEmail.Value(), phone = optionsPhone.Value() };
                 });
         }
 
@@ -47,12 +48,12 @@ namespace Ironclad.Console.Commands
         {
             var user = new Ironclad.Client.User
             {
-                Username = this.username,
-                Password = this.password,
+                Id = this.userId,
                 Email = this.email,
+                PhoneNumber = this.phone,
             };
 
-            await context.Client.RegisterUserAsync(user).ConfigureAwait(false);
+            await context.Client.ModifyUserAsync(user).ConfigureAwait(false);
             await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }

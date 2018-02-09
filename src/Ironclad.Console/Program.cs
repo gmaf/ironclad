@@ -23,6 +23,13 @@ namespace Ironclad.Console
         {
             Sdk.DebugHelper.HandleDebugSwitch(ref args);
 
+            Newtonsoft.Json.JsonConvert.DefaultSettings = () => new Newtonsoft.Json.JsonSerializerSettings
+            {
+                Formatting = Newtonsoft.Json.Formatting.Indented,
+                NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
+                ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver { NamingStrategy = new Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy() }
+            };
+
             return new Program(PhysicalConsole.Singleton).TryRunAsync(args);
         }
 
