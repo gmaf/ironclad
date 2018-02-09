@@ -86,7 +86,8 @@ namespace Ironclad.Controllers.Api
                 return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "Username already used" });
             }
 
-            if (await this.userManager.FindByEmailAsync(model.Email) != null)
+            if (!string.IsNullOrEmpty(model.Email) &&
+                await this.userManager.FindByEmailAsync(model.Email) != null)
             {
                 return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "Email already used" });
             }
@@ -148,6 +149,26 @@ namespace Ironclad.Controllers.Api
             return this.BadRequest(new { Message = result.ToString() });
         }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            var user = await this.userManager.FindByIdAsync(id);
+
+            if (user == null)
+            {
+                return this.NotFound(new { Message = "User doesn't exist" });
+            }
+
+            var result = await this.userManager.DeleteAsync(user);
+
+            if (result.Succeeded)
+            {
+                return this.Ok();
+            }
+
+            return this.BadRequest(new { Message = result.ToString() });
+        }
+
 #pragma warning disable SA1124
         #region Role Assignment
 
@@ -158,25 +179,30 @@ namespace Ironclad.Controllers.Api
 
             var roles = await this.roleManager.Roles.ToListAsync();
 
-            var userRoles = new List<string>();
+            var userRoles = new List<IdentityRole>();
 
             foreach (var role in roles)
             {
                 if (await this.userManager.IsInRoleAsync(user, role.Name))
                 {
-                    userRoles.Add(role.Name);
+                    userRoles.Add(role);
                 }
             }
 
-            return this.Ok(
-                new
+            var resources = userRoles.Select(
+                item => new RoleResource
                 {
-                    Url = this.HttpContext.GetIdentityServerRelativeUrl(string.Concat("~/api/users/", user.Id, "/roles")),
-                    Roles = userRoles
+                    Url = this.HttpContext.GetIdentityServerRelativeUrl(string.Concat("~/api/roles/", item.Name)),
+                    Id = item.Id,
+                    Name = item.Name
                 });
+
+            return this.Ok(
+                new ResourceSet<RoleResource>(0, resources.Count(), resources)
+                );
         }
 
-        [HttpPatch("{id}/roles")]
+        [HttpPost("{id}/roles")]
         public async Task<IActionResult> Post(string id, [FromBody]List<string> roles)
         {
             var user = await this.userManager.FindByIdAsync(id);
@@ -184,6 +210,19 @@ namespace Ironclad.Controllers.Api
             if (user == null)
             {
                 return this.NotFound(new { Message = "User doesn't exist" });
+            }
+
+            if (!roles.Any())
+            {
+                return this.BadRequest(new { Message = "Roles to assign must be provided" });
+            }
+
+            foreach (var role in roles)
+            {
+                if (!(await this.roleManager.RoleExistsAsync(role)))
+                {
+                    return this.BadRequest(new { Message = $"Role: {role} doesn't exist" });
+                }
             }
 
             await this.userManager.AddToRolesAsync(user, roles);
@@ -201,6 +240,11 @@ namespace Ironclad.Controllers.Api
                 return this.NotFound(new { Message = "User doesn't exist" });
             }
 
+            if (!roles.Any())
+            {
+                return this.BadRequest(new { Message = "Roles to assign must be provided" });
+            }
+
             await this.userManager.RemoveFromRolesAsync(user, roles);
 
             return this.Ok();
@@ -209,12 +253,17 @@ namespace Ironclad.Controllers.Api
         #endregion Role Assignment
 
 #pragma warning disable CA1034, CA1056
-        public class UserResource : User
+        private class UserResource : User
         {
             public string Url { get; set; }
         }
 
         private class UserSummaryResource : UserSummary
+        {
+            public string Url { get; set; }
+        }
+
+        private class RoleResource : Role
         {
             public string Url { get; set; }
         }
