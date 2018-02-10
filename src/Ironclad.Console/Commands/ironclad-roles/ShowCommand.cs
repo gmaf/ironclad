@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-namespace Ironclad.Console.Commands.Users
+namespace Ironclad.Console.Commands.Roles
 {
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
@@ -9,7 +9,7 @@ namespace Ironclad.Console.Commands.Users
 
     internal class ShowCommand : ICommand
     {
-        private string userId;
+        private string roleId;
 
         private ShowCommand()
         {
@@ -18,30 +18,30 @@ namespace Ironclad.Console.Commands.Users
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Lists the specified user";
+            app.Description = "Lists the specified role";
             app.HelpOption();
 
             // arguments
-            var argumentUserId = app.Argument("userId", "The user ID to show", false);
+            var argumentRoleId = app.Argument("id", "The role ID to show", false);
 
             // action (for this command)
             app.OnExecute(
                 () =>
                 {
-                    if (string.IsNullOrEmpty(argumentUserId.Value))
+                    if (string.IsNullOrEmpty(argumentRoleId.Value))
                     {
                         app.ShowHelp();
                         return;
                     }
 
-                    options.Command = new ShowCommand { userId = argumentUserId.Value };
+                    options.Command = new ShowCommand { roleId = argumentRoleId.Value };
                 });
         }
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            var user = await context.Client.GetUserAsync(this.userId).ConfigureAwait(false);
-            await context.Console.Out.WriteLineAsync(JsonConvert.SerializeObject(user, Formatting.Indented)).ConfigureAwait(false);
+            var role = await context.Client.GetRoleAsync(this.roleId).ConfigureAwait(false);
+            await context.Console.Out.WriteLineAsync(JsonConvert.SerializeObject(role, Formatting.Indented)).ConfigureAwait(false);
         }
     }
 }

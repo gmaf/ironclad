@@ -134,5 +134,46 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task.</returns>
         Task UnassignRolesFromUserAsync(string userId, List<string> roles, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets the roles (or a subset thereof)
+        /// </summary>
+        /// <param name="start">The zero-based start ordinal of the user set to return.</param>
+        /// <param name="size">The total size of the role set.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The user summaries.</returns>
+        Task<ResourceSet<Role>> GetRoleSummariesAsync(int start = default, int size = default, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets the role
+        /// </summary>
+        /// <param name="roleId">The role identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The role.</returns>
+        Task<Role> GetRoleAsync(string roleId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Registers the role.
+        /// </summary>
+        /// <param name="role">The role.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task.</returns>
+        Task RegisterRoleAsync(Role role, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Unregisters the specified role.
+        /// </summary>
+        /// <param name="roleId">The role identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task.</returns>
+        Task UnregisterRoleAsync(string roleId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Modifies the role.
+        /// </summary>
+        /// <param name="role">The role.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task.</returns>
+        Task ModifyRoleAsync(Role role, CancellationToken cancellationToken = default);
     }
 }
