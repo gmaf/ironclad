@@ -1,45 +1,45 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-namespace Ironclad.Console.Commands.Users
+namespace Ironclad.Console.Commands
 {
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
-    internal class UnregisterCommand : ICommand
+    internal class RemoveRoleCommand : ICommand
     {
-        private string userId;
+        private string role;
 
-        private UnregisterCommand()
+        private RemoveRoleCommand()
         {
         }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Unregisters the specified client";
+            app.Description = "Removes the specified role";
             app.HelpOption();
 
             // arguments
-            var argumentUserId = app.Argument("id", "The user ID", false);
+            var argumentRoleId = app.Argument("name", "The role name", false);
 
             // action (for this command)
             app.OnExecute(
                 () =>
                 {
-                    if (string.IsNullOrEmpty(argumentUserId.Value))
+                    if (string.IsNullOrEmpty(argumentRoleId.Value))
                     {
                         app.ShowHelp();
                         return;
                     }
 
-                    options.Command = new UnregisterCommand { userId = argumentUserId.Value };
+                    options.Command = new RemoveRoleCommand { role = argumentRoleId.Value };
                 });
         }
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            await context.Client.UnregisterUserAsync(this.userId).ConfigureAwait(false);
+            await context.RolesClient.RemoveRoleAsync(this.role).ConfigureAwait(false);
             await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }

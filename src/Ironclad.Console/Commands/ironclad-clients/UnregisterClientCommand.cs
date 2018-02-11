@@ -1,47 +1,46 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-namespace Ironclad.Console.Commands.Roles
+namespace Ironclad.Console.Commands
 {
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
-    using Newtonsoft.Json;
 
-    internal class ShowCommand : ICommand
+    internal class UnregisterClientCommand : ICommand
     {
-        private string roleId;
+        private string clientId;
 
-        private ShowCommand()
+        private UnregisterClientCommand()
         {
         }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Lists the specified role";
+            app.Description = "Unregisters the specified client";
             app.HelpOption();
 
             // arguments
-            var argumentRoleId = app.Argument("id", "The role ID to show", false);
+            var argumentClientId = app.Argument("id", "The client ID", false);
 
             // action (for this command)
             app.OnExecute(
                 () =>
                 {
-                    if (string.IsNullOrEmpty(argumentRoleId.Value))
+                    if (string.IsNullOrEmpty(argumentClientId.Value))
                     {
                         app.ShowHelp();
                         return;
                     }
 
-                    options.Command = new ShowCommand { roleId = argumentRoleId.Value };
+                    options.Command = new UnregisterClientCommand { clientId = argumentClientId.Value };
                 });
         }
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            var role = await context.Client.GetRoleAsync(this.roleId).ConfigureAwait(false);
-            await context.Console.Out.WriteLineAsync(JsonConvert.SerializeObject(role, Formatting.Indented)).ConfigureAwait(false);
+            await context.ClientsClient.UnregisterClientAsync(this.clientId).ConfigureAwait(false);
+            await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }
 }

@@ -8,12 +8,12 @@ namespace Ironclad.Console.Commands
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
-    internal class ListCommand : ICommand
+    internal class ListClientsCommand : ICommand
     {
         private int skip;
         private int take;
 
-        private ListCommand()
+        private ListClientsCommand()
         {
         }
 
@@ -43,13 +43,13 @@ namespace Ironclad.Console.Commands
                         throw new CommandParsingException(app, $"Unable to parse [take] value of '{optionTake.Value()}'");
                     }
 
-                    options.Command = new ListCommand { skip = skip, take = take };
+                    options.Command = new ListClientsCommand { skip = skip, take = take };
                 });
         }
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            var clients = await context.Client.GetClientSummariesAsync(this.skip, this.take).ConfigureAwait(false);
+            var clients = await context.ClientsClient.GetClientSummariesAsync(this.skip, this.take).ConfigureAwait(false);
             var maxClientIdLength = clients.Max(c => c.Id?.Length ?? 0);
             var outputFormat = string.Format(CultureInfo.InvariantCulture, "  {{0, -{0}}}{{1}}", maxClientIdLength + 2);
 

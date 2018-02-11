@@ -10,13 +10,13 @@ namespace Ironclad.Console.Commands
     using McMaster.Extensions.CommandLineUtils;
     using Validators;
 
-    internal class UpdateUrisCommand : ICommand
+    internal class UpdateClientUrisCommand : ICommand
     {
         private string clientId;
         private string clientUriName;
         private List<string> clientUriValues;
 
-        private UpdateUrisCommand()
+        private UpdateClientUrisCommand()
         {
         }
 
@@ -86,7 +86,7 @@ namespace Ironclad.Console.Commands
                         uriValues.Add(uriValue);
                     }
 
-                    options.Command = new UpdateUrisCommand
+                    options.Command = new UpdateClientUrisCommand
                     {
                         clientId = argumentClientId.Value,
                         clientUriName = uriName,
@@ -95,7 +95,7 @@ namespace Ironclad.Console.Commands
                 }
                 else
                 {
-                    options.Command = new UpdateUrisCommand
+                    options.Command = new UpdateClientUrisCommand
                     {
                         clientId = argumentClientId.Value,
                         clientUriName = argumentUriName.Value,
@@ -117,7 +117,7 @@ namespace Ironclad.Console.Commands
                 var property = client.GetType().GetProperty(this.clientUriName);
                 property.SetValue(client, this.clientUriValues);
 
-                await context.Client.ModifyClientAsync(client).ConfigureAwait(false);
+                await context.ClientsClient.ModifyClientAsync(client).ConfigureAwait(false);
                 await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
             }
             catch (Exception e)

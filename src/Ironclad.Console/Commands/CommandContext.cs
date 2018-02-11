@@ -8,14 +8,32 @@ namespace Ironclad.Console.Commands
 
     public class CommandContext
     {
-        public CommandContext(IConsole console, IIroncladClient client)
+        public CommandContext(
+            IConsole console,
+            IClientsClient clientsClient,
+            IApiResourcesClient apiResourcesClient,
+            IIdentityResourcesClient identityResourcesClient,
+            IRolesClient rolesClient,
+            IUsersClient usersClient)
         {
             this.Console = console;
-            this.Client = client;
+            this.ClientsClient = clientsClient;
+            this.ApiResourcesClient = apiResourcesClient;
+            this.IdentityResourcesClient = identityResourcesClient;
+            this.RolesClient = rolesClient;
+            this.UsersClient = usersClient;
         }
 
         public IConsole Console { get; }
 
-        public IIroncladClient Client { get; }
+        public IClientsClient ClientsClient { get; }
+
+        public IApiResourcesClient ApiResourcesClient { get; }
+
+        public IIdentityResourcesClient IdentityResourcesClient { get; }
+
+        public IRolesClient RolesClient { get; }
+
+        public IUsersClient UsersClient { get; }
     }
 }

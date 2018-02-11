@@ -7,14 +7,12 @@ namespace Ironclad.Controllers
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using IdentityServer4.Extensions;
     using IdentityServer4.Models;
     using IdentityServer4.Postgresql.Mappers;
     using Ironclad.Client;
     using Marten;
-    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using IdentityServerClient = IdentityServer4.Models.Client;
     using IroncladClient = Ironclad.Client.Client;
@@ -31,7 +29,6 @@ namespace Ironclad.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IActionResult> Get(int skip = default, int take = 20)
         {
             skip = Math.Max(0, skip);
@@ -40,16 +37,16 @@ namespace Ironclad.Controllers
             using (var session = this.store.LightweightSession())
             {
                 var totalSize = await session.Query<PostgresClient>().CountAsync();
-                var clients = await session.Query<PostgresClient>().Skip(skip).Take(take).ToListAsync();
-                var resources = clients.Select(
-                    item =>
-                        new ClientSummaryResource
-                        {
-                            Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + item.ClientId),
-                            Id = item.ClientId,
-                            Name = item.ClientName,
-                            Enabled = item.Enabled,
-                        });
+                var documents = await session.Query<PostgresClient>().Skip(skip).Take(take).ToListAsync();
+                var resources = documents.Select(
+                    document =>
+                    new ClientSummaryResource
+                    {
+                        Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + document.ClientId),
+                        Id = document.ClientId,
+                        Name = document.ClientName,
+                        Enabled = document.Enabled,
+                    });
 
                 var resourceSet = new ResourceSet<ClientSummaryResource>(skip, totalSize, resources);
 
@@ -57,32 +54,31 @@ namespace Ironclad.Controllers
             }
         }
 
+        [HttpHead("{clientId}")]
         [HttpGet("{clientId}")]
         public async Task<IActionResult> Get(string clientId)
         {
             using (var session = this.store.LightweightSession())
             {
-                var client = await session.Query<PostgresClient>()
-                    .SingleOrDefaultAsync(item => item.ClientId == clientId);
-
-                if (client == null)
+                var document = await session.Query<PostgresClient>().SingleOrDefaultAsync(item => item.ClientId == clientId);
+                if (document == null)
                 {
-                    return this.NotFound();
+                    return this.NotFound(new { Message = $"Client '{clientId}' not found" });
                 }
 
                 return this.Ok(
                     new ClientResource
                     {
-                        Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + client.ClientId),
-                        Id = client.ClientId,
-                        Name = client.ClientName,
-                        AllowedCorsOrigins = client.AllowedCorsOrigins.Select(item => item.Origin).ToList(),
-                        RedirectUris = client.RedirectUris.Select(item => item.RedirectUri).ToList(),
+                        Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + document.ClientId),
+                        Id = document.ClientId,
+                        Name = document.ClientName,
+                        AllowedCorsOrigins = document.AllowedCorsOrigins.Select(item => item.Origin).ToList(),
+                        RedirectUris = document.RedirectUris.Select(item => item.RedirectUri).ToList(),
                         PostLogoutRedirectUris =
-                            client.PostLogoutRedirectUris.Select(item => item.PostLogoutRedirectUri).ToList(),
-                        AllowedScopes = client.AllowedScopes.Select(item => item.Scope).ToList(),
-                        AccessTokenType = ((AccessTokenType)client.AccessTokenType).ToString(),
-                        Enabled = client.Enabled,
+                            document.PostLogoutRedirectUris.Select(item => item.PostLogoutRedirectUri).ToList(),
+                        AllowedScopes = document.AllowedScopes.Select(item => item.Scope).ToList(),
+                        AccessTokenType = ((AccessTokenType)document.AccessTokenType).ToString(),
+                        Enabled = document.Enabled,
                     });
             }
         }
@@ -119,11 +115,10 @@ namespace Ironclad.Controllers
         {
             using (var session = this.store.LightweightSession())
             {
-                var document = await session.Query<PostgresClient>()
-                    .SingleOrDefaultAsync(item => item.ClientId == clientId);
+                var document = await session.Query<PostgresClient>().SingleOrDefaultAsync(item => item.ClientId == clientId);
                 if (document == null)
                 {
-                    return this.NotFound(new { Message = "Client not found" });
+                    return this.NotFound(new { Message = $"Client '{clientId}' not found" });
                 }
 
                 // NOTE (Cameron): Because of the mapping/conversion unknowns we rely upon the Postgres integration to perform that operation which is why we do this...
@@ -181,7 +176,7 @@ namespace Ironclad.Controllers
         {
             using (var session = this.store.LightweightSession())
             {
-                session.DeleteWhere<PostgresClient>(item => item.ClientId == clientId);
+                session.DeleteWhere<PostgresClient>(document => document.ClientId == clientId);
                 await session.SaveChangesAsync();
             }
 

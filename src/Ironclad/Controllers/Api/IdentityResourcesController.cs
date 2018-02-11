@@ -13,7 +13,7 @@ namespace Ironclad.Controllers.Api
     using Marten;
     using Microsoft.AspNetCore.Mvc;
     using IdentityServerResource = IdentityServer4.Models.IdentityResource;
-    using IroncladResource = Ironclad.Client.Resource;
+    using IroncladResource = Ironclad.Client.IdentityResource;
     using PostgresResource = IdentityServer4.Postgresql.Entities.IdentityResource;
 
     [Route("api/[controller]")]
@@ -35,42 +35,41 @@ namespace Ironclad.Controllers.Api
             using (var session = this.store.LightweightSession())
             {
                 var totalSize = await session.Query<PostgresResource>().CountAsync();
-                var identityResources = await session.Query<PostgresResource>().Skip(skip).Take(take).ToListAsync();
-
-                var resources = identityResources.Select(item =>
-                new ResourceSummaryResource
-                {
-                    Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/identityresources/" + item.Name),
-                    Name = item.Name,
-                    DisplayName = item.DisplayName,
-                    Enabled = item.Enabled
-                });
+                var documents = await session.Query<PostgresResource>().Skip(skip).Take(take).ToListAsync();
+                var resources = documents.Select(
+                    document =>
+                    new ResourceSummaryResource
+                    {
+                        Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/identityresources/" + document.Name),
+                        Name = document.Name,
+                        DisplayName = document.DisplayName,
+                        Enabled = document.Enabled
+                    });
 
                 return this.Ok(new ResourceSet<ResourceSummaryResource>(skip, totalSize, resources));
             }
         }
 
-        [HttpGet("{name}")]
-        public async Task<IActionResult> Get(string name)
+        [HttpHead("{resourceName}")]
+        [HttpGet("{resourceName}")]
+        public async Task<IActionResult> Get(string resourceName)
         {
             using (var session = this.store.LightweightSession())
             {
-                var resource = await session.Query<PostgresResource>()
-                    .SingleOrDefaultAsync(item => item.Name == name);
-
-                if (resource == null)
+                var document = await session.Query<PostgresResource>().SingleOrDefaultAsync(item => item.Name == resourceName);
+                if (document == null)
                 {
-                    return this.NotFound();
+                    return this.NotFound(new { Message = $"Identity resource '{resourceName}' not found" });
                 }
 
                 return this.Ok(
                     new ResourceResource
                     {
-                        Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/identityresources/" + resource.Name),
-                        Name = resource.Name,
-                        DisplayName = resource.DisplayName,
-                        UserClaims = resource.UserClaims?.Select(item => item.Type).ToList(),
-                        Enabled = resource.Enabled,
+                        Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/identityresources/" + document.Name),
+                        Name = document.Name,
+                        DisplayName = document.DisplayName,
+                        UserClaims = document.UserClaims?.Select(item => item.Type).ToList(),
+                        Enabled = document.Enabled,
                     });
             }
         }
@@ -82,7 +81,7 @@ namespace Ironclad.Controllers.Api
 
             using (var session = this.store.LightweightSession())
             {
-                if (session.Query<PostgresResource>().Any(client => client.Name == model.Name))
+                if (session.Query<PostgresResource>().Any(item => item.Name == model.Name))
                 {
                     return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "Identity resource already exists" });
                 }
@@ -92,20 +91,18 @@ namespace Ironclad.Controllers.Api
                 await session.SaveChangesAsync();
             }
 
-            this.Response.Headers.Add("Location", this.HttpContext.GetIdentityServerRelativeUrl("~/api/apiresources/" + resource.Name));
-
-            return this.Ok();
+            return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/identityresources/" + model.Name)), null);
         }
 
-        [HttpPut("{name}")]
-        public async Task<IActionResult> Put(string name, [FromBody]IroncladResource model)
+        [HttpPut("{resourceName}")]
+        public async Task<IActionResult> Put(string resourceName, [FromBody]IroncladResource model)
         {
             using (var session = this.store.LightweightSession())
             {
-                var document = await session.Query<PostgresResource>().SingleOrDefaultAsync(item => item.Name == name);
+                var document = await session.Query<PostgresResource>().SingleOrDefaultAsync(item => item.Name == resourceName);
                 if (document == null)
                 {
-                    return this.NotFound(new { Message = "API resource not found" });
+                    return this.NotFound(new { Message = $"Identity resource '{resourceName}' not found" });
                 }
 
                 // NOTE (Cameron): Because of the mapping/conversion unknowns we rely upon the Postgres integration to perform that operation which is why we do this...
@@ -129,12 +126,12 @@ namespace Ironclad.Controllers.Api
             return this.Ok();
         }
 
-        [HttpDelete("{name}")]
-        public async Task<IActionResult> Delete(string name)
+        [HttpDelete("{resourceName}")]
+        public async Task<IActionResult> Delete(string resourceName)
         {
             using (var session = this.store.LightweightSession())
             {
-                session.DeleteWhere<PostgresResource>(item => item.Name == name);
+                session.DeleteWhere<PostgresResource>(document => document.Name == resourceName);
                 await session.SaveChangesAsync();
             }
 

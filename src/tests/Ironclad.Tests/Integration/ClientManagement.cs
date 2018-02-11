@@ -22,7 +22,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanRegisterClient()
         {
             // arrange
-            var httpClient = new IroncladClient("http://localhost:5005");
+            var httpClient = new ClientsHttpClient("http://localhost:5005");
             var expectedClient = new Client
             {
                 Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),

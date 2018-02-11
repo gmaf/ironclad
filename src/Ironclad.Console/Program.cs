@@ -4,7 +4,6 @@
 namespace Ironclad.Console
 {
     using System;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using Ironclad.Client;
     using Ironclad.Console.Commands;
@@ -62,9 +61,15 @@ namespace Ironclad.Console
             }
 
             // NOTE (Cameron): This is basically setting up CommandContext as a container for our commands.
-            using (var client = new IroncladClient("http://localhost:5005"))
+            var authority = "http://localhost:5005";
+
+            using (var clientsClient = new ClientsHttpClient(authority))
+            using (var apiResourcesClient = new ApiResourcesHttpClient(authority))
+            using (var identityResourcesClient = new IdentityResourceHttpClient(authority))
+            using (var rolesClient = new RolesHttpClient(authority))
+            using (var usersClient = new UsersHttpClient(authority))
             {
-                var context = new CommandContext(this.console, client);
+                var context = new CommandContext(this.console, clientsClient, apiResourcesClient, identityResourcesClient, rolesClient, usersClient);
 
                 try
                 {

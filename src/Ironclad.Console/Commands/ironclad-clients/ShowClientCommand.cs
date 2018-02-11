@@ -7,22 +7,22 @@ namespace Ironclad.Console.Commands
     using McMaster.Extensions.CommandLineUtils;
     using Newtonsoft.Json;
 
-    internal class ShowCommand : ICommand
+    internal class ShowClientCommand : ICommand
     {
         private string clientId;
 
-        private ShowCommand()
+        private ShowClientCommand()
         {
         }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Lists the specified client";
+            app.Description = "Shows the specified client";
             app.HelpOption();
 
             // arguments
-            var argumentClientId = app.Argument("clientId", "The client ID to show", false);
+            var argumentClientId = app.Argument("id", "The ID of the client to show", false);
 
             // action (for this command)
             app.OnExecute(
@@ -34,13 +34,13 @@ namespace Ironclad.Console.Commands
                         return;
                     }
 
-                    options.Command = new ShowCommand { clientId = argumentClientId.Value };
+                    options.Command = new ShowClientCommand { clientId = argumentClientId.Value };
                 });
         }
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            var client = await context.Client.GetClientAsync(this.clientId).ConfigureAwait(false);
+            var client = await context.ClientsClient.GetClientAsync(this.clientId).ConfigureAwait(false);
             await context.Console.Out.WriteLineAsync(JsonConvert.SerializeObject(client, Formatting.Indented)).ConfigureAwait(false);
         }
     }

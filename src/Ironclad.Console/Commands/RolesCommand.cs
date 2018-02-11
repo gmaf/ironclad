@@ -15,11 +15,9 @@ namespace Ironclad.Console.Commands
             app.HelpOption();
 
             // commands
-            app.Command("list", command => Roles.ListCommand.Configure(command, options));
-            app.Command("show", command => Roles.ShowCommand.Configure(command, options));
-            app.Command("register", command => Roles.RegisterCommand.Configure(command, options));
-            app.Command("unregister", command => Roles.UnregisterCommand.Configure(command, options));
-            app.Command("modify", command => Roles.ModifyCommand.Configure(command, options));
+            app.Command("list", command => ListRolesCommand.Configure(command, options));
+            app.Command("add", command => AddRoleCommand.Configure(command, options));
+            app.Command("remove", command => RemoveRoleCommand.Configure(command, options));
 
             // action (for this command)
             app.OnExecute(() => app.ShowHelp());

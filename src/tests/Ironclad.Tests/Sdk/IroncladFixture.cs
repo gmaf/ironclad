@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-
 namespace Ironclad.Tests.Sdk
 {
     using System;
@@ -20,7 +19,7 @@ namespace Ironclad.Tests.Sdk
         public IroncladFixture()
         {
             this.postgresProcess = Process.Start(
-                new ProcessStartInfo("docker", $"run --name {DockerContainerId} -e POSTGRES_PASSWORD=password -e POSTGRES_DB=ironclad -p 5432:5432 postgres:10.1-alpine")
+                new ProcessStartInfo("docker", $"run --name {DockerContainerId} -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ironclad -p 5432:5432 postgres:10.1-alpine")
                 {
                     UseShellExecute = true,
                 });
@@ -41,10 +40,24 @@ namespace Ironclad.Tests.Sdk
 
         public void Dispose()
         {
-            this.ironcladProcess.Kill();
+            try
+            {
+                this.ironcladProcess.Kill();
+            }
+            catch (InvalidOperationException)
+            {
+            }
+
             this.ironcladProcess.Dispose();
 
-            this.postgresProcess.Kill();
+            try
+            {
+                this.postgresProcess.Kill();
+            }
+            catch (InvalidOperationException)
+            {
+            }
+
             this.postgresProcess.Dispose();
 
             // NOTE (Cameron): Remove the docker container.

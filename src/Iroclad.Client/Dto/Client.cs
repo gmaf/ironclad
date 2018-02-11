@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable CA1724
+
 namespace Ironclad.Client
 {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Represents a client summary.
+    /// Represents a client.
     /// </summary>
     public class Client
     {
@@ -33,25 +35,25 @@ namespace Ironclad.Client
         /// </summary>
         /// <value>The allowed CORS origins.</value>
 #pragma warning disable CA2227
-        public List<string> AllowedCorsOrigins { get; set; }
+        public ICollection<string> AllowedCorsOrigins { get; set; }
 
         /// <summary>
         /// Gets or sets the redirect URIs.
         /// </summary>
         /// <value>The redirect URIs.</value>
-        public List<string> RedirectUris { get; set; }
+        public ICollection<string> RedirectUris { get; set; }
 
         /// <summary>
         /// Gets or sets the post logout redirect URIs.
         /// </summary>
         /// <value>The post logout redirect URIs.</value>
-        public List<string> PostLogoutRedirectUris { get; set; }
+        public ICollection<string> PostLogoutRedirectUris { get; set; }
 
         /// <summary>
         /// Gets or sets the allowed scopes.
         /// </summary>
         /// <value>The allowed scopes.</value>
-        public List<string> AllowedScopes { get; set; }
+        public ICollection<string> AllowedScopes { get; set; }
 
         /// <summary>
         /// Gets or sets the type of the access token.

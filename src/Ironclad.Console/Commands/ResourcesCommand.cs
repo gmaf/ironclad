@@ -15,7 +15,25 @@ namespace Ironclad.Console.Commands
             app.HelpOption();
 
             // commands
-            ////app.Command("list", command => ListCommand.Configure(command, options, console));
+            app.Command("api", command => ConfigureApiResources(command, options));
+            ////app.Command("identity", command => ResourcesSubCommand.Configure(command, options, "identity"));
+
+            // action (for this command)
+            app.OnExecute(() => app.ShowHelp());
+        }
+
+        private static void ConfigureApiResources(CommandLineApplication app, CommandLineOptions options)
+        {
+            // description
+            app.Description = $"Provides API resources related operations";
+            app.HelpOption();
+
+            // commands
+            app.Command("list", command => ListApiResourcesCommand.Configure(command, options));
+            app.Command("add", command => AddApiResourceCommand.Configure(command, options));
+            app.Command("show", command => ShowApiResourceCommand.Configure(command, options));
+            ////app.Command("update", command => ShowCommand.Configure(command, options));
+            app.Command("remove", command => RemoveApiResourceCommand.Configure(command, options));
 
             // action (for this command)
             app.OnExecute(() => app.ShowHelp());

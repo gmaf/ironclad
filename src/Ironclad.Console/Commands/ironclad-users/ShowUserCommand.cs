@@ -1,28 +1,28 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-namespace Ironclad.Console.Commands.Users
+namespace Ironclad.Console.Commands
 {
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
     using Newtonsoft.Json;
 
-    internal class ShowCommand : ICommand
+    internal class ShowUserCommand : ICommand
     {
         private string userId;
 
-        private ShowCommand()
+        private ShowUserCommand()
         {
         }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Lists the specified user";
+            app.Description = "Shows the specified user";
             app.HelpOption();
 
             // arguments
-            var argumentUserId = app.Argument("userId", "The user ID to show", false);
+            var argumentUserId = app.Argument("username", "The username of the user to show", false);
 
             // action (for this command)
             app.OnExecute(
@@ -34,13 +34,13 @@ namespace Ironclad.Console.Commands.Users
                         return;
                     }
 
-                    options.Command = new ShowCommand { userId = argumentUserId.Value };
+                    options.Command = new ShowUserCommand { userId = argumentUserId.Value };
                 });
         }
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            var user = await context.Client.GetUserAsync(this.userId).ConfigureAwait(false);
+            var user = await context.UsersClient.GetUserAsync(this.userId).ConfigureAwait(false);
             await context.Console.Out.WriteLineAsync(JsonConvert.SerializeObject(user, Formatting.Indented)).ConfigureAwait(false);
         }
     }

@@ -9,7 +9,7 @@ namespace Ironclad.Client
     public class UserSummary
     {
         /// <summary>
-        /// Gets or sets the primary key for this user.
+        /// Gets or sets the subject identifier for this user.
         /// </summary>
         public string Id { get; set; }
 

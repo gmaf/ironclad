@@ -1,50 +1,54 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-namespace Ironclad.Console.Commands.Roles
+namespace Ironclad.Console.Commands
 {
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
-    internal class RegisterCommand : ICommand
+    internal class DisableClientCommand : ICommand
     {
-        private string roleName;
+        private string clientId;
 
-        private RegisterCommand()
+        private DisableClientCommand()
         {
         }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Registers the specified role";
+            app.Description = "Disable the specified client";
             app.HelpOption();
 
             // arguments
-            var argumentRoleName = app.Argument("name", "The Role Name", false);
+            var argumentClientId = app.Argument("id", "The client ID", false);
 
             // action (for this command)
             app.OnExecute(
                 () =>
                 {
-                    if (string.IsNullOrEmpty(argumentRoleName.Value))
+                    if (string.IsNullOrEmpty(argumentClientId.Value))
                     {
                         app.ShowHelp();
                         return;
                     }
 
-                    options.Command = new RegisterCommand { roleName = argumentRoleName.Value };
+                    options.Command = new DisableClientCommand
+                    {
+                        clientId = argumentClientId.Value
+                    };
                 });
         }
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            var role = new Ironclad.Client.Role
+            var client = new Ironclad.Client.Client
             {
-                Name = this.roleName,
+                Id = this.clientId,
+                Enabled = false
             };
 
-            await context.Client.RegisterRoleAsync(role).ConfigureAwait(false);
+            await context.ClientsClient.ModifyClientAsync(client).ConfigureAwait(false);
             await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }

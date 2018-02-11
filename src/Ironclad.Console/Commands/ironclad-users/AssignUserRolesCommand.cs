@@ -1,49 +1,56 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-namespace Ironclad.Console.Commands.Users
+namespace Ironclad.Console.Commands
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Ironclad.Client;
     using McMaster.Extensions.CommandLineUtils;
 
-    internal class UnassignRolesCommand : ICommand
+    internal class AssignUserRolesCommand : ICommand
     {
-        private string userId;
+        private string username;
         private List<string> roles;
 
-        private UnassignRolesCommand()
+        private AssignUserRolesCommand()
         {
         }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Assign the roles for the specified user";
+            app.Description = "Assign the roles to the specified user";
             app.HelpOption();
 
             // arguments
-            var argumentUserId = app.Argument("id", "The user ID", false);
+            var argumentUsername = app.Argument("username", "The username", false);
             var argumentRoles = app.Argument("roles", "One or more roles to assign to the user", true);
 
             // action (for this command)
             app.OnExecute(
                 () =>
                 {
-                    if (string.IsNullOrEmpty(argumentUserId.Value) || !argumentRoles.Values.Any())
+                    if (string.IsNullOrEmpty(argumentUsername.Value) || !argumentRoles.Values.Any())
                     {
                         app.ShowHelp();
                         return;
                     }
 
-                    options.Command = new UnassignRolesCommand { userId = argumentUserId.Value, roles = argumentRoles.Values };
+                    options.Command = new AssignUserRolesCommand { username = argumentUsername.Value, roles = argumentRoles.Values };
                 });
         }
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            await context.Client.UnassignRolesFromUserAsync(this.userId, this.roles).ConfigureAwait(false);
+            var user = new User
+            {
+                Username = this.username,
+                Roles = this.roles,
+            };
+
+            await context.UsersClient.ModifyUserAsync(user).ConfigureAwait(false);
             await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }

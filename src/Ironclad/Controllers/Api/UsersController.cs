@@ -36,13 +36,13 @@ namespace Ironclad.Controllers.Api
 
             var users = await this.userManager.Users.Skip(skip).Take(take).ToListAsync();
             var resources = users.Select(
-                item =>
+                user =>
                 new UserSummaryResource
                 {
-                    Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + item.Id),
-                    Id = item.Id,
-                    Username = item.UserName,
-                    Email = item.Email
+                    Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + user.UserName),
+                    Id = user.Id,
+                    Username = user.UserName,
+                    Email = user.Email
                 });
 
             var resourceSet = new ResourceSet<UserSummaryResource>(skip, totalSize, resources);
@@ -50,24 +50,27 @@ namespace Ironclad.Controllers.Api
             return this.Ok(resourceSet);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(string id)
+        [HttpHead("{username}")]
+        [HttpGet("{username}")]
+        public async Task<IActionResult> Get(string username)
         {
-            var user = await this.userManager.Users.SingleOrDefaultAsync(item => item.Id == id);
-
+            var user = await this.userManager.FindByNameAsync(username);
             if (user == null)
             {
-                this.NotFound();
+                return this.NotFound(new { Message = $"User '{username}' not found" });
             }
+
+            var roles = await this.userManager.GetRolesAsync(user);
 
             return this.Ok(
                 new UserResource
                 {
-                    Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + user.Id),
+                    Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + user.UserName),
                     Id = user.Id,
                     Username = user.UserName,
                     Email = user.Email,
-                    PhoneNumber = user.PhoneNumber
+                    PhoneNumber = user.PhoneNumber,
+                    Roles = new List<string>(roles),
                 });
         }
 
@@ -81,176 +84,84 @@ namespace Ironclad.Controllers.Api
                 PhoneNumber = model.PhoneNumber,
             };
 
-            if (await this.userManager.FindByNameAsync(model.Username) != null)
-            {
-                return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "Username already used" });
-            }
+            ////if (await this.userManager.FindByNameAsync(model.Username) != null)
+            ////{
+            ////    return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "User already used" });
+            ////}
 
-            if (!string.IsNullOrEmpty(model.Email) &&
-                await this.userManager.FindByEmailAsync(model.Email) != null)
-            {
-                return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "Email already used" });
-            }
+            ////if (!string.IsNullOrEmpty(model.Email) &&
+            ////    await this.userManager.FindByEmailAsync(model.Email) != null)
+            ////{
+            ////    return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "Email already used" });
+            ////}
 
             var result = await this.userManager.CreateAsync(user, model.Password);
-
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                this.Response.Headers.Add("Location", this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + user.Id));
-
-                return this.Ok();
+                // TODO (Cameron): Consider implications of surfacing this message.
+                return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = result.ToString() });
             }
 
-            return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = result.ToString() });
+            return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/roles/" + model.Username)), null);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Put(string id, [FromBody]User model)
+        [HttpPut("{username}")]
+        public async Task<IActionResult> Put(string username, [FromBody]User model)
         {
-            model.Id = id;
-
-            var user = await this.userManager.FindByIdAsync(id);
-
+            var user = await this.userManager.FindByNameAsync(username);
             if (user == null)
             {
-                return this.NotFound(new { Message = "User doesn't exist" });
+                return this.NotFound(new { Message = $"User '{username}' not found" });
             }
 
             user.Email = model.Email ?? user.Email;
             user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
 
             var result = await this.userManager.UpdateAsync(user);
-
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                return this.Ok();
+                // TODO (Cameron): Consider implications of surfacing this message.
+                return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = result.ToString() });
             }
 
-            return this.BadRequest(new { Message = result.ToString() });
-        }
+            var roles = await this.userManager.GetRolesAsync(user);
 
-        [HttpPatch("{id}")]
-        public async Task<IActionResult> Patch(string id, [FromForm]string currentPassword, [FromForm]string newPassword)
-        {
-            var user = await this.userManager.FindByIdAsync(id);
-
-            if (user == null)
+            var oldRoles = roles.Except(model.Roles);
+            if (oldRoles.Any())
             {
-                return this.NotFound(new { Message = "User doesn't exist" });
-            }
-
-            var result = await this.userManager.ChangePasswordAsync(user, currentPassword, newPassword);
-
-            if (result.Succeeded)
-            {
-                return this.Ok();
-            }
-
-            return this.BadRequest(new { Message = result.ToString() });
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(string id)
-        {
-            var user = await this.userManager.FindByIdAsync(id);
-
-            if (user == null)
-            {
-                return this.NotFound(new { Message = "User doesn't exist" });
-            }
-
-            var result = await this.userManager.DeleteAsync(user);
-
-            if (result.Succeeded)
-            {
-                return this.Ok();
-            }
-
-            return this.BadRequest(new { Message = result.ToString() });
-        }
-
-#pragma warning disable SA1124
-        #region Role Assignment
-
-        [HttpGet("{id}/roles")]
-        public async Task<IActionResult> GetAssignedRoles(string id)
-        {
-            var user = await this.userManager.FindByIdAsync(id);
-
-            var roles = await this.roleManager.Roles.ToListAsync();
-
-            var userRoles = new List<IdentityRole>();
-
-            foreach (var role in roles)
-            {
-                if (await this.userManager.IsInRoleAsync(user, role.Name))
+                var removeResult = await this.userManager.RemoveFromRolesAsync(user, oldRoles);
+                if (!removeResult.Succeeded)
                 {
-                    userRoles.Add(role);
+                    // TODO (Cameron): Consider implications of surfacing this message.
+                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = removeResult.ToString() });
                 }
             }
 
-            var resources = userRoles.Select(
-                item => new RoleResource
+            var newRoles = model.Roles.Except(roles);
+            if (newRoles.Any())
+            {
+                var addResult = await this.userManager.AddToRolesAsync(user, newRoles);
+                if (!addResult.Succeeded)
                 {
-                    Url = this.HttpContext.GetIdentityServerRelativeUrl(string.Concat("~/api/roles/", item.Name)),
-                    Id = item.Id,
-                    Name = item.Name
-                });
-
-            return this.Ok(
-                new ResourceSet<RoleResource>(0, resources.Count(), resources)
-                );
-        }
-
-        [HttpPost("{id}/roles")]
-        public async Task<IActionResult> Post(string id, [FromBody]List<string> roles)
-        {
-            var user = await this.userManager.FindByIdAsync(id);
-
-            if (user == null)
-            {
-                return this.NotFound(new { Message = "User doesn't exist" });
-            }
-
-            if (!roles.Any())
-            {
-                return this.BadRequest(new { Message = "Roles to assign must be provided" });
-            }
-
-            foreach (var role in roles)
-            {
-                if (!(await this.roleManager.RoleExistsAsync(role)))
-                {
-                    return this.BadRequest(new { Message = $"Role: {role} doesn't exist" });
+                    // TODO (Cameron): Consider implications of surfacing this message.
+                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addResult.ToString() });
                 }
             }
-
-            await this.userManager.AddToRolesAsync(user, roles);
 
             return this.Ok();
         }
 
-        [HttpDelete("{id}/roles")]
-        public async Task<IActionResult> Delete(string id, [FromBody]List<string> roles)
+        [HttpDelete("{username}")]
+        public async Task<IActionResult> Delete(string username)
         {
-            var user = await this.userManager.FindByIdAsync(id);
-
-            if (user == null)
+            var user = await this.userManager.FindByNameAsync(username);
+            if (user != null)
             {
-                return this.NotFound(new { Message = "User doesn't exist" });
+                await this.userManager.DeleteAsync(user);
             }
-
-            if (!roles.Any())
-            {
-                return this.BadRequest(new { Message = "Roles to assign must be provided" });
-            }
-
-            await this.userManager.RemoveFromRolesAsync(user, roles);
 
             return this.Ok();
         }
-
-        #endregion Role Assignment
 
 #pragma warning disable CA1034, CA1056
         private class UserResource : User
@@ -259,11 +170,6 @@ namespace Ironclad.Controllers.Api
         }
 
         private class UserSummaryResource : UserSummary
-        {
-            public string Url { get; set; }
-        }
-
-        private class RoleResource : Role
         {
             public string Url { get; set; }
         }

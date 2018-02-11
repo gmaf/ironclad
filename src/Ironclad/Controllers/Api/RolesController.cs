@@ -29,16 +29,13 @@ namespace Ironclad.Controllers.Api
             take = take < 0 ? 20 : Math.Min(take, 100);
 
             var totalSize = await this.roleManager.Roles.CountAsync();
-
             var roles = await this.roleManager.Roles.Skip(skip).Take(take).ToListAsync();
-
             var resources = roles.Select(
-                item =>
+                role =>
                 new RoleResource
                 {
-                    Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/roles/" + item.Id),
-                    Id = item.Id,
-                    Name = item.Name
+                    Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/roles/" + role.Name),
+                    Name = role.Name,
                 });
 
             var resourceSet = new ResourceSet<RoleResource>(skip, totalSize, resources);
@@ -46,22 +43,23 @@ namespace Ironclad.Controllers.Api
             return this.Ok(resourceSet);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(string id)
+        // LINK (Cameron): https://www.tpeczek.com/2017/10/exploring-head-method-behavior-in.html
+        [HttpHead("{roleName}")]
+        [HttpGet("{roleName}")]
+        public async Task<IActionResult> Get(string roleName)
         {
-            var role = await this.roleManager.FindByIdAsync(id);
-
+            var role = await this.roleManager.FindByNameAsync(roleName);
             if (role == null)
             {
-                return this.NotFound();
+                return this.NotFound(new { Message = $"Role '{roleName}' not found" });
             }
 
-            return this.Ok(new RoleResource
-            {
-                Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/roles/" + role.Id),
-                Id = role.Id,
-                Name = role.Name
-            });
+            return this.Ok(
+                new RoleResource
+                {
+                    Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/roles/" + role.Name),
+                    Name = role.Name
+                });
         }
 
         [HttpPost]
@@ -69,40 +67,23 @@ namespace Ironclad.Controllers.Api
         {
             if (await this.roleManager.RoleExistsAsync(model.Name))
             {
-                return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "Already exist" });
+                return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "Role already exists" });
             }
 
-            await this.roleManager.CreateAsync(new IdentityRole(model.Name));
-
-            this.Response.Headers.Add("Location", this.HttpContext.GetIdentityServerRelativeUrl("~/api/roles/" + model.Name));
-
-            return this.Ok();
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Put(string id, [FromBody]Role model)
-        {
-            model.Id = id;
-
-            var existing = await this.roleManager.FindByIdAsync(model.Id);
-
-            if (existing == null)
+            var result = await this.roleManager.CreateAsync(new IdentityRole(model.Name));
+            if (!result.Succeeded)
             {
-                return this.NotFound();
+                // TODO (Cameron): Consider implications of surfacing this message.
+                return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = result.ToString() });
             }
 
-            existing.Name = model.Name ?? existing.Name;
-
-            await this.roleManager.UpdateAsync(existing);
-
-            return this.Ok();
+            return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/roles/" + model.Name)), null);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(string id)
+        [HttpDelete("{roleName}")]
+        public async Task<IActionResult> Delete(string roleName)
         {
-            var role = await this.roleManager.FindByNameAsync(id);
-
+            var role = await this.roleManager.FindByNameAsync(roleName);
             if (role != null)
             {
                 await this.roleManager.DeleteAsync(role);
@@ -111,8 +92,7 @@ namespace Ironclad.Controllers.Api
             return this.Ok();
         }
 
-#pragma warning disable CA1034, CA1056
-        public class RoleResource : Role
+        private class RoleResource : Role
         {
             public string Url { get; set; }
         }

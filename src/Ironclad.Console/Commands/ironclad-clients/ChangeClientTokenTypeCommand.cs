@@ -6,40 +6,40 @@ namespace Ironclad.Console.Commands
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
-    internal class RegisterCommand : ICommand
+    internal class ChangeClientTokenTypeCommand : ICommand
     {
         private string clientId;
-        private string clientSecret;
-        private string clientName;
+        private string accessTokenType;
 
-        private RegisterCommand()
+        private ChangeClientTokenTypeCommand()
         {
         }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Registers the specified client";
+            app.Description = "Change the access token type for the specified client";
             app.HelpOption();
 
             // arguments
             var argumentClientId = app.Argument("id", "The client ID", false);
-            var argumentClientSecret = app.Argument("secret", "The client secret", false);
-
-            // options
-            var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
+            var argumentClientTokenType = app.Argument("tokenType", "The access token type", false);
 
             // action (for this command)
             app.OnExecute(
                 () =>
                 {
-                    if (string.IsNullOrEmpty(argumentClientId.Value) || string.IsNullOrEmpty(argumentClientSecret.Value))
+                    if (string.IsNullOrEmpty(argumentClientId.Value) || string.IsNullOrEmpty(argumentClientTokenType.Value))
                     {
                         app.ShowHelp();
                         return;
                     }
 
-                    options.Command = new RegisterCommand { clientId = argumentClientId.Value, clientSecret = argumentClientSecret.Value, clientName = optionsName.Value() };
+                    options.Command = new ChangeClientTokenTypeCommand
+                    {
+                        clientId = argumentClientId.Value,
+                        accessTokenType = argumentClientTokenType.Value
+                    };
                 });
         }
 
@@ -48,11 +48,10 @@ namespace Ironclad.Console.Commands
             var client = new Ironclad.Client.Client
             {
                 Id = this.clientId,
-                Name = this.clientName,
-                Secret = this.clientSecret,
+                AccessTokenType = this.accessTokenType
             };
 
-            await context.Client.RegisterClientAsync(client).ConfigureAwait(false);
+            await context.ClientsClient.ModifyClientAsync(client).ConfigureAwait(false);
             await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }

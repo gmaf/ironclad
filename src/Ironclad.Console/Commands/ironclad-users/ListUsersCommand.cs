@@ -1,31 +1,31 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-namespace Ironclad.Console.Commands.Roles
+namespace Ironclad.Console.Commands
 {
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
-    internal class ListCommand : ICommand
+    internal class ListUsersCommand : ICommand
     {
         private int skip;
         private int take;
 
-        private ListCommand()
+        private ListUsersCommand()
         {
         }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Lists the registered roles";
+            app.Description = "Lists the registered users";
             app.HelpOption();
 
             // options
-            var optionSkip = app.Option("-s|--skip", "The number of roles to skip", CommandOptionType.SingleValue);
-            var optionTake = app.Option("-t|--take", "The number of roles to take", CommandOptionType.SingleValue);
+            var optionSkip = app.Option("-s|--skip", "The number of users to skip", CommandOptionType.SingleValue);
+            var optionTake = app.Option("-t|--take", "The number of users to take", CommandOptionType.SingleValue);
 
             // action (for this command)
             app.OnExecute(
@@ -43,24 +43,24 @@ namespace Ironclad.Console.Commands.Roles
                         throw new CommandParsingException(app, $"Unable to parse [take] value of '{optionTake.Value()}'");
                     }
 
-                    options.Command = new ListCommand { skip = skip, take = take };
+                    options.Command = new ListUsersCommand { skip = skip, take = take };
                 });
         }
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            var roles = await context.Client.GetRoleSummariesAsync(this.skip, this.take).ConfigureAwait(false);
-            var maxRoleIdLength = roles.Max(c => c.Id?.Length ?? 0);
-            var outputFormat = string.Format(CultureInfo.InvariantCulture, "  {{0, -{0}}}{{1}}", maxRoleIdLength + 2);
+            var users = await context.UsersClient.GetUserSummariesAsync(this.skip, this.take).ConfigureAwait(false);
+            var maxUserIdLength = users.Max(c => c.Id?.Length ?? 0);
+            var outputFormat = string.Format(CultureInfo.InvariantCulture, "  {{0, -{0}}}{{1}}", maxUserIdLength + 2);
 
-            await context.Console.Out.WriteLineAsync("Roles:").ConfigureAwait(false);
+            await context.Console.Out.WriteLineAsync("Users:").ConfigureAwait(false);
 
-            foreach (var user in roles)
+            foreach (var user in users)
             {
-                context.Console.Out.WriteLine(outputFormat, user.Id, user.Name);
+                context.Console.Out.WriteLine(outputFormat, user.Id, user.Username);
             }
 
-            await context.Console.Out.WriteLineAsync($"Showing from {roles.Start + 1} to {roles.Start + roles.Size} of {roles.TotalSize} in total.")
+            await context.Console.Out.WriteLineAsync($"Showing from {users.Start + 1} to {users.Start + users.Size} of {users.TotalSize} in total.")
                 .ConfigureAwait(false);
         }
     }

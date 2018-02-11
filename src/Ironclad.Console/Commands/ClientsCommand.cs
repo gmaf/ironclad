@@ -15,15 +15,15 @@ namespace Ironclad.Console.Commands
             app.HelpOption();
 
             // commands
-            app.Command("list", command => ListCommand.Configure(command, options));
-            app.Command("show", command => ShowCommand.Configure(command, options));
-            app.Command("register", command => RegisterCommand.Configure(command, options));
-            app.Command("delete", command => UnregisterCommand.Configure(command, options));
-            app.Command("scopes", command => ModifyScopesCommand.Configure(command, options));
-            app.Command("enable", command => EnableCommand.Configure(command, options));
-            app.Command("disable", command => DisableCommand.Configure(command, options));
-            app.Command("token", command => ChangeTokenTypeCommand.Configure(command, options));
-            app.Command("uris", command => UpdateUrisCommand.Configure(command, options, console));
+            app.Command("list", command => ListClientsCommand.Configure(command, options));
+            app.Command("show", command => ShowClientCommand.Configure(command, options));
+            app.Command("register", command => RegisterClientCommand.Configure(command, options));
+            app.Command("delete", command => UnregisterClientCommand.Configure(command, options));
+            app.Command("scopes", command => ModifyClientScopesCommand.Configure(command, options));
+            app.Command("enable", command => EnableClientCommand.Configure(command, options));
+            app.Command("disable", command => DisableClientCommand.Configure(command, options));
+            app.Command("token", command => ChangeClientTokenTypeCommand.Configure(command, options));
+            app.Command("uris", command => UpdateClientUrisCommand.Configure(command, options, console));
 
             // action (for this command)
             app.OnExecute(() => app.ShowHelp());

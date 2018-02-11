@@ -40,6 +40,7 @@ namespace Ironclad.Client
                 contentMessage);
         }
 
+#pragma warning disable CA1812
         private class Content
         {
             public string Message { get; set; }

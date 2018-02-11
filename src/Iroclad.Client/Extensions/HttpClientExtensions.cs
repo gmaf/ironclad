@@ -1,23 +1,18 @@
-﻿namespace Ironclad.Client
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Ironclad.Client
 {
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
 
+    // LINK (Cameron): https://github.com/dotnet/corefx/blob/master/src/System.Net.Http/src/System/Net/Http/HttpClient.cs#L322
     internal static class HttpClientExtensions
     {
-        /// <summary>
-        /// Sends the http patch request on the specified url.
-        /// </summary>
-        /// <param name="client">Client on which the request is being sent.</param>
-        /// <param name="requestUri">The url on which to send the patch request</param>
-        /// <param name="content">The http content to send</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The http response message</returns>
         public static async Task<HttpResponseMessage> PatchAsync(this HttpClient client, string requestUri, HttpContent content, CancellationToken cancellationToken)
         {
-            var method = new HttpMethod("PATCH");
-            var request = new HttpRequestMessage(method, requestUri)
+            var request = new HttpRequestMessage(new HttpMethod("PATCH"), requestUri)
             {
                 Content = content
             };
@@ -25,22 +20,19 @@
             return await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Sends the http delete request on the specified url.
-        /// </summary>
-        /// <param name="client">Client on which the request is being sent.</param>
-        /// <param name="requestUri">The url on which to send the delete request</param>
-        /// <param name="content">The http content to send</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The http response message</returns>
         public static async Task<HttpResponseMessage> DeleteAsync(this HttpClient client, string requestUri, HttpContent content, CancellationToken cancellationToken)
         {
-            var method = new HttpMethod("DELETE");
-            var request = new HttpRequestMessage(method, requestUri)
+            var request = new HttpRequestMessage(HttpMethod.Delete, requestUri)
             {
                 Content = content
             };
 
+            return await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async Task<HttpResponseMessage> HeadAsync(this HttpClient client, string requestUri, CancellationToken cancellationToken)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Head, requestUri);
             return await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
     }

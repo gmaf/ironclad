@@ -6,11 +6,11 @@ namespace Ironclad.Console.Commands
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
-    internal class EnableCommand : ICommand
+    internal class EnableClientCommand : ICommand
     {
         private string clientId;
 
-        private EnableCommand()
+        private EnableClientCommand()
         {
         }
 
@@ -33,7 +33,7 @@ namespace Ironclad.Console.Commands
                         return;
                     }
 
-                    options.Command = new EnableCommand
+                    options.Command = new EnableClientCommand
                     {
                         clientId = argumentClientId.Value
                     };
@@ -48,7 +48,7 @@ namespace Ironclad.Console.Commands
                 Enabled = true
             };
 
-            await context.Client.ModifyClientAsync(client).ConfigureAwait(false);
+            await context.ClientsClient.ModifyClientAsync(client).ConfigureAwait(false);
             await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }
