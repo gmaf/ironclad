@@ -7,18 +7,18 @@ namespace Ironclad.Console.Commands
     using McMaster.Extensions.CommandLineUtils;
     using Newtonsoft.Json;
 
-    internal class ShowApiResourceCommand : ICommand
+    internal class ShowIdentityResourceCommand : ICommand
     {
         private string resourceName;
 
-        private ShowApiResourceCommand()
+        private ShowIdentityResourceCommand()
         {
         }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = $"Show the specified API resource";
+            app.Description = $"Show the specified identity resource";
             app.HelpOption();
 
             // arguments
@@ -34,13 +34,13 @@ namespace Ironclad.Console.Commands
                         return;
                     }
 
-                    options.Command = new ShowApiResourceCommand { resourceName = argumentClientId.Value };
+                    options.Command = new ShowIdentityResourceCommand { resourceName = argumentClientId.Value };
                 });
         }
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            var resource = await context.ApiResourcesClient.GetApiResourceAsync(this.resourceName).ConfigureAwait(false);
+            var resource = await context.IdentityResourcesClient.GetIdentityResourceAsync(this.resourceName).ConfigureAwait(false);
             await context.Console.Out.WriteLineAsync(JsonConvert.SerializeObject(resource)).ConfigureAwait(false);
         }
     }
