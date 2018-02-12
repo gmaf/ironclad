@@ -13,14 +13,11 @@ namespace Ironclad.Controllers
     using IdentityModel;
     using IdentityServer4.Extensions;
     using IdentityServer4.Services;
-    using IdentityServer4.Stores;
     using Ironclad.Application;
     using Ironclad.Models;
-    using Ironclad.Sdk;
     using Ironclad.Services;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;

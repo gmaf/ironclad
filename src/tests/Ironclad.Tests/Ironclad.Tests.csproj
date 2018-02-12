@@ -5,12 +5,14 @@
     <RuntimeFrameworkVersion>2.0.5</RuntimeFrameworkVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+  <PropertyGroup>
+    <CodeAnalysisRuleSet>../../Ironclad.ruleset</CodeAnalysisRuleSet>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="IdentityModel" Version="3.0.0" />
+    <PackageReference Include="FluentAssertions" Version="5.0.0" />
+    <PackageReference Include="IdentityModel" Version="3.1.0" />
     <PackageReference Include="Xbehave" Version="2.3.0" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
@@ -19,8 +21,15 @@
 
   <ItemGroup>
     <Folder Include="Bug\" />
-    <Folder Include="Integration\" />
     <Folder Include="Unit\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Iroclad.Client\Ironclad.Client.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="../../stylecop.json" />
+  </ItemGroup>
+  
 </Project>

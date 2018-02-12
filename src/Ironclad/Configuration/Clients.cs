@@ -1,18 +1,18 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-namespace Ironclad
+namespace Ironclad.Configuration
 {
     using System.Collections.Generic;
     using IdentityServer4;
     using IdentityServer4.Models;
 
-    internal static class Config
+    public static partial class Config
     {
-        public static IEnumerable<Client> GetInMemoryClients() =>
+        public static IEnumerable<Client> GetDefaultClients() =>
             new List<Client>
             {
-                // NOTE (Cameron): This is the sample client (console app; representing server-to-server communication).
+                // NOTE (Cameron): This is the sample client representing server-to-server communication.
                 new Client
                 {
                     ClientId = "sample_client",
@@ -20,13 +20,12 @@ namespace Ironclad
                     AllowedGrantTypes = GrantTypes.ClientCredentials,
                     ClientSecrets = { new Secret("secret".Sha256()) },
                     AllowedScopes = { "sample_api" },
-                    ////AccessTokenType = AccessTokenType.Reference,
                 },
 
-                // NOTE (Cameron): This is the sample client (console app; representing server-to-server communication).
+                // NOTE (Cameron): This is the sample single page application.
                 new Client
                 {
-                    ClientId = "spa",
+                    ClientId = "sample_spa",
                     ClientName = "Single Page Application",
                     AllowedGrantTypes = GrantTypes.Implicit,
                     AllowAccessTokensViaBrowser = true,
@@ -44,29 +43,30 @@ namespace Ironclad
                     },
 
                     AccessTokenType = AccessTokenType.Reference,
-                }
-            };
-
-        public static IEnumerable<IdentityResource> GetIdentityResources() =>
-            new List<IdentityResource>
-            {
-                new IdentityResources.OpenId(),
-                new IdentityResources.Profile(),
-                new IdentityResources.Email(),
-                new IdentityResource
-                {
-                    Name = "role",
-                    UserClaims = new List<string> { "role" },
                 },
-            };
 
-        public static IEnumerable<ApiResource> GetApiResources() =>
-            new List<ApiResource>
-            {
-                new ApiResource("sample_api", "Sample Web API")
+                // NOTE (Cameron): This is the sample console client representing hybrid communication.
+                new Client
                 {
-                    ApiSecrets = new List<Secret> { new Secret("secret".Sha256()) },
-                    UserClaims = new[] { "name", "role" }, // NOTE (Cameron): These are the user claims that are required by the web API.
+                    ClientId = "sample_console",
+                    ClientName = "Sample Console Client (Hybrid with PKCE)",
+
+                    RequireClientSecret = false,
+
+                    AllowedGrantTypes = GrantTypes.Hybrid,
+                    RequirePkce = true,
+
+                    RedirectUris = { "http://127.0.0.1" },
+
+                    AllowOfflineAccess = true,
+
+                    AllowedScopes =
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
+                        IdentityServerConstants.StandardScopes.Email,
+                        "sample_api",
+                    },
                 },
             };
     }

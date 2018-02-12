@@ -41,7 +41,7 @@
             // we have to enable CORS for any clients that come via the browser; this will allow calls to the API from the Singe Page Application
             services.AddCors(options =>
             {
-                // this defines a CORS policy called "default"
+                // this defines a CORS policy called "spa"
                 options.AddPolicy("spa", policy =>
                 {
                     policy.WithOrigins("http://localhost:5008")         // the origin specified is for the Single Page Application

@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "Ironclad.Console": {
+      "commandName": "Project"
+    }
+  }
+}

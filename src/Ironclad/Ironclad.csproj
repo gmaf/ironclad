@@ -20,12 +20,15 @@
     <UserSecretsId>bbc9d7a3-f19b-4bec-baf1-68d158cca1a9</UserSecretsId>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+  <PropertyGroup>
     <NoWarn>1701;1702;1705;CA2007</NoWarn>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <AssemblyName>Ironclad</AssemblyName>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <NoWarn>1701;1702;1705;CA2007</NoWarn>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -39,20 +42,11 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Compile Remove="Controllers\AccountController_Old.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="tempkey.rsa" />
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="Views\Manage\" />
-    <Folder Include="wwwroot\lib\qrcode\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="IdentityServer4" Version="2.1.1" />
+    <PackageReference Include="IdentityServer4" Version="2.1.2" />
     <PackageReference Include="IdentityServer4.AspNetIdentity" Version="2.1.0" />
     <PackageReference Include="IdentityServer4.Postgresql" Version="2.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
@@ -77,6 +71,18 @@
 
   <ItemGroup>
     <AdditionalFiles Include="../stylecop.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Iroclad.Client\Dto\ApiResource.cs" Link="Controllers\Api\Dto\ApiResource.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\Client.cs" Link="Controllers\Api\Dto\Client.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\ClientSummary.cs" Link="Controllers\Api\Dto\ClientSummary.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\IdentityResource.cs" Link="Controllers\Api\Dto\IdentityResource.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\ResourceSet.cs" Link="Controllers\Api\Dto\ResourceSet.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\ResourceSummary.cs" Link="Controllers\Api\Dto\ResourceSummary.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\Role.cs" Link="Controllers\Api\Dto\Role.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\User.cs" Link="Controllers\Api\Dto\User.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\UserSummary.cs" Link="Controllers\Api\Dto\UserSummary.cs" />
   </ItemGroup>
 
   <ItemGroup>
