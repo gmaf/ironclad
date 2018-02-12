@@ -6,18 +6,18 @@ namespace Ironclad.Console.Commands
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
-    internal class RemoveApiResourceCommand : ICommand
+    internal class RemoveIdentityResourceCommand : ICommand
     {
         private string resourceName;
 
-        private RemoveApiResourceCommand()
+        private RemoveIdentityResourceCommand()
         {
         }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = $"Removes the specified API resource";
+            app.Description = $"Removes the specified identity resource";
             app.HelpOption();
 
             // arguments
@@ -33,13 +33,13 @@ namespace Ironclad.Console.Commands
                         return;
                     }
 
-                    options.Command = new RemoveApiResourceCommand { resourceName = argumentResourceName.Value };
+                    options.Command = new RemoveIdentityResourceCommand { resourceName = argumentResourceName.Value };
                 });
         }
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            await context.ApiResourcesClient.RemoveApiResourceAsync(this.resourceName).ConfigureAwait(false);
+            await context.IdentityResourcesClient.RemoveIdentityResourceAsync(this.resourceName).ConfigureAwait(false);
             await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }

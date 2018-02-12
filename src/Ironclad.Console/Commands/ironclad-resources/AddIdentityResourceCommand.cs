@@ -9,23 +9,21 @@ namespace Ironclad.Console.Commands
     using Ironclad.Client;
     using McMaster.Extensions.CommandLineUtils;
 
-    public class AddApiResourceCommand : ICommand
+    public class AddIdentityResourceCommand : ICommand
     {
         private string name;
         private string displayName;
-        private string apiSecret;
         private List<string> userClaims;
         private bool enabled;
-        private List<ApiResource.Scope> apiScopes;
 
-        private AddApiResourceCommand()
+        private AddIdentityResourceCommand()
         {
         }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = $"Adds the specified API resource";
+            app.Description = $"Adds the specified identity resource";
             app.HelpOption();
 
             // arguments
@@ -33,10 +31,8 @@ namespace Ironclad.Console.Commands
 
             // options
             var optionDisplayName = app.Option("--displayName <name>", "The resource display name.", CommandOptionType.SingleValue);
-            var optionApiSecret = app.Option("--apiSecret <secret>", "The resource api secret.", CommandOptionType.SingleValue);
             var optionUserClaim = app.Option("--userClaim <claim>", "The resource user claim. You can call this several times.", CommandOptionType.MultipleValue);
             var optionEnabled = app.Option("--enabled", "Is the resource enabled.", CommandOptionType.NoValue);
-            var optionApiScope = app.Option("--apiScope <name:claim1,claim2...>", "The resource apiScope. You can call this several times.", CommandOptionType.MultipleValue);
 
             // action (for this command)
             app.OnExecute(
@@ -48,48 +44,27 @@ namespace Ironclad.Console.Commands
                         return;
                     }
 
-                    var apiScopes = new List<ApiResource.Scope>();
-                    foreach (var apiScope in optionApiScope.Values)
-                    {
-                        var name2claims = apiScope.Split(':');
-                        if (name2claims.Length != 2)
-                        {
-                            throw new ArgumentException($"Malformed API scope '{apiScope}'.");
-                        }
-
-                        apiScopes.Add(
-                            new ApiResource.Scope
-                            {
-                                Name = name2claims[0],
-                                UserClaims = name2claims[1].Split(',')
-                            });
-                    }
-
-                    options.Command = new AddApiResourceCommand
+                    options.Command = new AddIdentityResourceCommand
                     {
                         name = argumentResourceName.Value,
                         displayName = optionDisplayName.Value(),
-                        apiSecret = optionApiSecret.Value(),
                         userClaims = optionUserClaim.Values,
                         enabled = optionEnabled.HasValue(),
-                        apiScopes = apiScopes,
                     };
                 });
         }
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            var resource = new ApiResource
+            var resource = new IdentityResource
             {
                 Name = this.name,
                 DisplayName = this.displayName,
-                ApiSecret = this.apiSecret,
                 UserClaims = this.userClaims,
                 Enabled = this.enabled,
-                ApiScopes = this.apiScopes,
             };
 
-            await context.ApiResourcesClient.AddApiResourceAsync(resource).ConfigureAwait(false);
+            await context.IdentityResourcesClient.AddIdentityResourceAsync(resource).ConfigureAwait(false);
             await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }

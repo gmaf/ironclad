@@ -16,7 +16,7 @@ namespace Ironclad.Console.Commands
 
             // commands
             app.Command("api", command => ConfigureApiResources(command, options));
-            ////app.Command("identity", command => ResourcesSubCommand.Configure(command, options, "identity"));
+            app.Command("identity", command => ConfigureIdentityResources(command, options));
 
             // action (for this command)
             app.OnExecute(() => app.ShowHelp());
@@ -32,8 +32,23 @@ namespace Ironclad.Console.Commands
             app.Command("list", command => ListApiResourcesCommand.Configure(command, options));
             app.Command("add", command => AddApiResourceCommand.Configure(command, options));
             app.Command("show", command => ShowApiResourceCommand.Configure(command, options));
-            ////app.Command("update", command => ShowCommand.Configure(command, options));
             app.Command("remove", command => RemoveApiResourceCommand.Configure(command, options));
+
+            // action (for this command)
+            app.OnExecute(() => app.ShowHelp());
+        }
+
+        private static void ConfigureIdentityResources(CommandLineApplication app, CommandLineOptions options)
+        {
+            // description
+            app.Description = $"Provides API resources related operations";
+            app.HelpOption();
+
+            // commands
+            app.Command("list", command => ListIdentityResourcesCommand.Configure(command, options));
+            app.Command("add", command => AddIdentityResourceCommand.Configure(command, options));
+            app.Command("show", command => ShowIdentityResourceCommand.Configure(command, options));
+            app.Command("remove", command => RemoveIdentityResourceCommand.Configure(command, options));
 
             // action (for this command)
             app.OnExecute(() => app.ShowHelp());

@@ -8,19 +8,19 @@ namespace Ironclad.Console.Commands
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
-    public class ListApiResourcesCommand : ICommand
+    public class ListIdentityResourcesCommand : ICommand
     {
         private int skip;
         private int take;
 
-        private ListApiResourcesCommand()
+        private ListIdentityResourcesCommand()
         {
         }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = $"Lists the API resources";
+            app.Description = $"Lists the identity resources";
             app.HelpOption();
 
             // options
@@ -43,17 +43,17 @@ namespace Ironclad.Console.Commands
                         throw new CommandParsingException(app, $"Unable to parse [take] value of '{optionTake.Value()}'");
                     }
 
-                    options.Command = new ListApiResourcesCommand { skip = skip, take = take };
+                    options.Command = new ListIdentityResourcesCommand { skip = skip, take = take };
                 });
         }
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            var resources = await context.ApiResourcesClient.GetApiResourceSummariesAsync(this.skip, this.take).ConfigureAwait(false);
+            var resources = await context.IdentityResourcesClient.GetIdentityResourceSummariesAsync(this.skip, this.take).ConfigureAwait(false);
             var maxResourceIdLength = resources.Max(c => c.Name?.Length ?? 0);
             var outputFormat = string.Format(CultureInfo.InvariantCulture, "  {{0, -{0}}}{{1}}", maxResourceIdLength + 2);
 
-            await context.Console.Out.WriteLineAsync("API Resources:").ConfigureAwait(false);
+            await context.Console.Out.WriteLineAsync("Identity Resources:").ConfigureAwait(false);
 
             foreach (var resource in resources)
             {
