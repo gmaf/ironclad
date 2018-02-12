@@ -19,7 +19,7 @@ namespace Ironclad.Tests.Feature
         }
 
         [Scenario(Skip = "Incomplete")]
-        public void CanSignIn(string username, string password)
+        public void CanSignIn()
         {
             "Given some hard-coded credentials eg. bob/bob"
                 .x(() => { });
@@ -38,7 +38,7 @@ namespace Ironclad.Tests.Feature
         }
 
         [Scenario(Skip = "Incomplete")]
-        public void CanSignOut(string username, string password)
+        public void CanSignOut()
         {
             "Given some hard-coded credentials eg. bob/bob"
                 .x(() => { });

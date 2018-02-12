@@ -15,7 +15,7 @@ namespace Ironclad.Tests.Feature
         }
 
         [Scenario(Skip = "Incomplete")]
-        public void CanCallSecureWebApi(string clientId, string secret)
+        public void CanCallSecureWebApi()
         {
             "Given some hard-coded credentials eg. bob/bob"
                 .x(async () =>
