@@ -41,7 +41,7 @@ namespace Ironclad.Console.Commands
         public async Task ExecuteAsync(CommandContext context)
         {
             var user = await context.UsersClient.GetUserAsync(this.userId).ConfigureAwait(false);
-            await context.Console.Out.WriteLineAsync(JsonConvert.SerializeObject(user, Formatting.Indented)).ConfigureAwait(false);
+            await context.Console.Out.WriteLineAsync(JsonConvert.SerializeObject(user)).ConfigureAwait(false);
         }
     }
 }

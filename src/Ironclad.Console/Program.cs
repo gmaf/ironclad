@@ -8,6 +8,8 @@ namespace Ironclad.Console
     using Ironclad.Client;
     using Ironclad.Console.Commands;
     using McMaster.Extensions.CommandLineUtils;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Serialization;
 
     internal class Program
     {
@@ -22,12 +24,14 @@ namespace Ironclad.Console
         {
             Sdk.DebugHelper.HandleDebugSwitch(ref args);
 
-            Newtonsoft.Json.JsonConvert.DefaultSettings = () => new Newtonsoft.Json.JsonSerializerSettings
-            {
-                Formatting = Newtonsoft.Json.Formatting.Indented,
-                NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
-                ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver { NamingStrategy = new Newtonsoft.Json.Serialization.SnakeCaseNamingStrategy() }
-            };
+            JsonConvert.DefaultSettings =
+                () =>
+                new JsonSerializerSettings
+                {
+                    Formatting = Formatting.Indented,
+                    NullValueHandling = NullValueHandling.Ignore,
+                    ContractResolver = new DefaultContractResolver { NamingStrategy = new SnakeCaseNamingStrategy() }
+                };
 
             return new Program(PhysicalConsole.Singleton).TryRunAsync(args);
         }

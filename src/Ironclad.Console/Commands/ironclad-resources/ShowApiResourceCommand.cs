@@ -41,7 +41,7 @@ namespace Ironclad.Console.Commands
         public async Task ExecuteAsync(CommandContext context)
         {
             var resource = await context.ApiResourcesClient.GetApiResourceAsync(this.resourceName).ConfigureAwait(false);
-            await context.Console.Out.WriteLineAsync(JsonConvert.SerializeObject(resource, Formatting.Indented)).ConfigureAwait(false);
+            await context.Console.Out.WriteLineAsync(JsonConvert.SerializeObject(resource)).ConfigureAwait(false);
         }
     }
 }

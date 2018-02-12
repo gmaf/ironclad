@@ -19,12 +19,10 @@ namespace Ironclad.Controllers.Api
     public class UsersController : Controller
     {
         private readonly UserManager<ApplicationUser> userManager;
-        private readonly RoleManager<IdentityRole> roleManager;
 
-        public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        public UsersController(UserManager<ApplicationUser> userManager)
         {
             this.userManager = userManager;
-            this.roleManager = roleManager;
         }
 
         public async Task<IActionResult> Get(int skip = default, int take = 20)
@@ -102,7 +100,7 @@ namespace Ironclad.Controllers.Api
                 return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = result.ToString() });
             }
 
-            return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/roles/" + model.Username)), null);
+            return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + model.Username)), null);
         }
 
         [HttpPut("{username}")]
