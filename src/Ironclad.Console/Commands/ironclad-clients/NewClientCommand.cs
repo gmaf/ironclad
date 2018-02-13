@@ -6,20 +6,20 @@ namespace Ironclad.Console.Commands
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
-    internal class RegisterClientCommand : ICommand
+    internal class NewClientCommand : ICommand
     {
         private string clientId;
         private string clientSecret;
         private string clientName;
 
-        private RegisterClientCommand()
+        private NewClientCommand()
         {
         }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Registers the specified client";
+            app.Description = "Creates a new client trust relationship with the auth server";
             app.HelpOption();
 
             // arguments
@@ -39,7 +39,7 @@ namespace Ironclad.Console.Commands
                         return;
                     }
 
-                    options.Command = new RegisterClientCommand
+                    options.Command = new NewClientCommand
                     {
                         clientId = argumentClientId.Value,
                         clientSecret = argumentClientSecret.Value,

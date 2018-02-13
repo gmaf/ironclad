@@ -82,10 +82,25 @@ namespace Ironclad.Controllers.Api
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]IroncladResource model)
         {
+            if (string.IsNullOrEmpty(model.Name))
+            {
+                return this.BadRequest(new { Message = $"Cannot create an API resource without an API name" });
+            }
+
+            if (string.IsNullOrEmpty(model.ApiSecret))
+            {
+                return this.BadRequest(new { Message = $"Cannot create an API resource without an API secret" });
+            }
+
             var resource = new IdentityServerResource(model.Name, model.DisplayName)
             {
                 ApiSecrets = new List<Secret> { new Secret(model.ApiSecret.Sha256()) },
             };
+
+            // optional properties
+            resource.UserClaims = model.UserClaims ?? resource.UserClaims;
+            resource.Scopes = model.ApiScopes?.Select(item => new Scope(item.Name, item.UserClaims)).ToList() ?? resource.Scopes;
+            resource.Enabled = model.Enabled ?? resource.Enabled;
 
             using (var session = this.store.LightweightSession())
             {

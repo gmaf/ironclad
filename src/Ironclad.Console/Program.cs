@@ -82,6 +82,7 @@ namespace Ironclad.Console
                 catch (Exception ex)
                 {
                     await this.console.Out.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                    return 500;
                 }
 
                 return 0;

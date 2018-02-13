@@ -78,6 +78,12 @@ namespace Ironclad.Controllers
                             document.PostLogoutRedirectUris.Select(item => item.PostLogoutRedirectUri).ToList(),
                         AllowedScopes = document.AllowedScopes.Select(item => item.Scope).ToList(),
                         AccessTokenType = ((AccessTokenType)document.AccessTokenType).ToString(),
+                        AllowedGrantTypes = document.AllowedGrantTypes.Select(item => item.GrantType).ToList(),
+                        AllowAccessTokensViaBrowser = document.AllowAccessTokensViaBrowser,
+                        AllowOfflineAccess = document.AllowOfflineAccess,
+                        RequireClientSecret = document.RequireClientSecret,
+                        RequirePkce = document.RequirePkce,
+                        RequireConsent = document.RequireConsent,
                         Enabled = document.Enabled,
                     });
             }
@@ -92,6 +98,26 @@ namespace Ironclad.Controllers
                 ClientSecrets = new List<Secret> { new Secret(model.Secret.Sha256()) },
                 ClientName = model.Name,
             };
+
+            if (!Enum.TryParse<AccessTokenType>(model.AccessTokenType, out var accessTokenType))
+            {
+                return this.BadRequest(new { Message = $"Access token type '{model.AccessTokenType}' does not exist" });
+            }
+
+            // optional properties
+            client.ClientName = model.Name ?? client.ClientName;
+            client.AllowedCorsOrigins = model.AllowedCorsOrigins ?? client.AllowedCorsOrigins;
+            client.RedirectUris = model.RedirectUris ?? client.RedirectUris;
+            client.PostLogoutRedirectUris = model.PostLogoutRedirectUris ?? client.PostLogoutRedirectUris;
+            client.AllowedScopes = model.AllowedScopes ?? client.AllowedScopes;
+            client.AccessTokenType = accessTokenType;
+            client.AllowedGrantTypes = model.AllowedGrantTypes ?? client.AllowedGrantTypes;
+            client.AllowAccessTokensViaBrowser = model.AllowAccessTokensViaBrowser ?? client.AllowAccessTokensViaBrowser;
+            client.AllowOfflineAccess = model.AllowOfflineAccess ?? client.AllowOfflineAccess;
+            client.RequireClientSecret = model.RequireClientSecret ?? client.RequireClientSecret;
+            client.RequirePkce = model.RequirePkce ?? client.RequirePkce;
+            client.RequireConsent = model.RequireConsent ?? client.RequireConsent;
+            client.Enabled = model.Enabled ?? client.Enabled;
 
             using (var session = this.store.LightweightSession())
             {
@@ -128,6 +154,7 @@ namespace Ironclad.Controllers
                     RedirectUris = model.RedirectUris,
                     PostLogoutRedirectUris = model.PostLogoutRedirectUris,
                     AllowedScopes = model.AllowedScopes,
+                    AllowedGrantTypes = model.AllowedGrantTypes,
                 };
 
                 // NOTE (Cameron): If the secret is updated we want to add the new secret...
@@ -138,15 +165,15 @@ namespace Ironclad.Controllers
 
                 var entity = client.ToEntity();
 
-                int accessTokenType = document.AccessTokenType;
+                var accessTokenType = document.AccessTokenType;
                 if (model.AccessTokenType != null)
                 {
-                    if (!Enum.TryParse<AccessTokenType>(model.AccessTokenType, out var accessTokenTypeEnum))
+                    if (!Enum.TryParse<AccessTokenType>(model.AccessTokenType, out var value))
                     {
-                        return this.BadRequest(new { Message = $"Token type [{model.AccessTokenType}] does not exists." });
+                        return this.BadRequest(new { Message = $"Access token type '{model.AccessTokenType}' does not exist" });
                     }
 
-                    accessTokenType = (int)accessTokenTypeEnum;
+                    accessTokenType = (int)value;
                 }
 
                 // update properties (everything supported is an optional update eg. if null is passed we will not update)
@@ -155,7 +182,13 @@ namespace Ironclad.Controllers
                 document.RedirectUris = entity.RedirectUris ?? document.RedirectUris;
                 document.PostLogoutRedirectUris = entity.PostLogoutRedirectUris ?? document.PostLogoutRedirectUris;
                 document.AllowedScopes = entity.AllowedScopes ?? document.AllowedScopes;
-                document.AccessTokenType = (int)accessTokenType;
+                document.AccessTokenType = accessTokenType;
+                document.AllowedGrantTypes = entity.AllowedGrantTypes ?? document.AllowedGrantTypes;
+                document.AllowAccessTokensViaBrowser = model.AllowAccessTokensViaBrowser ?? document.AllowAccessTokensViaBrowser;
+                document.AllowOfflineAccess = model.AllowOfflineAccess ?? document.AllowOfflineAccess;
+                document.RequireClientSecret = model.RequireClientSecret ?? document.RequireClientSecret;
+                document.RequirePkce = model.RequirePkce ?? document.RequirePkce;
+                document.RequireConsent = model.RequireConsent ?? document.RequireConsent;
                 document.Enabled = model.Enabled ?? document.Enabled;
 
                 if (!string.IsNullOrEmpty(model.Secret))

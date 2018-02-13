@@ -15,10 +15,9 @@ namespace Ironclad.Console.Commands
             app.HelpOption();
 
             // commands
-            app.Command("list", command => ListClientsCommand.Configure(command, options));
-            app.Command("show", command => ShowClientCommand.Configure(command, options));
-            app.Command("register", command => RegisterClientCommand.Configure(command, options));
-            app.Command("delete", command => UnregisterClientCommand.Configure(command, options));
+            app.Command("show", command => ShowClientsCommand.Configure(command, options));
+            app.Command("new", command => NewClientCommand.Configure(command, options));
+            app.Command("unregister", command => UnregisterClientCommand.Configure(command, options));
             app.Command("scopes", command => ModifyClientScopesCommand.Configure(command, options));
             app.Command("enable", command => EnableClientCommand.Configure(command, options));
             app.Command("disable", command => DisableClientCommand.Configure(command, options));
@@ -26,7 +25,7 @@ namespace Ironclad.Console.Commands
             app.Command("uris", command => UpdateClientUrisCommand.Configure(command, options, console));
 
             // action (for this command)
-            app.OnExecute(() => app.ShowHelp());
+            app.OnExecute(() => app.ShowVersionAndHelp());
         }
     }
 }

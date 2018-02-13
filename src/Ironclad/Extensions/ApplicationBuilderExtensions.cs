@@ -3,7 +3,6 @@
 
 namespace Ironclad
 {
-    using System;
     using System.Linq;
     using IdentityServer4.Postgresql.Mappers;
     using Ironclad.Application;
@@ -38,19 +37,21 @@ namespace Ironclad
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
                 var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+                var roleManager = serviceScope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
                 var user = userManager.FindByIdAsync(DefaultAdminUserId).Result;
                 if (user != null)
                 {
                     return app;
                 }
 
-                Log.Information("Adding default administrative user...");
+                Log.Information("Configuring system for first use...");
+
                 user = new ApplicationUser { Id = DefaultAdminUserId, UserName = "admin" };
-                var result = userManager.CreateAsync(user, "password").Result;
-                if (!result.Succeeded)
-                {
-                    throw new ApplicationException("Unable to create default user.");
-                }
+
+                roleManager.CreateAsync(new IdentityRole("admin")).Wait();
+                userManager.CreateAsync(user = new ApplicationUser { Id = DefaultAdminUserId, UserName = "admin" }, "password").Wait();
+                userManager.AddToRoleAsync(user, "admin").Wait();
 
                 // NOTE (Cameron): Set up default clients in Postgres.
                 var store = serviceScope.ServiceProvider.GetRequiredService<IDocumentStore>();

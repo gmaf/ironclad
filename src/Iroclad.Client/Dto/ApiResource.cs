@@ -34,13 +34,13 @@ namespace Ironclad.Client
         /// </summary>
         /// <value>The user claims.</value>
 #pragma warning disable CA2227
-        public List<string> UserClaims { get; set; }
+        public ICollection<string> UserClaims { get; set; } = new HashSet<string>();
 
         /// <summary>
         /// Gets or sets the scopes for the API.
         /// </summary>
         /// <value>The scopes.</value>
-        public ICollection<Scope> ApiScopes { get; set; }
+        public ICollection<Scope> ApiScopes { get; set; } = new HashSet<Scope>();
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="ApiResource"/> is enabled.
@@ -64,7 +64,7 @@ namespace Ironclad.Client
             /// Gets or sets the user claims for the resource API scope.
             /// </summary>
             /// <value>The user claims.</value>
-            public ICollection<string> UserClaims { get; set; }
+            public ICollection<string> UserClaims { get; set; } = new HashSet<string>();
         }
     }
 }
