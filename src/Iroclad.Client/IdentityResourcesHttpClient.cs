@@ -10,16 +10,16 @@ namespace Ironclad.Client
     /// <summary>
     /// An HTTP client for managing identity resources for the authorization server.
     /// </summary>
-    public sealed class IdentityResourceHttpClient : HttpClientBase, IIdentityResourcesClient
+    public sealed class IdentityResourcesHttpClient : HttpClientBase, IIdentityResourcesClient
     {
         private const string ApiPath = "/api/identityresources";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IdentityResourceHttpClient"/> class.
+        /// Initializes a new instance of the <see cref="IdentityResourcesHttpClient"/> class.
         /// </summary>
         /// <param name="authority">The authority.</param>
         /// <param name="innerHandler">The inner handler.</param>
-        public IdentityResourceHttpClient(string authority, HttpMessageHandler innerHandler = null)
+        public IdentityResourcesHttpClient(string authority, HttpMessageHandler innerHandler = null)
             : base(authority, innerHandler)
         {
         }

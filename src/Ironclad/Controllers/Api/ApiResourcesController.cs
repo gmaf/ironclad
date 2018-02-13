@@ -84,12 +84,12 @@ namespace Ironclad.Controllers.Api
         {
             if (string.IsNullOrEmpty(model.Name))
             {
-                return this.BadRequest(new { Message = $"Cannot create an API resource without an API name" });
+                return this.BadRequest(new { Message = $"Cannot create an API resource without a name" });
             }
 
             if (string.IsNullOrEmpty(model.ApiSecret))
             {
-                return this.BadRequest(new { Message = $"Cannot create an API resource without an API secret" });
+                return this.BadRequest(new { Message = $"Cannot create an API resource without a secret" });
             }
 
             var resource = new IdentityServerResource(model.Name, model.DisplayName)

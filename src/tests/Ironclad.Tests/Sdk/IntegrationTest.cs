@@ -14,5 +14,7 @@ namespace Ironclad.Tests.Sdk
         {
             this.fixture = fixture;
         }
+
+        protected string Authority => this.fixture.Authority;
     }
 }

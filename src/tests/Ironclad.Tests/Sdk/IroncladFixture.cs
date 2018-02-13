@@ -8,12 +8,15 @@ namespace Ironclad.Tests.Sdk
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
+    using System.Net.Http;
     using System.Threading;
     using Microsoft.Extensions.Configuration;
     using Npgsql;
 
     public sealed class IroncladFixture : IDisposable
     {
+        private const string ConnectionString = "Host=localhost;Database=ironclad;Username=postgres;Password=postgres;";
+
         private static readonly string DockerContainerId = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture).Substring(12);
 
         private readonly Process postgresProcess;
@@ -22,11 +25,14 @@ namespace Ironclad.Tests.Sdk
         public IroncladFixture()
         {
             var config = new ConfigurationBuilder().AddJsonFile("testsettings.json").Build();
-            var authority = config.GetValue<string>("authority");
 
-            this.postgresProcess = StartPostgres();
-            this.ironcladProcess = StartIronclad();
+            this.Authority = config.GetValue<string>("authority");
+
+            this.postgresProcess = this.StartPostgres();
+            this.ironcladProcess = this.StartIronclad();
         }
+
+        public string Authority { get; }
 
         public void Dispose()
         {
@@ -55,7 +61,7 @@ namespace Ironclad.Tests.Sdk
                 .WaitForExit(5000);
         }
 
-        private static Process StartPostgres()
+        private Process StartPostgres()
         {
             var process = Process.Start(
                 new ProcessStartInfo("docker", $"run --name {DockerContainerId} -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ironclad -p 5432:5432 postgres:10.1-alpine")
@@ -63,7 +69,7 @@ namespace Ironclad.Tests.Sdk
                     UseShellExecute = true,
                 });
 
-            using (var connection = new NpgsqlConnection("Host=localhost;Database=ironclad;Username=postgres;Password=postgres;"))
+            using (var connection = new NpgsqlConnection(ConnectionString))
             {
                 var attemp = 0;
                 while (true)
@@ -87,18 +93,42 @@ namespace Ironclad.Tests.Sdk
             return process;
         }
 
-        private static Process StartIronclad()
+        private Process StartIronclad()
         {
-            var d = Path.DirectorySeparatorChar;
+            var path = string.Format(
+                CultureInfo.InvariantCulture,
+                "..{0}..{0}..{0}..{0}..{0}Ironclad{0}bin{0}Debug{0}netcoreapp2.0{0}Ironclad.dll",
+                Path.DirectorySeparatorChar);
 
-             var process = Process.Start(
-                new ProcessStartInfo("dotnet", $"..{d}..{d}..{d}..{d}..{d}Ironclad{d}bin{d}Debug{d}netcoreapp2.0{d}Ironclad.dll --connectionString Host=localhost;Database=ironclad;Username=postgres;Password=postgres;")
+            var process = Process.Start(
+                new ProcessStartInfo("dotnet", $"{path} --connectionString {ConnectionString}")
                 {
                     UseShellExecute = true,
                 });
 
-            // TODO (Cameron): This should be configurable.
-            Thread.Sleep(7000);
+            using (var client = new HttpClient())
+            {
+                var attemp = 0;
+                while (true)
+                {
+                    Thread.Sleep(500);
+                    try
+                    {
+                        using (var response = client.GetAsync(new Uri(this.Authority + "/.well-known/openid-configuration")).Result)
+                        {
+                        }
+
+                        break;
+                    }
+                    catch (Exception)
+                    {
+                        if (++attemp >= 20)
+                        {
+                            throw;
+                        }
+                    }
+                }
+            }
 
             return process;
         }

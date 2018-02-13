@@ -69,7 +69,7 @@ namespace Ironclad.Console
 
             using (var clientsClient = new ClientsHttpClient(authority))
             using (var apiResourcesClient = new ApiResourcesHttpClient(authority))
-            using (var identityResourcesClient = new IdentityResourceHttpClient(authority))
+            using (var identityResourcesClient = new IdentityResourcesHttpClient(authority))
             using (var rolesClient = new RolesHttpClient(authority))
             using (var usersClient = new UsersHttpClient(authority))
             {

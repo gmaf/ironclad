@@ -14,8 +14,6 @@ namespace Ironclad.Tests.Feature
 
     public class ApiResourceManagement : IntegrationTest
     {
-        private const string Authority = "http://localhost:5005";
-
         public ApiResourceManagement(IroncladFixture fixture)
             : base(fixture)
         {
@@ -25,7 +23,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanAddApiResourceMinimum()
         {
             // arrange
-            var httpClient = new ApiResourcesHttpClient(Authority);
+            var httpClient = new ApiResourcesHttpClient(this.Authority);
             var expectedResource = new ApiResource
             {
                 Name = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
@@ -45,7 +43,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanAddApiResource()
         {
             // arrange
-            var httpClient = new ApiResourcesHttpClient(Authority);
+            var httpClient = new ApiResourcesHttpClient(this.Authority);
             var expectedResource = new ApiResource
             {
                 Name = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
@@ -69,7 +67,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanGetApiResourceSummaries()
         {
             // arrange
-            var httpClient = new ApiResourcesHttpClient(Authority);
+            var httpClient = new ApiResourcesHttpClient(this.Authority);
             var expectedResource = new ApiResource
             {
                 Name = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
@@ -90,7 +88,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanModifyApiResource()
         {
             // arrange
-            var httpClient = new ApiResourcesHttpClient(Authority);
+            var httpClient = new ApiResourcesHttpClient(this.Authority);
             var originalApiResource = new ApiResource
             {
                 Name = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
@@ -125,7 +123,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanRemoveApiResource()
         {
             // arrange
-            var httpClient = new ApiResourcesHttpClient(Authority);
+            var httpClient = new ApiResourcesHttpClient(this.Authority);
             var expectedResource = new ApiResource
             {
                 Name = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
@@ -149,7 +147,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanUseApiResource()
         {
             // arrange
-            var httpClient = new ApiResourcesHttpClient(Authority);
+            var httpClient = new ApiResourcesHttpClient(this.Authority);
             var resourcce = new ApiResource
             {
                 Name = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
@@ -159,7 +157,7 @@ namespace Ironclad.Tests.Feature
             await httpClient.AddApiResourceAsync(resourcce).ConfigureAwait(false);
 
             // act
-            var client = new IntrospectionClient(Authority + "/connect/introspect", resourcce.Name, resourcce.ApiSecret);
+            var client = new IntrospectionClient(this.Authority + "/connect/introspect", resourcce.Name, resourcce.ApiSecret);
             var response = await client.SendAsync(new IntrospectionRequest { Token = "invalid" }).ConfigureAwait(false);
 
             // assert
@@ -170,7 +168,7 @@ namespace Ironclad.Tests.Feature
         public void CannotAddInvalidApiResource()
         {
             // arrange
-            var httpClient = new ApiResourcesHttpClient(Authority);
+            var httpClient = new ApiResourcesHttpClient(this.Authority);
             var expectedResource = new ApiResource
             {
                 Name = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
