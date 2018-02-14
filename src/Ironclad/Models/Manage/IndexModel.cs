@@ -7,6 +7,7 @@ namespace Ironclad.Models
 
     public class IndexModel
     {
+        [Required]
         public string Username { get; set; }
 
         public bool IsEmailConfirmed { get; set; }

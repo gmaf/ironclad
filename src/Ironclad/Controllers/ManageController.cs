@@ -84,6 +84,17 @@ namespace Ironclad.Controllers
                 throw new ApplicationException($"Unable to load user with ID '{this.userManager.GetUserId(this.User)}'.");
             }
 
+            var username = user.UserName;
+            if (model.Username != username)
+            {
+                var setUsernameResult = await this.userManager.SetUserNameAsync(user, model.Username);
+                if (!setUsernameResult.Succeeded)
+                {
+                    this.ModelState.AddModelError("Username", setUsernameResult.Errors.FirstOrDefault()?.Description);
+                    return this.View(model);
+                }
+            }
+
             var email = user.Email;
             if (model.Email != email)
             {
