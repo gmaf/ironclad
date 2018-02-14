@@ -77,7 +77,20 @@ namespace Ironclad.Controllers.Api
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]IroncladResource model)
         {
+            if (string.IsNullOrEmpty(model.Name))
+            {
+                return this.BadRequest(new { Message = $"Cannot create an identity resource without a name" });
+            }
+
+            if (model.UserClaims?.Any() == false)
+            {
+                return this.BadRequest(new { Message = $"Cannot create an identity resource without any claims" });
+            }
+
             var resource = new IdentityServerResource(model.Name, model.DisplayName, model.UserClaims);
+
+            // optional properties
+            resource.Enabled = model.Enabled ?? resource.Enabled;
 
             using (var session = this.store.LightweightSession())
             {
@@ -97,6 +110,11 @@ namespace Ironclad.Controllers.Api
         [HttpPut("{resourceName}")]
         public async Task<IActionResult> Put(string resourceName, [FromBody]IroncladResource model)
         {
+            if (model.UserClaims?.Any() == false)
+            {
+                return this.BadRequest(new { Message = $"Cannot update an identity resource without any claims" });
+            }
+
             using (var session = this.store.LightweightSession())
             {
                 var document = await session.Query<PostgresResource>().SingleOrDefaultAsync(item => item.Name == resourceName);

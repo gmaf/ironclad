@@ -29,7 +29,7 @@ namespace Ironclad.Console.Commands
                 {
                     if (string.IsNullOrEmpty(argumentResourceName.Value))
                     {
-                        app.ShowHelp();
+                        app.ShowVersionAndHelp();
                         return;
                     }
 
@@ -39,8 +39,8 @@ namespace Ironclad.Console.Commands
 
         public async Task ExecuteAsync(CommandContext context)
         {
+            await context.ApiResourcesClient.GetApiResourceAsync(this.resourceName).ConfigureAwait(false);
             await context.ApiResourcesClient.RemoveApiResourceAsync(this.resourceName).ConfigureAwait(false);
-            await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }
 }

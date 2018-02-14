@@ -5,6 +5,7 @@ namespace Ironclad.Console.Commands
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Ironclad.Client;
     using McMaster.Extensions.CommandLineUtils;
@@ -15,7 +16,6 @@ namespace Ironclad.Console.Commands
         private string displayName;
         private string apiSecret;
         private List<string> userClaims;
-        private bool enabled;
         private List<ApiResource.Scope> apiScopes;
 
         private AddApiResourceCommand()
@@ -25,18 +25,17 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = $"Adds the specified API resource";
-            app.HelpOption();
+            app.Description = $"Adds the specified web API.";
 
             // arguments
-            var argumentResourceName = app.Argument("name", "The resource name", false);
+            var argumentResourceName = app.Argument("name", "The web API name.", false);
 
             // options
-            var optionDisplayName = app.Option("--displayName <name>", "The resource display name.", CommandOptionType.SingleValue);
-            var optionApiSecret = app.Option("--apiSecret <secret>", "The resource api secret.", CommandOptionType.SingleValue);
-            var optionUserClaim = app.Option("--userClaim <claim>", "The resource user claim. You can call this several times.", CommandOptionType.MultipleValue);
-            var optionEnabled = app.Option("--enabled", "Is the resource enabled.", CommandOptionType.NoValue);
-            var optionApiScope = app.Option("--apiScope <name:claim1,claim2...>", "The resource apiScope. You can call this several times.", CommandOptionType.MultipleValue);
+            var optionDisplayName = app.Option("-d|--description <description>", "The web API description.", CommandOptionType.SingleValue);
+            var optionApiSecret = app.Option("-s|--secret <secret>", "The web API secret.", CommandOptionType.SingleValue, o => o.IsRequired(false));
+            var optionUserClaim = app.Option("-c|--claim <claim>", "A web API user claim. You can call this several times.", CommandOptionType.MultipleValue);
+            var optionApiScope = app.Option("-a|--apiscope <name:claim1,claim2...>", "The web API scope. You can call this several times.", CommandOptionType.MultipleValue);
+            app.HelpOption();
 
             // action (for this command)
             app.OnExecute(
@@ -44,7 +43,7 @@ namespace Ironclad.Console.Commands
                 {
                     if (string.IsNullOrEmpty(argumentResourceName.Value))
                     {
-                        app.ShowHelp();
+                        app.ShowVersionAndHelp();
                         return;
                     }
 
@@ -70,9 +69,8 @@ namespace Ironclad.Console.Commands
                         name = argumentResourceName.Value,
                         displayName = optionDisplayName.Value(),
                         apiSecret = optionApiSecret.Value(),
-                        userClaims = optionUserClaim.Values,
-                        enabled = optionEnabled.HasValue(),
-                        apiScopes = apiScopes,
+                        userClaims = optionUserClaim.HasValue() ? optionUserClaim.Values : null,
+                        apiScopes = apiScopes.Any() ? apiScopes : null,
                     };
                 });
         }
@@ -85,12 +83,10 @@ namespace Ironclad.Console.Commands
                 DisplayName = this.displayName,
                 ApiSecret = this.apiSecret,
                 UserClaims = this.userClaims,
-                Enabled = this.enabled,
                 ApiScopes = this.apiScopes,
             };
 
             await context.ApiResourcesClient.AddApiResourceAsync(resource).ConfigureAwait(false);
-            await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }
 }

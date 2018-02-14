@@ -20,6 +20,9 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Commands\ironclad-clients\AddClientCommand.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Iroclad.Client\Ironclad.Client.csproj" />
   </ItemGroup>
   <ItemGroup>

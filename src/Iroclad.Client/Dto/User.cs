@@ -40,6 +40,6 @@ namespace Ironclad.Client
         /// </summary>
         /// <value>The roles.</value>
 #pragma warning disable CA2227
-        public ICollection<string> Roles { get; set; }
+        public ICollection<string> Roles { get; set; } = new HashSet<string>();
     }
 }

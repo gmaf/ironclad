@@ -20,7 +20,7 @@ namespace Ironclad.Console.Commands
             app.Command("remove", command => RemoveRoleCommand.Configure(command, options));
 
             // action (for this command)
-            app.OnExecute(() => app.ShowHelp());
+            app.OnExecute(() => app.ShowVersionAndHelp());
         }
     }
 }
