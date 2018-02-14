@@ -4,11 +4,11 @@
 namespace Ironclad.Tests.Sdk
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
     using System.Net.Http;
+    using System.Net.Sockets;
     using System.Threading;
     using Microsoft.Extensions.Configuration;
     using Npgsql;
@@ -71,7 +71,7 @@ namespace Ironclad.Tests.Sdk
 
             using (var connection = new NpgsqlConnection(ConnectionString))
             {
-                var attemp = 0;
+                var attempt = 0;
                 while (true)
                 {
                     Thread.Sleep(500);
@@ -80,9 +80,9 @@ namespace Ironclad.Tests.Sdk
                         connection.Open();
                         break;
                     }
-                    catch (NpgsqlException)
+                    catch (Exception ex) when (ex is NpgsqlException || ex is SocketException)
                     {
-                        if (++attemp >= 20)
+                        if (++attempt >= 20)
                         {
                             throw;
                         }
@@ -108,21 +108,21 @@ namespace Ironclad.Tests.Sdk
 
             using (var client = new HttpClient())
             {
-                var attemp = 0;
+                var attempt = 0;
                 while (true)
                 {
                     Thread.Sleep(500);
                     try
                     {
-                        using (var response = client.GetAsync(new Uri(this.Authority + "/.well-known/openid-configuration")).Result)
+                        using (var response = client.GetAsync(new Uri(this.Authority + "/.well-known/openid-configuration")).GetAwaiter().GetResult())
                         {
                         }
 
                         break;
                     }
-                    catch (Exception)
+                    catch (HttpRequestException)
                     {
-                        if (++attemp >= 20)
+                        if (++attempt >= 20)
                         {
                             throw;
                         }
@@ -134,5 +134,3 @@ namespace Ironclad.Tests.Sdk
         }
     }
 }
-
-// run ..\..\..\..\..\Ironclad\Ironclad.csproj --connectionString Host=localhost;Database=ironclad;Username=postgres;Password=integration;
