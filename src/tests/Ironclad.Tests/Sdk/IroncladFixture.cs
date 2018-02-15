@@ -154,6 +154,7 @@ namespace Ironclad.Tests.Sdk
             return Process.GetProcessById(processId);
         }
 
+#pragma warning disable CA1812
         private class IroncladApi
         {
             public string ProcessId { get; set; }

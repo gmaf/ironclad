@@ -13,6 +13,7 @@ namespace Ironclad.Controllers
     using IdentityServer4.Postgresql.Mappers;
     using Ironclad.Client;
     using Marten;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using IdentityServerClient = IdentityServer4.Models.Client;
     using IroncladClient = Ironclad.Client.Client;
@@ -91,6 +92,7 @@ namespace Ironclad.Controllers
 
         // NOTE (Cameron): For the time being there will be no server-side validation of clients to ensure that they make sense. That responsibility is left to the user.
         [HttpPost]
+        ////[Authorize(AuthenticationSchemes = "token")]
         public async Task<IActionResult> Post([FromBody]IroncladClient model)
         {
             if (string.IsNullOrEmpty(model.Id))

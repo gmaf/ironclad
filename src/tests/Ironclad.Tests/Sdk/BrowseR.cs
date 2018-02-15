@@ -1,96 +1,63 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable CA2234, CA1054
-
 namespace Ironclad.Tests.Sdk
 {
     using System;
-    using System.Collections.Generic;
     using System.Net;
-    using System.Net.Http;
+    using System.Net.Sockets;
     using System.Threading.Tasks;
-    using FluentAssertions;
-    using IdentityModel.Client;
+    using IdentityModel.OidcClient.Browser;
 
-    public class BrowseR : HttpClient
+    public class Browser : IBrowser
     {
-        private readonly string authority;
-        private readonly BrowserHandler handler;
+        private readonly BrowserAutomation automation;
+        private readonly string path;
 
-        public BrowseR(string authority, BrowserHandler handler)
-            : base(handler)
+        public Browser(BrowserAutomation automation, int? port = null, string path = null)
         {
-            this.authority = authority;
-            this.handler = handler;
+            this.automation = automation;
+            this.path = path;
+            this.Port = port ?? GetRandomUnusedPort();
         }
 
-        public async Task<AuthorizeResponse> RequestAuthorizationEndpointAsync(
-            string clientId,
-            string responseType,
-            string scope = null,
-            string redirectUri = null,
-            string state = null,
-            string nonce = null,
-            string loginHint = null,
-            string acrValues = null,
-            string responseMode = null,
-            string codeChallenge = null,
-            string codeChallengeMethod = null,
-            object extra = null)
+        public int Port { get; }
+
+        public async Task<BrowserResult> InvokeAsync(BrowserOptions options)
         {
-            var originalAllowAutoRedirect = this.handler.AllowAutoRedirect;
-            var originalStopRedirectingAfter = this.handler.StopRedirectingAfter;
-
-            // here we want to auto-redirect to the login page...
-            this.handler.AllowAutoRedirect = true;
-            this.handler.StopRedirectingAfter = 20;
-
-            var authorizeUrl = new RequestUrl(this.authority + "/connect/authorize").CreateAuthorizeUrl(clientId, responseType, scope, redirectUri, "state", "nonce");
-            var loginResult = await this.GetAsync(authorizeUrl).ConfigureAwait(false);
-            loginResult.StatusCode.Should().Be(HttpStatusCode.OK);
-
-            // grab the necessary items for the POST...
-            var loginPageHtml = await loginResult.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var actionStartIndex = loginPageHtml.IndexOf("<form method=\"post\" action=\"", 0, StringComparison.OrdinalIgnoreCase) + 28;
-            var action = loginPageHtml.Substring(actionStartIndex, loginPageHtml.IndexOf("\"", actionStartIndex, StringComparison.OrdinalIgnoreCase) - actionStartIndex);
-            var tokenStartIndex = loginPageHtml.IndexOf("<input name=\"__RequestVerificationToken\" type=\"hidden\" value=\"", 0, StringComparison.OrdinalIgnoreCase) + 62;
-            var token = loginPageHtml.Substring(tokenStartIndex, loginPageHtml.IndexOf("\"", tokenStartIndex, StringComparison.OrdinalIgnoreCase) - tokenStartIndex);
-
-            var form = new Dictionary<string, string>
+            using (var listener = new LoopbackHttpListener(this.Port, this.path))
             {
-                { "Username", "admin" },
-                { "Password", "password" },
-                { "__RequestVerificationToken", token },
-                { "RememberMe", "false" },
-            };
+                await this.automation.NavigateToLoginAsync(options.StartUrl).ConfigureAwait(false);
+                await this.automation.LoginToAuthorizationServerAsync().ConfigureAwait(false);
 
-            // here we *do not* want to auto-redirect to the client (2nd redirect)...
-            this.handler.StopRedirectingAfter = 1;
+                try
+                {
+                    var result = await listener.WaitForCallbackAsync(5).ConfigureAwait(false);
+                    if (string.IsNullOrWhiteSpace(result))
+                    {
+                        return new BrowserResult { ResultType = BrowserResultType.UnknownError, Error = "Empty response." };
+                    }
 
-            var redirect = default(string);
-            using (var content = new FormUrlEncodedContent(form))
-            {
-                var authorizeResult = await this.PostAsync(this.authority + action, content).ConfigureAwait(false);
-                authorizeResult.StatusCode.Should().Be(HttpStatusCode.Found);
-
-                redirect = authorizeResult.Headers.Location.ToString();
+                    return new BrowserResult { Response = result, ResultType = BrowserResultType.Success };
+                }
+                catch (TaskCanceledException ex)
+                {
+                    return new BrowserResult { ResultType = BrowserResultType.Timeout, Error = ex.Message };
+                }
+                catch (Exception ex)
+                {
+                    return new BrowserResult { ResultType = BrowserResultType.UnknownError, Error = ex.Message };
+                }
             }
+        }
 
-            // reset the behavior of the browseR
-            this.handler.AllowAutoRedirect = originalAllowAutoRedirect;
-            this.handler.StopRedirectingAfter = originalStopRedirectingAfter;
-
-            if (redirect.StartsWith(this.authority + "/home/error", StringComparison.OrdinalIgnoreCase))
-            {
-                // request error page in pipeline so we can get error info
-                await this.GetAsync(redirect).ConfigureAwait(false);
-
-                // no redirect to client
-                return null;
-            }
-
-            return new AuthorizeResponse(redirect);
+        private static int GetRandomUnusedPort()
+        {
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+            listener.Stop();
+            return port;
         }
     }
 }

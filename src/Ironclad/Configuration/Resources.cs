@@ -29,6 +29,11 @@ namespace Ironclad.Configuration
                     ApiSecrets = new List<Secret> { new Secret("secret".Sha256()) },
                     UserClaims = new[] { "name", "role" }, // NOTE (Cameron): These are the user claims that are required by the web API.
                 },
+                new ApiResource("auth_api", "Authorization Server Web API")
+                {
+                    ApiSecrets = new List<Secret> { new Secret("secret".Sha256()) },
+                    UserClaims = new[] { "name", "role" }, // NOTE (Cameron): These are the user claims that are required by the web API.
+                },
             };
     }
 }

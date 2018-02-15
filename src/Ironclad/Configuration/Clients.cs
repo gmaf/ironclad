@@ -68,6 +68,29 @@ namespace Ironclad.Configuration
                         "sample_api",
                     },
                 },
+
+                new Client
+                {
+                    ClientId = "auth_console",
+                    ClientName = "Authorization Server Management Console",
+
+                    RequireClientSecret = false,
+
+                    AllowedGrantTypes = GrantTypes.Hybrid,
+                    RequirePkce = true,
+
+                    RedirectUris = { "http://127.0.0.1" },
+
+                    AllowOfflineAccess = true,
+
+                    AllowedScopes =
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
+                        IdentityServerConstants.StandardScopes.Email,
+                        "auth_api",
+                    },
+                },
             };
     }
 }

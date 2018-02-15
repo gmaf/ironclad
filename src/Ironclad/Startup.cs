@@ -73,6 +73,13 @@ namespace Ironclad
                     {
                         options.ClientId = this.configuration.GetValue<string>("Google-ClientId");
                         options.ClientSecret = this.configuration.GetValue<string>("Google-Secret");
+                    })
+                .AddIdentityServerAuthentication(
+                    "token",
+                    isAuth =>
+                    {
+                        isAuth.Authority = this.configuration.GetValue<string>("PUBLIC_ORIGIN");
+                        isAuth.ApiName = "auth_api";
                     });
         }
 

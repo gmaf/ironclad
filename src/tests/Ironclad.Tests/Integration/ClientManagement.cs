@@ -6,10 +6,10 @@ namespace Ironclad.Tests.Feature
     using System;
     using System.Globalization;
     using System.Linq;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using FluentAssertions;
     using IdentityModel.Client;
+    using IdentityModel.OidcClient;
     using Ironclad.Client;
     using Ironclad.Tests.Sdk;
     using Xunit;
@@ -25,6 +25,8 @@ namespace Ironclad.Tests.Feature
         public async Task CanAddClientMinimum()
         {
             // arrange
+            ////var browseR = new BrowseR(this.Authority, new BrowserHandler());
+            ////var authorizeResponse = await browseR.LoginUserAsync("auth_console", "http://127.0.0.1:1234", new[] { "auth_api" }, "admin", "password").ConfigureAwait(false);
             var httpClient = new ClientsHttpClient(this.Authority);
             var expectedClient = new Client
             {
@@ -32,6 +34,15 @@ namespace Ironclad.Tests.Feature
             };
 
             // act
+            // get token using magic
+            // RequestClientCredentialsAsync(clientId, secret)
+            // RequestImplicitAsync()
+            // RequestHybridAsync()
+
+            /*
+             *  browseR.LoginUserAsync(client.Id, redirectUri, new[] { "auth_api" }, username, password)
+             *
+             */
             await httpClient.AddClientAsync(expectedClient).ConfigureAwait(false);
 
             // assert
@@ -212,23 +223,55 @@ namespace Ironclad.Tests.Feature
             await httpClient.AddClientAsync(client).ConfigureAwait(false);
 
             // act
-            var browseR = new BrowseR(this.Authority, new BrowserHandler());
-            var authorizeResponse = await browseR.RequestAuthorizationEndpointAsync(
-                client.Id,
-                "id_token token",
-                "openid profile sample_api",
-                client.RedirectUris.First(),
-                "state",
-                "nonce")
-                .ConfigureAwait(false);
+            var url = new RequestUrl(this.Authority + "/connect/authorize")
+                .CreateAuthorizeUrl(client.Id, "id_token token", "openid profile sample_api", client.RedirectUris.First(), "state", "nonce");
+
+            var automation = new BrowserAutomation("admin", "password");
+            await automation.NavigateToLoginAsync(url).ConfigureAwait(false);
+            var authorizeResponse = await automation.LoginToAuthorizationServerAndCaptureRedirectAsync().ConfigureAwait(false);
 
             // assert
             authorizeResponse.IsError.Should().BeFalse();
         }
 
-        [Fact(Skip = "Not implemented")]
-        public void CanUseHybridClient()
+        [Fact]
+        public async Task CanUseHybridClient()
         {
+            // arrange
+            var httpClient = new ClientsHttpClient(this.Authority);
+            var client = new Client
+            {
+                Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
+                Name = $"{nameof(ClientManagement)}.{nameof(this.CanUseHybridClient)} (integration test)",
+                RequireClientSecret = false,
+                AllowedGrantTypes = { "hybrid" },
+                RequirePkce = true,
+                RedirectUris = { "http://127.0.0.1" },
+                AllowOfflineAccess = true,
+                AllowedScopes = { "openid", "profile", "sample_api" },
+                RequireConsent = false,
+            };
+
+            await httpClient.AddClientAsync(client).ConfigureAwait(false);
+
+            // act
+            var automation = new BrowserAutomation("admin", "password");
+            var browser = new Browser(automation);
+            var options = new OidcClientOptions
+            {
+                Authority = this.Authority,
+                ClientId = client.Id,
+                RedirectUri = $"http://127.0.0.1:{browser.Port}",
+                Scope = "openid profile sample_api offline_access",
+                FilterClaims = false,
+                Browser = browser,
+            };
+
+            var oidcClient = new OidcClient(options);
+            var result = await oidcClient.LoginAsync(new LoginRequest()).ConfigureAwait(false);
+
+            // assert
+            result.IsError.Should().BeFalse();
         }
 
         [Fact]
