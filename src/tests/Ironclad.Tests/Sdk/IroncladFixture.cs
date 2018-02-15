@@ -8,8 +8,11 @@ namespace Ironclad.Tests.Sdk
     using System.Globalization;
     using System.IO;
     using System.Net.Http;
+    using System.Net.Http.Headers;
     using System.Net.Sockets;
     using System.Threading;
+    using System.Threading.Tasks;
+    using IdentityModel.OidcClient;
     using Microsoft.Extensions.Configuration;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
@@ -33,9 +36,13 @@ namespace Ironclad.Tests.Sdk
 
             this.postgresProcess = this.StartPostgres();
             this.ironcladProcess = this.StartIronclad();
+
+            this.Handler = this.CreateTokenHandler().GetAwaiter().GetResult();
         }
 
         public string Authority { get; }
+
+        public HttpMessageHandler Handler { get; }
 
         public void Dispose()
         {
@@ -86,6 +93,9 @@ namespace Ironclad.Tests.Sdk
                     UseShellExecute = true,
                 });
 
+            // NOTE (Cameron): Trying to find a sensible value here so as to not throw during a debug session.
+            Thread.Sleep(3000);
+
             using (var connection = new NpgsqlConnection(ConnectionString))
             {
                 var attempt = 0;
@@ -97,7 +107,7 @@ namespace Ironclad.Tests.Sdk
                         connection.Open();
                         break;
                     }
-                    catch (Exception ex) when (ex is NpgsqlException || ex is SocketException)
+                    catch (Exception ex) when (ex is NpgsqlException || ex is SocketException || ex is EndOfStreamException)
                     {
                         if (++attempt >= 20)
                         {
@@ -152,6 +162,43 @@ namespace Ironclad.Tests.Sdk
             }
 
             return Process.GetProcessById(processId);
+        }
+
+        private async Task<HttpMessageHandler> CreateTokenHandler()
+        {
+            var automation = new BrowserAutomation("admin", "password");
+            var browser = new Browser(automation);
+            var options = new OidcClientOptions
+            {
+                Authority = this.Authority,
+                ClientId = "auth_console",
+                RedirectUri = $"http://127.0.0.1:{browser.Port}",
+                Scope = "openid profile auth_api",
+                FilterClaims = false,
+                Browser = browser,
+            };
+
+            var oidcClient = new OidcClient(options);
+            var result = await oidcClient.LoginAsync(new LoginRequest()).ConfigureAwait(false);
+
+            return new TokenHandler(result.AccessToken);
+        }
+
+        private sealed class TokenHandler : DelegatingHandler
+        {
+            private string accessToken;
+
+            public TokenHandler(string accessToken)
+                : base(new HttpClientHandler())
+            {
+                this.accessToken = accessToken;
+            }
+
+            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this.accessToken);
+                return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            }
         }
 
 #pragma warning disable CA1812

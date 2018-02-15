@@ -90,6 +90,8 @@ namespace Ironclad.Configuration
                         IdentityServerConstants.StandardScopes.Email,
                         "auth_api",
                     },
+
+                    RequireConsent = false,
                 },
             };
     }

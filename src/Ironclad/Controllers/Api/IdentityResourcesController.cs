@@ -11,11 +11,13 @@ namespace Ironclad.Controllers.Api
     using IdentityServer4.Postgresql.Mappers;
     using Ironclad.Client;
     using Marten;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using IdentityServerResource = IdentityServer4.Models.IdentityResource;
     using IroncladResource = Ironclad.Client.IdentityResource;
     using PostgresResource = IdentityServer4.Postgresql.Entities.IdentityResource;
 
+    [Authorize(AuthenticationSchemes = "token")]
     [Route("api/[controller]")]
     public class IdentityResourcesController : Controller
     {
@@ -26,6 +28,7 @@ namespace Ironclad.Controllers.Api
             this.store = store;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> Get(int skip = default, int take = 20)
         {
@@ -50,6 +53,7 @@ namespace Ironclad.Controllers.Api
             }
         }
 
+        [AllowAnonymous]
         [HttpHead("{resourceName}")]
         [HttpGet("{resourceName}")]
         public async Task<IActionResult> Get(string resourceName)

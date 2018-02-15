@@ -22,7 +22,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanRegisterUser()
         {
             // arrange
-            var httpClient = new UsersHttpClient("http://localhost:5005");
+            var httpClient = new UsersHttpClient("http://localhost:5005", this.Handler);
             var expectedUser = new User
             {
                 Username = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),

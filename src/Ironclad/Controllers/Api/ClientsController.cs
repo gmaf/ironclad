@@ -19,6 +19,7 @@ namespace Ironclad.Controllers
     using IroncladClient = Ironclad.Client.Client;
     using PostgresClient = IdentityServer4.Postgresql.Entities.Client;
 
+    [Authorize(AuthenticationSchemes = "token")]
     [Route("api/[controller]")]
     public class ClientsController : Controller
     {
@@ -29,6 +30,7 @@ namespace Ironclad.Controllers
             this.store = store;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> Get(int skip = default, int take = 20)
         {
@@ -55,6 +57,7 @@ namespace Ironclad.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpHead("{clientId}")]
         [HttpGet("{clientId}")]
         public async Task<IActionResult> Get(string clientId)
@@ -92,7 +95,6 @@ namespace Ironclad.Controllers
 
         // NOTE (Cameron): For the time being there will be no server-side validation of clients to ensure that they make sense. That responsibility is left to the user.
         [HttpPost]
-        ////[Authorize(AuthenticationSchemes = "token")]
         public async Task<IActionResult> Post([FromBody]IroncladClient model)
         {
             if (string.IsNullOrEmpty(model.Id))

@@ -22,7 +22,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanAddRole()
         {
             // arrange
-            var httpClient = new RolesHttpClient(this.Authority);
+            var httpClient = new RolesHttpClient(this.Authority, this.Handler);
             var expectedRole = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
             // act
@@ -37,7 +37,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanGetRoleSummaries()
         {
             // arrange
-            var httpClient = new RolesHttpClient(this.Authority);
+            var httpClient = new RolesHttpClient(this.Authority, this.Handler);
             var expectedRole = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
             // act
@@ -53,7 +53,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanRemoveRole()
         {
             // arrange
-            var httpClient = new RolesHttpClient(this.Authority);
+            var httpClient = new RolesHttpClient(this.Authority, this.Handler);
             var expectedRole = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
             await httpClient.AddRoleAsync(expectedRole).ConfigureAwait(false);

@@ -25,24 +25,13 @@ namespace Ironclad.Tests.Feature
         public async Task CanAddClientMinimum()
         {
             // arrange
-            ////var browseR = new BrowseR(this.Authority, new BrowserHandler());
-            ////var authorizeResponse = await browseR.LoginUserAsync("auth_console", "http://127.0.0.1:1234", new[] { "auth_api" }, "admin", "password").ConfigureAwait(false);
-            var httpClient = new ClientsHttpClient(this.Authority);
+            var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
             var expectedClient = new Client
             {
                 Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
             };
 
             // act
-            // get token using magic
-            // RequestClientCredentialsAsync(clientId, secret)
-            // RequestImplicitAsync()
-            // RequestHybridAsync()
-
-            /*
-             *  browseR.LoginUserAsync(client.Id, redirectUri, new[] { "auth_api" }, username, password)
-             *
-             */
             await httpClient.AddClientAsync(expectedClient).ConfigureAwait(false);
 
             // assert
@@ -55,7 +44,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanAddClient()
         {
             // arrange
-            var httpClient = new ClientsHttpClient(this.Authority);
+            var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
             var expectedClient = new Client
             {
                 Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
@@ -88,7 +77,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanGetClientSummaries()
         {
             // arrange
-            var httpClient = new ClientsHttpClient(this.Authority);
+            var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
             var expectedClient = new Client
             {
                 Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
@@ -108,7 +97,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanModifyClient()
         {
             // arrange
-            var httpClient = new ClientsHttpClient(this.Authority);
+            var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
             var originalClient = new Client
             {
                 Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
@@ -161,7 +150,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanRemoveClient()
         {
             // arrange
-            var httpClient = new ClientsHttpClient(this.Authority);
+            var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
             var expectedClient = new Client
             {
                 Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
@@ -183,7 +172,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanUseClientCredentialsClient()
         {
             // arrange
-            var httpClient = new ClientsHttpClient(this.Authority);
+            var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
             var client = new Client
             {
                 Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
@@ -207,7 +196,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanUseImplicitClient()
         {
             // arrange
-            var httpClient = new ClientsHttpClient(this.Authority);
+            var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
             var client = new Client
             {
                 Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
@@ -238,7 +227,7 @@ namespace Ironclad.Tests.Feature
         public async Task CanUseHybridClient()
         {
             // arrange
-            var httpClient = new ClientsHttpClient(this.Authority);
+            var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
             var client = new Client
             {
                 Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
@@ -278,7 +267,7 @@ namespace Ironclad.Tests.Feature
         public void CannotAddInvalidClient()
         {
             // arrange
-            var httpClient = new ClientsHttpClient(this.Authority);
+            var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
             var expectedClient = new Client
             {
                 Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),

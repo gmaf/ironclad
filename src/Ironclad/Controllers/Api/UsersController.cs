@@ -11,10 +11,12 @@ namespace Ironclad.Controllers.Api
     using IdentityServer4.Extensions;
     using Ironclad.Application;
     using Ironclad.Client;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
 
+    [Authorize(AuthenticationSchemes = "token")]
     [Route("api/[controller]")]
     public class UsersController : Controller
     {
@@ -25,6 +27,8 @@ namespace Ironclad.Controllers.Api
             this.userManager = userManager;
         }
 
+        [AllowAnonymous]
+        [HttpGet]
         public async Task<IActionResult> Get(int skip = default, int take = 20)
         {
             skip = Math.Max(0, skip);
@@ -48,6 +52,7 @@ namespace Ironclad.Controllers.Api
             return this.Ok(resourceSet);
         }
 
+        [AllowAnonymous]
         [HttpHead("{username}")]
         [HttpGet("{username}")]
         public async Task<IActionResult> Get(string username)

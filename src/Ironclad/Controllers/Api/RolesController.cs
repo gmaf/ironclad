@@ -9,10 +9,12 @@ namespace Ironclad.Controllers.Api
     using System.Threading.Tasks;
     using IdentityServer4.Extensions;
     using Ironclad.Client;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
 
+    [Authorize(AuthenticationSchemes = "token")]
     [Route("api/[controller]")]
     public class RolesController : Controller
     {
@@ -23,6 +25,8 @@ namespace Ironclad.Controllers.Api
             this.roleManager = roleManager;
         }
 
+        [AllowAnonymous]
+        [HttpGet]
         public async Task<IActionResult> Get(int skip = default, int take = 20)
         {
             skip = Math.Max(0, skip);
@@ -43,7 +47,7 @@ namespace Ironclad.Controllers.Api
             return this.Ok(resourceSet);
         }
 
-        // LINK (Cameron): https://www.tpeczek.com/2017/10/exploring-head-method-behavior-in.html
+        [AllowAnonymous]
         [HttpHead("{roleName}")]
         [HttpGet("{roleName}")]
         public async Task<IActionResult> Get(string roleName)

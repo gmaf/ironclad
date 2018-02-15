@@ -16,10 +16,7 @@ namespace Ironclad.Tests.Sdk
     // HACK (Cameron): This entire class is super brittle and depends heavily upon the IdentityServer rendering - which is not ideal.
     public class BrowserAutomation : HttpClient
     {
-        private const string Action = "<form method=\"post\" action=\"";
-
         private readonly BrowserHandler handler;
-
         private readonly string username;
         private readonly string password;
 
@@ -42,6 +39,7 @@ namespace Ironclad.Tests.Sdk
         {
             this.loginResult = await this.GetAsync(url).ConfigureAwait(false);
             this.loginResult.StatusCode.Should().Be(HttpStatusCode.OK);
+            this.loginResult.RequestMessage.RequestUri.PathAndQuery.Should().NotStartWith("/home/error");
         }
 
         public Task LoginToAuthorizationServerAsync() => this.Login(false);
