@@ -29,6 +29,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
+    <DefineConstants>TRACE;DEBUG;NETCOREAPP2_0</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

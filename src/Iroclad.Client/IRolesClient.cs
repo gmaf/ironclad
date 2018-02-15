@@ -18,7 +18,7 @@ namespace Ironclad.Client
         /// <param name="size">The total size of the role set.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The roles.</returns>
-        Task<ResourceSet<Role>> GetRolesAsync(int start = default, int size = default, CancellationToken cancellationToken = default);
+        Task<ResourceSet<string>> GetRolesAsync(int start = default, int size = default, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Checks the role exists.
