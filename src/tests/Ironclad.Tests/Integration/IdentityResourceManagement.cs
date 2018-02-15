@@ -7,7 +7,6 @@ namespace Ironclad.Tests.Feature
     using System.Globalization;
     using System.Threading.Tasks;
     using FluentAssertions;
-    using IdentityModel.Client;
     using Ironclad.Client;
     using Ironclad.Tests.Sdk;
     using Xunit;
