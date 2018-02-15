@@ -57,14 +57,14 @@ namespace Ironclad.Tests.Sdk
             this.postgresProcess.Dispose();
 
             // NOTE (Cameron): Remove the docker container.
-            Process.Start(new ProcessStartInfo("docker", $"rm {DockerContainerId} -f"))
-                .WaitForExit(5000);
+            Process.Start(new ProcessStartInfo("docker", $"stop {DockerContainerId}"))
+                .WaitForExit(10000);
         }
 
         private Process StartPostgres()
         {
             var process = Process.Start(
-                new ProcessStartInfo("docker", $"run --name {DockerContainerId} -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ironclad -p 5432:5432 postgres:10.1-alpine")
+                new ProcessStartInfo("docker", $"run --rm --name {DockerContainerId} -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ironclad -p 5432:5432 postgres:10.1-alpine")
                 {
                     UseShellExecute = true,
                 });
@@ -101,7 +101,7 @@ namespace Ironclad.Tests.Sdk
                 Path.DirectorySeparatorChar);
 
             var process = Process.Start(
-                new ProcessStartInfo("dotnet", $"{path} --connectionString {ConnectionString}")
+                new ProcessStartInfo("dotnet", $"{path} --connectionString '{ConnectionString}'")
                 {
                     UseShellExecute = true,
                 });
