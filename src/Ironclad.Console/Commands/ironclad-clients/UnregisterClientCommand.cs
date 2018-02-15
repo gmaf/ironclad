@@ -39,7 +39,7 @@ namespace Ironclad.Console.Commands
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            await context.ClientsClient.UnregisterClientAsync(this.clientId).ConfigureAwait(false);
+            await context.ClientsClient.RemoveClientAsync(this.clientId).ConfigureAwait(false);
             await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }

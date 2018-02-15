@@ -29,20 +29,20 @@ namespace Ironclad.Client
         Task<Client> GetClientAsync(string clientId, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Registers the specified client.
+        /// Adds the specified client.
         /// </summary>
         /// <param name="client">The client.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
-        Task RegisterClientAsync(Client client, CancellationToken cancellationToken = default);
+        Task AddClientAsync(Client client, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Unregisters the specified client.
+        /// Removes the specified client.
         /// </summary>
         /// <param name="clientId">The client identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
-        Task UnregisterClientAsync(string clientId, CancellationToken cancellationToken = default);
+        Task RemoveClientAsync(string clientId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Modifies the client.

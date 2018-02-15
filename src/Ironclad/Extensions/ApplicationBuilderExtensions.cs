@@ -75,7 +75,7 @@ namespace Ironclad
                     if (!session.Query<IdentityServer4.Postgresql.Entities.IdentityResource>().Any())
                     {
                         Log.Information("Adding default identity resources...");
-                        session.StoreObjects(Config.GetDefaultApiResources().Select(r => r.ToEntity()));
+                        session.StoreObjects(Config.GetDefaultIdentityResources().Select(r => r.ToEntity()));
                     }
 
                     session.SaveChanges();

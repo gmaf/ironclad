@@ -11,6 +11,9 @@ namespace Ironclad.Tests.Sdk
     using System.Net.Sockets;
     using System.Threading;
     using Microsoft.Extensions.Configuration;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+    using Newtonsoft.Json.Serialization;
     using Npgsql;
 
     public sealed class IroncladFixture : IDisposable
@@ -61,6 +64,20 @@ namespace Ironclad.Tests.Sdk
                 .WaitForExit(10000);
         }
 
+        private static JsonSerializerSettings GetJsonSerializerSettings()
+        {
+            var settings = new JsonSerializerSettings
+            {
+                ContractResolver = new DefaultContractResolver { NamingStrategy = new SnakeCaseNamingStrategy() },
+                NullValueHandling = NullValueHandling.Ignore,
+            };
+
+            settings.Converters.Add(new StringEnumConverter());
+
+            return settings;
+        }
+
+        [DebuggerStepThrough]
         private Process StartPostgres()
         {
             var process = Process.Start(
@@ -93,19 +110,21 @@ namespace Ironclad.Tests.Sdk
             return process;
         }
 
+        [DebuggerStepThrough]
         private Process StartIronclad()
         {
             var path = string.Format(
                 CultureInfo.InvariantCulture,
-                "..{0}..{0}..{0}..{0}..{0}Ironclad{0}bin{0}Debug{0}netcoreapp2.0{0}Ironclad.dll",
+                "..{0}..{0}..{0}..{0}..{0}Ironclad{0}Ironclad.csproj",
                 Path.DirectorySeparatorChar);
 
-            var process = Process.Start(
-                new ProcessStartInfo("dotnet", $"{path} --connectionString '{ConnectionString}'")
+            Process.Start(
+                new ProcessStartInfo("dotnet", $"run -p {path} --connectionString '{ConnectionString}'")
                 {
                     UseShellExecute = true,
                 });
 
+            var processId = default(int);
             using (var client = new HttpClient())
             {
                 var attempt = 0;
@@ -114,8 +133,10 @@ namespace Ironclad.Tests.Sdk
                     Thread.Sleep(500);
                     try
                     {
-                        using (var response = client.GetAsync(new Uri(this.Authority + "/.well-known/openid-configuration")).GetAwaiter().GetResult())
+                        using (var response = client.GetAsync(new Uri(this.Authority + "/api")).GetAwaiter().GetResult())
                         {
+                            var api = JsonConvert.DeserializeObject<IroncladApi>(response.Content.ReadAsStringAsync().GetAwaiter().GetResult(), GetJsonSerializerSettings());
+                            processId = int.Parse(api.ProcessId, CultureInfo.InvariantCulture);
                         }
 
                         break;
@@ -130,7 +151,12 @@ namespace Ironclad.Tests.Sdk
                 }
             }
 
-            return process;
+            return Process.GetProcessById(processId);
+        }
+
+        private class IroncladApi
+        {
+            public string ProcessId { get; set; }
         }
     }
 }

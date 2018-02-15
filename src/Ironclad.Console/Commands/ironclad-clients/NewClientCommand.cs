@@ -57,7 +57,7 @@ namespace Ironclad.Console.Commands
                 Secret = this.clientSecret,
             };
 
-            await context.ClientsClient.RegisterClientAsync(client).ConfigureAwait(false);
+            await context.ClientsClient.AddClientAsync(client).ConfigureAwait(false);
             await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }

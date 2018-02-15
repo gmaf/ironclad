@@ -105,7 +105,7 @@ namespace Ironclad.Tests.Feature
                 DisplayName = $"{nameof(ApiResourceManagement)}.{nameof(this.CanModifyApiResource)} (integration test) #2",
                 UserClaims = { "profile" },
                 ApiScopes = { new ApiResource.Scope { Name = "test_api", UserClaims = { "name", "role" } } },
-                Enabled = false,
+                Enabled = true,
             };
 
             await httpClient.AddApiResourceAsync(originalApiResource).ConfigureAwait(false);
@@ -148,16 +148,16 @@ namespace Ironclad.Tests.Feature
         {
             // arrange
             var httpClient = new ApiResourcesHttpClient(this.Authority);
-            var resourcce = new ApiResource
+            var resource = new ApiResource
             {
                 Name = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
                 ApiSecret = "secret",
             };
 
-            await httpClient.AddApiResourceAsync(resourcce).ConfigureAwait(false);
+            await httpClient.AddApiResourceAsync(resource).ConfigureAwait(false);
 
             // act
-            var client = new IntrospectionClient(this.Authority + "/connect/introspect", resourcce.Name, resourcce.ApiSecret);
+            var client = new IntrospectionClient(this.Authority + "/connect/introspect", resource.Name, resource.ApiSecret);
             var response = await client.SendAsync(new IntrospectionRequest { Token = "invalid" }).ConfigureAwait(false);
 
             // assert

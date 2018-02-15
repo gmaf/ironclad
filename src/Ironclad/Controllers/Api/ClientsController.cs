@@ -89,28 +89,31 @@ namespace Ironclad.Controllers
             }
         }
 
+        // NOTE (Cameron): For the time being there will be no server-side validation of clients to ensure that they make sense. That responsibility is left to the user.
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] IroncladClient model)
+        public async Task<IActionResult> Post([FromBody]IroncladClient model)
         {
-            var client = new IdentityServerClient
+            if (string.IsNullOrEmpty(model.Id))
             {
-                ClientId = model.Id,
-                ClientSecrets = new List<Secret> { new Secret(model.Secret.Sha256()) },
-                ClientName = model.Name,
-            };
+                return this.BadRequest(new { Message = $"Cannot create a client without a client ID" });
+            }
 
-            if (!Enum.TryParse<AccessTokenType>(model.AccessTokenType, out var accessTokenType))
+            var accessTokenType = default(AccessTokenType);
+            if (model.AccessTokenType != null && !Enum.TryParse(model.AccessTokenType, out accessTokenType))
             {
                 return this.BadRequest(new { Message = $"Access token type '{model.AccessTokenType}' does not exist" });
             }
 
+            var client = new IdentityServerClient { ClientId = model.Id };
+
             // optional properties
             client.ClientName = model.Name ?? client.ClientName;
+            client.ClientSecrets = model.Secret == null ? client.ClientSecrets : new HashSet<Secret> { new Secret(model.Secret.Sha256()) };
             client.AllowedCorsOrigins = model.AllowedCorsOrigins ?? client.AllowedCorsOrigins;
             client.RedirectUris = model.RedirectUris ?? client.RedirectUris;
             client.PostLogoutRedirectUris = model.PostLogoutRedirectUris ?? client.PostLogoutRedirectUris;
             client.AllowedScopes = model.AllowedScopes ?? client.AllowedScopes;
-            client.AccessTokenType = accessTokenType;
+            client.AccessTokenType = model.AccessTokenType == null ? client.AccessTokenType : accessTokenType;
             client.AllowedGrantTypes = model.AllowedGrantTypes ?? client.AllowedGrantTypes;
             client.AllowAccessTokensViaBrowser = model.AllowAccessTokensViaBrowser ?? client.AllowAccessTokensViaBrowser;
             client.AllowOfflineAccess = model.AllowOfflineAccess ?? client.AllowOfflineAccess;
@@ -131,13 +134,11 @@ namespace Ironclad.Controllers
                 await session.SaveChangesAsync();
             }
 
-            this.Response.Headers.Add("Location", this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + client.ClientId));
-
-            return this.Ok();
+            return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + model.Id)), null);
         }
 
         [HttpPut("{clientId}")]
-        public async Task<IActionResult> Put(string clientId, [FromBody] IroncladClient model)
+        public async Task<IActionResult> Put(string clientId, [FromBody]IroncladClient model)
         {
             using (var session = this.store.LightweightSession())
             {
@@ -145,6 +146,12 @@ namespace Ironclad.Controllers
                 if (document == null)
                 {
                     return this.NotFound(new { Message = $"Client '{clientId}' not found" });
+                }
+
+                var accessTokenType = default(AccessTokenType);
+                if (model.AccessTokenType != null && !Enum.TryParse(model.AccessTokenType, out accessTokenType))
+                {
+                    return this.BadRequest(new { Message = $"Access token type '{model.AccessTokenType}' does not exist" });
                 }
 
                 // NOTE (Cameron): Because of the mapping/conversion unknowns we rely upon the Postgres integration to perform that operation which is why we do this...
@@ -157,6 +164,8 @@ namespace Ironclad.Controllers
                     AllowedGrantTypes = model.AllowedGrantTypes,
                 };
 
+                client.AccessTokenType = model.AccessTokenType == null ? client.AccessTokenType : accessTokenType;
+
                 // NOTE (Cameron): If the secret is updated we want to add the new secret...
                 if (!string.IsNullOrEmpty(model.Secret))
                 {
@@ -165,24 +174,13 @@ namespace Ironclad.Controllers
 
                 var entity = client.ToEntity();
 
-                var accessTokenType = document.AccessTokenType;
-                if (model.AccessTokenType != null)
-                {
-                    if (!Enum.TryParse<AccessTokenType>(model.AccessTokenType, out var value))
-                    {
-                        return this.BadRequest(new { Message = $"Access token type '{model.AccessTokenType}' does not exist" });
-                    }
-
-                    accessTokenType = (int)value;
-                }
-
                 // update properties (everything supported is an optional update eg. if null is passed we will not update)
                 document.ClientName = model.Name ?? document.ClientName;
                 document.AllowedCorsOrigins = entity.AllowedCorsOrigins ?? document.AllowedCorsOrigins;
                 document.RedirectUris = entity.RedirectUris ?? document.RedirectUris;
                 document.PostLogoutRedirectUris = entity.PostLogoutRedirectUris ?? document.PostLogoutRedirectUris;
                 document.AllowedScopes = entity.AllowedScopes ?? document.AllowedScopes;
-                document.AccessTokenType = accessTokenType;
+                document.AccessTokenType = model.AccessTokenType == null ? document.AccessTokenType : entity.AccessTokenType;
                 document.AllowedGrantTypes = entity.AllowedGrantTypes ?? document.AllowedGrantTypes;
                 document.AllowAccessTokensViaBrowser = model.AllowAccessTokensViaBrowser ?? document.AllowAccessTokensViaBrowser;
                 document.AllowOfflineAccess = model.AllowOfflineAccess ?? document.AllowOfflineAccess;
