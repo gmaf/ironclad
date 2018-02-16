@@ -88,6 +88,6 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task RemoveRoleAsync(string role, CancellationToken cancellationToken = default) =>
-            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{role}"), cancellationToken);
+            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{this.SafeGetValue(role, nameof(role))}"), cancellationToken);
     }
 }

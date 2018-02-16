@@ -19,7 +19,10 @@ namespace Ironclad.Client
     /// </summary>
     public class HttpClientBase : IDisposable
     {
-        private static readonly JsonSerializerSettings Settings = GetJsonSerializerSettings();
+        /// <summary>
+        /// The default json serializer settings.
+        /// </summary>
+        protected static readonly JsonSerializerSettings JsonSerializerSettings = GetJsonSerializerSettings();
 
         private readonly string authority;
 
@@ -32,6 +35,7 @@ namespace Ironclad.Client
         /// <param name="innerHandler">The inner handler.</param>
         public HttpClientBase(string authority, HttpMessageHandler innerHandler = null)
         {
+            // TODO (Cameron): Make sure we're working with application/json.
             var handler = innerHandler ?? new HttpClientHandler();
 
             this.Client = new HttpClient(handler);
@@ -77,7 +81,7 @@ namespace Ironclad.Client
                 throw new HttpException(HttpMethod.Get, new Uri(requestUri), ex);
             }
 
-            return JsonConvert.DeserializeObject<T>(content, Settings);
+            return JsonConvert.DeserializeObject<T>(content, JsonSerializerSettings);
         }
 
         /// <summary>
@@ -93,7 +97,7 @@ namespace Ironclad.Client
         {
             try
             {
-                using (var content = new StringContent(JsonConvert.SerializeObject(resource, Settings), Encoding.UTF8, "application/json"))
+                using (var content = new StringContent(JsonConvert.SerializeObject(resource, JsonSerializerSettings), Encoding.UTF8, "application/json"))
                 using (var request = new HttpRequestMessage(method, requestUri) { Content = content })
                 using (var response = await this.Client.SendAsync(request, cancellationToken).EnsureSuccess().ConfigureAwait(false))
                 {
@@ -123,6 +127,22 @@ namespace Ironclad.Client
             {
                 throw new HttpException(HttpMethod.Delete, new Uri(requestUri), ex);
             }
+        }
+
+        /// <summary>
+        /// Gets the parameter value.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="parameterName">Name of the parameter.</param>
+        /// <returns>The parameter value.</returns>
+        protected string SafeGetValue(string value, string parameterName)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new ArgumentException("Value cannot be null.", parameterName);
+            }
+
+            return value;
         }
 
         /// <summary>

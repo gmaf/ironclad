@@ -44,21 +44,39 @@ namespace Ironclad.Client
             this.GetAsync<User>(this.RelativeUrl($"{ApiPath}/{username}"), cancellationToken);
 
         /// <summary>
-        /// Registers the specified user.
+        /// Adds the specified user.
         /// </summary>
         /// <param name="user">The user.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The new user.</returns>
+        public async Task<User> AddUserAsync(User user, CancellationToken cancellationToken = default)
+        {
+            await this.SendAsync<User>(HttpMethod.Post, this.RelativeUrl(ApiPath), user, cancellationToken).ConfigureAwait(false);
+            return await this.GetUserAsync(user.Username, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Removes the specified user.
+        /// </summary>
+        /// <param name="username">The username.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
-        public Task RegisterUserAsync(User user, CancellationToken cancellationToken = default) =>
-            this.SendAsync<User>(HttpMethod.Post, this.RelativeUrl(ApiPath), user, cancellationToken);
+        public Task RemoveUserAsync(string username, CancellationToken cancellationToken = default) =>
+            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{this.SafeGetValue(username, nameof(username))}"), cancellationToken);
 
         /// <summary>
         /// Modifies the specified user.
         /// </summary>
         /// <param name="user">The user.</param>
+        /// <param name="currentUsername">The current username (if different from the specified user username).</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task object representing the asynchronous operation.</returns>
-        public Task ModifyUserAsync(User user, CancellationToken cancellationToken = default) =>
-            this.SendAsync<User>(HttpMethod.Put, this.RelativeUrl($"{ApiPath}/{user?.Username}"), user, cancellationToken);
+        /// <returns>The modified user.</returns>
+        public async Task<User> ModifyUserAsync(User user, string currentUsername = null, CancellationToken cancellationToken = default)
+        {
+            var username = currentUsername ?? this.SafeGetValue(user?.Username, "user.Username");
+
+            await this.SendAsync<User>(HttpMethod.Put, this.RelativeUrl($"{ApiPath}/{username}"), user, cancellationToken).ConfigureAwait(false);
+            return await this.GetUserAsync(user.Username, cancellationToken).ConfigureAwait(false);
+        }
     }
 }

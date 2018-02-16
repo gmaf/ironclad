@@ -84,7 +84,6 @@ namespace Ironclad.Tests.Sdk
             return settings;
         }
 
-        [DebuggerStepThrough]
         private Process StartPostgres()
         {
             var process = Process.Start(
@@ -94,7 +93,7 @@ namespace Ironclad.Tests.Sdk
                 });
 
             // NOTE (Cameron): Trying to find a sensible value here so as to not throw during a debug session.
-            Thread.Sleep(3000);
+            Thread.Sleep(3500);
 
             using (var connection = new NpgsqlConnection(ConnectionString))
             {

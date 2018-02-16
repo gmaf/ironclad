@@ -61,7 +61,7 @@ namespace Ironclad.Console.Commands
                 PhoneNumber = this.phone,
             };
 
-            await context.UsersClient.RegisterUserAsync(user).ConfigureAwait(false);
+            await context.UsersClient.AddUserAsync(user).ConfigureAwait(false);
             await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }

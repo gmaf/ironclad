@@ -6,6 +6,7 @@ namespace Ironclad.Tests.Feature
     using System;
     using System.Globalization;
     using System.Linq;
+    using System.Net;
     using System.Threading.Tasks;
     using FluentAssertions;
     using IdentityModel.Client;
@@ -151,21 +152,21 @@ namespace Ironclad.Tests.Feature
         {
             // arrange
             var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
-            var expectedClient = new Client
+            var client = new Client
             {
                 Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
                 Name = $"{nameof(ClientManagement)}.{nameof(this.CanRemoveClient)} (integration test)",
             };
 
-            await httpClient.AddClientAsync(expectedClient).ConfigureAwait(false);
+            await httpClient.AddClientAsync(client).ConfigureAwait(false);
 
             // act
-            await httpClient.RemoveClientAsync(expectedClient.Id).ConfigureAwait(false);
+            await httpClient.RemoveClientAsync(client.Id).ConfigureAwait(false);
 
             // assert
             var clientSummaries = await httpClient.GetClientSummariesAsync().ConfigureAwait(false);
             clientSummaries.Should().NotBeNull();
-            clientSummaries.Should().NotContain(summary => summary.Id == expectedClient.Id);
+            clientSummaries.Should().NotContain(summary => summary.Id == client.Id);
         }
 
         [Fact]
@@ -268,18 +269,37 @@ namespace Ironclad.Tests.Feature
         {
             // arrange
             var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
-            var expectedClient = new Client
+            var client = new Client
             {
                 Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
                 AccessTokenType = "Nonsense",
             };
 
             // act
-#pragma warning disable IDE0039
-            Func<Task> func = async () => await httpClient.AddClientAsync(expectedClient).ConfigureAwait(false);
+            Func<Task> func = async () => await httpClient.AddClientAsync(client).ConfigureAwait(false);
 
             // assert
             func.Should().Throw<HttpException>();
+        }
+
+        [Fact]
+        public async Task CannotAddDuplicateClient()
+        {
+            // arrange
+            var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
+            var client = new Client
+            {
+                Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
+                Name = $"{nameof(ClientManagement)}.{nameof(this.CannotAddDuplicateClient)} (integration test)",
+            };
+
+            await httpClient.AddClientAsync(client).ConfigureAwait(false);
+
+            // act
+            Func<Task> func = async () => await httpClient.AddClientAsync(client).ConfigureAwait(false);
+
+            // assert
+            func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.Conflict);
         }
     }
 }

@@ -50,6 +50,9 @@ namespace Ironclad
                 user = new ApplicationUser { Id = DefaultAdminUserId, UserName = "admin" };
 
                 roleManager.CreateAsync(new IdentityRole("admin")).Wait();
+                roleManager.CreateAsync(new IdentityRole("auth_admin")).Wait();
+                roleManager.CreateAsync(new IdentityRole("user_admin")).Wait();
+
                 userManager.CreateAsync(user = new ApplicationUser { Id = DefaultAdminUserId, UserName = "admin" }, "password").Wait();
                 userManager.AddToRoleAsync(user, "admin").Wait();
 

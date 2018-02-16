@@ -21,18 +21,23 @@ namespace Ironclad.Configuration
                 },
             };
 
+        // NOTE (Cameron): User claims defined against API resources will result in those claims being in the access token.
         public static IEnumerable<ApiResource> GetDefaultApiResources() =>
             new List<ApiResource>
             {
                 new ApiResource("sample_api", "Sample Web API")
                 {
                     ApiSecrets = new List<Secret> { new Secret("secret".Sha256()) },
-                    UserClaims = new[] { "name", "role" }, // NOTE (Cameron): These are the user claims that are required by the web API.
+                    UserClaims = new[] { "name", "role" },
+                },
+                new ApiResource("template_api", "Lykke Web API (Template)")
+                {
+                    ApiSecrets = new List<Secret> { new Secret("secret".Sha256()) },
+                    UserClaims = new[] { "name", "role" },
                 },
                 new ApiResource("auth_api", "Authorization Server Web API")
                 {
-                    ApiSecrets = new List<Secret> { new Secret("secret".Sha256()) },
-                    UserClaims = new[] { "name", "role" }, // NOTE (Cameron): These are the user claims that are required by the web API.
+                    UserClaims = new[] { "name", "role" },
                 },
             };
     }
