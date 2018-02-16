@@ -50,14 +50,14 @@ namespace Ironclad.Console.Commands
         public async Task ExecuteAsync(CommandContext context)
         {
             var roles = await context.RolesClient.GetRolesAsync(this.skip, this.take).ConfigureAwait(false);
-            var maxRoleLength = roles.Max(c => c.Name?.Length ?? 0);
+            var maxRoleLength = roles.Max(role => role?.Length ?? 0);
             var outputFormat = string.Format(CultureInfo.InvariantCulture, "  {{0, -{0}}}{{1}}", maxRoleLength + 2);
 
             await context.Console.Out.WriteLineAsync("Roles:").ConfigureAwait(false);
 
             foreach (var role in roles)
             {
-                context.Console.Out.WriteLine(outputFormat, role.Name);
+                context.Console.Out.WriteLine(outputFormat, role);
             }
 
             await context.Console.Out.WriteLineAsync($"Showing from {roles.Start + 1} to {roles.Start + roles.Size} of {roles.TotalSize} in total.")

@@ -3,6 +3,8 @@
 
 namespace Ironclad
 {
+    using System;
+    using System.Linq;
     using IdentityServer4.Postgresql.Extensions;
     using Ironclad.Application;
     using Ironclad.Data;
@@ -73,6 +75,14 @@ namespace Ironclad
                     {
                         options.ClientId = this.configuration.GetValue<string>("Google-ClientId");
                         options.ClientSecret = this.configuration.GetValue<string>("Google-Secret");
+                    })
+                .AddIdentityServerAuthentication(
+                    "token",
+                    options =>
+                    {
+                        options.Authority = this.TryGetAuthority();
+                        options.ApiName = "auth_api";
+                        options.RequireHttpsMetadata = false;
                     });
         }
 
@@ -90,6 +100,14 @@ namespace Ironclad
             app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();
             app.InitializeDatabase().SeedDatabase();
+        }
+
+        public string TryGetAuthority()
+        {
+            return this.configuration.GetValue<string>("PUBLIC_ORIGIN") ??
+                this.configuration.GetValue<string>("urls").Split(";").FirstOrDefault()?
+                    .Replace("*", "localhost", StringComparison.OrdinalIgnoreCase)
+                    .Replace("+", "localhost", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

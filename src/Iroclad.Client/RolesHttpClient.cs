@@ -4,6 +4,7 @@
 namespace Ironclad.Client
 {
     using System;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading;
@@ -33,8 +34,13 @@ namespace Ironclad.Client
         /// <param name="size">The total size of the role set.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The roles.</returns>
-        public Task<ResourceSet<Role>> GetRolesAsync(int start = 0, int size = 0, CancellationToken cancellationToken = default) =>
-            this.GetAsync<ResourceSet<Role>>(this.RelativeUrl($"{ApiPath}?skip={start}&take={(size == 0 ? 20 : size)}"), cancellationToken);
+        public async Task<ResourceSet<string>> GetRolesAsync(int start = 0, int size = 0, CancellationToken cancellationToken = default)
+        {
+            var resourceSet = await this.GetAsync<ResourceSet<Role>>(this.RelativeUrl($"{ApiPath}?skip={start}&take={(size == 0 ? 20 : size)}"), cancellationToken)
+                .ConfigureAwait(false);
+
+            return new ResourceSet<string>(resourceSet.Start, resourceSet.TotalSize, resourceSet.Select(role => role.Name));
+        }
 
         /// <summary>
         /// Checks the role exists.

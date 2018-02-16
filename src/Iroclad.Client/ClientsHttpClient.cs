@@ -49,7 +49,7 @@ namespace Ironclad.Client
         /// <param name="client">The client.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
-        public Task RegisterClientAsync(Client client, CancellationToken cancellationToken = default) =>
+        public Task AddClientAsync(Client client, CancellationToken cancellationToken = default) =>
             this.SendAsync<Client>(HttpMethod.Post, this.RelativeUrl(ApiPath), client, cancellationToken);
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Ironclad.Client
         /// <param name="clientId">The client identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
-        public Task UnregisterClientAsync(string clientId, CancellationToken cancellationToken = default) =>
+        public Task RemoveClientAsync(string clientId, CancellationToken cancellationToken = default) =>
             this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{clientId}"), cancellationToken);
 
         /// <summary>

@@ -10,7 +10,7 @@ namespace Ironclad.Console
     {
         public static void ShowVersionAndHelp(this CommandLineApplication app)
         {
-            app.Out.WriteLine($"Auth Server Management Console [{GetInformationalVersion(typeof(Program).Assembly)}]");
+            app.Out.WriteLine($"Authorization Server Management Console [{GetInformationalVersion(typeof(Program).Assembly)}]");
             app.Out.WriteLine();
 
             app.ShowHelp();
