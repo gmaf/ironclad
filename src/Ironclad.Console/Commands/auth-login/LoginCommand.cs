@@ -12,6 +12,8 @@ namespace Ironclad.Console.Commands
 
     internal class LoginCommand : ICommand
     {
+        public const string DefaultAuthority = "https://auth.lykkecloud.com";
+
         private string authority;
         private Api api;
 
@@ -38,7 +40,7 @@ namespace Ironclad.Console.Commands
                     var authority = argumentAuthority.Value;
                     if (string.IsNullOrEmpty(authority))
                     {
-                        authority = string.IsNullOrEmpty(optionTest.Value()) ? "http://auth.lykkecloud.com" : "http://auth-test.lykkecloud.com";
+                        authority = string.IsNullOrEmpty(optionTest.Value()) ? DefaultAuthority : "https://auth-test.lykkecloud.com";
                     }
                     else if (!string.IsNullOrEmpty(optionTest.Value()))
                     {
@@ -86,7 +88,7 @@ namespace Ironclad.Console.Commands
             var browser = new SystemBrowser();
             var options = new OidcClientOptions
             {
-                Authority = "http://localhost:5005",
+                Authority = this.authority,
                 ClientId = "auth_console",
                 RedirectUri = $"http://127.0.0.1:{browser.Port}",
                 Scope = "openid email auth_api offline_access",

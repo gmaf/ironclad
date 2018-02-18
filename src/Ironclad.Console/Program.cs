@@ -7,6 +7,7 @@ namespace Ironclad.Console
     using System.Threading.Tasks;
     using Ironclad.Client;
     using Ironclad.Console.Commands;
+    using Ironclad.Console.Persistence;
     using McMaster.Extensions.CommandLineUtils;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
@@ -38,6 +39,13 @@ namespace Ironclad.Console
 
         public async Task<int> TryRunAsync(string[] args)
         {
+            var repository = new CommandDataRepository(null);
+            var data = repository.GetCommandData() ??
+                new CommandData
+                {
+                    Authority = LoginCommand.DefaultAuthority,
+                };
+
             CommandLineOptions options;
             try
             {
@@ -64,16 +72,31 @@ namespace Ironclad.Console
                 return 3;
             }
 
-            // NOTE (Cameron): This is basically setting up CommandContext as a container for our commands.
-            var authority = "http://localhost:5005";
+            // need to get the token and check it's valid
+            // get saved data
 
-            using (var clientsClient = new ClientsHttpClient(authority))
-            using (var apiResourcesClient = new ApiResourcesHttpClient(authority))
-            using (var identityResourcesClient = new IdentityResourcesHttpClient(authority))
-            using (var rolesClient = new RolesHttpClient(authority))
-            using (var usersClient = new UsersHttpClient(authority))
+            // if the command is login then check the current
+            if (options.Command?.GetType() != typeof(LoginCommand))
             {
-                var context = new CommandContext(this.console, clientsClient, apiResourcesClient, identityResourcesClient, rolesClient, usersClient);
+                this.console.WriteLine($"Executing command against {data.Authority}");
+            }
+
+            //// var token = GetAccessToken
+
+            using (var clientsClient = new ClientsHttpClient(data.Authority))
+            using (var apiResourcesClient = new ApiResourcesHttpClient(data.Authority))
+            using (var identityResourcesClient = new IdentityResourcesHttpClient(data.Authority))
+            using (var rolesClient = new RolesHttpClient(data.Authority))
+            using (var usersClient = new UsersHttpClient(data.Authority))
+            {
+                var context = new CommandContext(
+                    this.console,
+                    clientsClient,
+                    apiResourcesClient,
+                    identityResourcesClient,
+                    rolesClient,
+                    usersClient,
+                    repository);
 
                 try
                 {
