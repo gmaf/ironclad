@@ -3,7 +3,7 @@
 
 namespace Ironclad.Console.Commands
 {
-    using System.Reflection;
+    using Ironclad.Console.Persistence;
     using McMaster.Extensions.CommandLineUtils;
 
     public class CommandLineOptions
@@ -12,7 +12,7 @@ namespace Ironclad.Console.Commands
 
         public ICommand Command { get; set; }
 
-        public static CommandLineOptions Parse(string[] args, IConsole console)
+        public static CommandLineOptions Parse(string[] args, IConsole console, ICommandDataRepository repository)
         {
             // NOTE (Cameron): We need to pass the options through each of the commands before we can evaluate the result of the parsing.
             var options = new CommandLineOptions();
@@ -22,7 +22,7 @@ namespace Ironclad.Console.Commands
             app.HelpOption();
 
             // commands
-            app.Command("login", command => LoginCommand.Configure(command, options, console));
+            app.Command("login", command => LoginCommand.Configure(command, options, console, repository));
             app.Command("clients", command => ClientsCommand.Configure(command, options, console));
             app.Command("apis", command => ApiResourcesCommand.Configure(command, options));
             app.Command("users", command => UsersCommand.Configure(command, options));

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <OutputType>Exe</OutputType>
-    <AssemblyName>ironclad</AssemblyName>
+    <AssemblyName>auth</AssemblyName>
   </PropertyGroup>
   <PropertyGroup>
     <CodeAnalysisRuleSet>../Ironclad.ruleset</CodeAnalysisRuleSet>

@@ -7,6 +7,7 @@ namespace Ironclad.Console.Commands
     using System.Net.Http;
     using System.Threading.Tasks;
     using IdentityModel.OidcClient;
+    using Ironclad.Console.Persistence;
     using McMaster.Extensions.CommandLineUtils;
     using Newtonsoft.Json;
 
@@ -21,7 +22,7 @@ namespace Ironclad.Console.Commands
         {
         }
 
-        public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
+        public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console, ICommandDataRepository repository)
         {
             // description
             app.Description = "Logs in to the specified authorization server";
@@ -37,7 +38,9 @@ namespace Ironclad.Console.Commands
             app.OnExecute(
                 () =>
                 {
-                    var authority = argumentAuthority.Value;
+                    var data = repository.GetCommandData();
+
+                    var authority = argumentAuthority.Value ?? data?.Authority;
                     if (string.IsNullOrEmpty(authority))
                     {
                         authority = string.IsNullOrEmpty(optionTest.Value()) ? DefaultAuthority : "https://auth-test.lykkecloud.com";
@@ -85,6 +88,8 @@ namespace Ironclad.Console.Commands
         {
             context.Console.WriteLine($"Logging in to {this.authority} ({this.api.Title} v{this.api.Version} running on {this.api.OS})...");
 
+            //// TODO (Cameron): Check to see if we have to log in...
+
             var browser = new SystemBrowser();
             var options = new OidcClientOptions
             {
@@ -101,7 +106,16 @@ namespace Ironclad.Console.Commands
             if (result.IsError)
             {
                 context.Console.Error.WriteLine($"Error attempting to log in:\r\n{result.Error}");
+                return;
             }
+
+            context.Repository.SetCommandData(
+                new CommandData
+                {
+                    Authority = this.authority,
+                    AccessToken = result.AccessToken,
+                    RefreshToken = result.RefreshToken,
+                });
 
             context.Console.WriteLine($"token: {result.AccessToken}");
         }
