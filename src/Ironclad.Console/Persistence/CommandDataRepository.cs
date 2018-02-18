@@ -17,11 +17,9 @@ namespace Ironclad.Console.Persistence
 
     public class CommandDataRepository : ICommandDataRepository
     {
-        private const string RepositoryFolderName = "auth.exe";
-
         private static readonly XmlSerializer Serializer = new XmlSerializer(typeof(CommandData));
 
-        private readonly IXmlRepository innerRepository = new FileSystemXmlRepository(GetDefaultDataStorageDirectory(), NullLoggerFactory.Instance);
+        private readonly IXmlRepository innerRepository = new CustomFileSystemXmlRepository();
         private readonly IDataProtector protector;
 
         public CommandDataRepository(IDataProtectionProvider provider)
@@ -66,61 +64,5 @@ namespace Ironclad.Console.Persistence
                 this.innerRepository.StoreElement(xml, "command-data");
             }
         }
-
-        // LINK (Cameron): https://github.com/aspnet/DataProtection/blob/dev/src/Microsoft.AspNetCore.DataProtection/Repositories/FileSystemXmlRepository.cs
-        private static DirectoryInfo GetDefaultDataStorageDirectory()
-        {
-            DirectoryInfo directoryInfo;
-
-            // Environment.GetFolderPath returns null if the user profile isn't loaded.
-            var localAppDataFromSystemPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var localAppDataFromEnvPath = Environment.GetEnvironmentVariable("LOCALAPPDATA");
-            var userProfilePath = Environment.GetEnvironmentVariable("USERPROFILE");
-            var homePath = Environment.GetEnvironmentVariable("HOME");
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !string.IsNullOrEmpty(localAppDataFromSystemPath))
-            {
-                // To preserve backwards-compatibility with 1.x, Environment.SpecialFolder.LocalApplicationData
-                // cannot take precedence over $LOCALAPPDATA and $HOME/.aspnet on non-Windows platforms
-                directoryInfo = GetKeyStorageDirectoryFromBaseAppDataPath(localAppDataFromSystemPath);
-            }
-            else if (localAppDataFromEnvPath != null)
-            {
-                directoryInfo = GetKeyStorageDirectoryFromBaseAppDataPath(localAppDataFromEnvPath);
-            }
-            else if (userProfilePath != null)
-            {
-                directoryInfo = GetKeyStorageDirectoryFromBaseAppDataPath(Path.Combine(userProfilePath, "AppData", "Local"));
-            }
-            else if (homePath != null)
-            {
-                // If LOCALAPPDATA and USERPROFILE are not present but HOME is, it's a good guess that this is a *NIX machine.  Use *NIX conventions for a folder name.
-                directoryInfo = new DirectoryInfo(Path.Combine(homePath, ".lykke", RepositoryFolderName));
-            }
-            else if (!string.IsNullOrEmpty(localAppDataFromSystemPath))
-            {
-                // Starting in 2.x, non-Windows platforms may use Environment.SpecialFolder.LocalApplicationData
-                // but only after checking for $LOCALAPPDATA, $USERPROFILE, and $HOME.
-                directoryInfo = GetKeyStorageDirectoryFromBaseAppDataPath(localAppDataFromSystemPath);
-            }
-            else
-            {
-                return null;
-            }
-
-            Debug.Assert(directoryInfo != null, "The storage directory was not located.");
-
-            try
-            {
-                directoryInfo.Create(); // throws if we don't have access, e.g., user profile not loaded
-                return directoryInfo;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static DirectoryInfo GetKeyStorageDirectoryFromBaseAppDataPath(string basePath) => new DirectoryInfo(Path.Combine(basePath, "Lykke", RepositoryFolderName));
     }
 }

@@ -22,7 +22,7 @@ namespace Ironclad.Console.Commands
         {
         }
 
-        public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console, ICommandDataRepository repository)
+        public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
             app.Description = "Logs in to the specified authorization server";
@@ -38,9 +38,7 @@ namespace Ironclad.Console.Commands
             app.OnExecute(
                 () =>
                 {
-                    var data = repository.GetCommandData();
-
-                    var authority = argumentAuthority.Value ?? data?.Authority;
+                    var authority = argumentAuthority.Value;
                     if (string.IsNullOrEmpty(authority))
                     {
                         authority = string.IsNullOrEmpty(optionTest.Value()) ? DefaultAuthority : "https://auth-test.lykkecloud.com";
@@ -116,8 +114,6 @@ namespace Ironclad.Console.Commands
                     AccessToken = result.AccessToken,
                     RefreshToken = result.RefreshToken,
                 });
-
-            context.Console.WriteLine($"token: {result.AccessToken}");
         }
 
 #pragma warning disable CA1812

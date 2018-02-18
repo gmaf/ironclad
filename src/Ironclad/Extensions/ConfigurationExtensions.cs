@@ -22,6 +22,7 @@ namespace Ironclad
         {
             /* secrets.json key             // environment variable         // command line argument    //default value (optional) */
             ("ConnectionStrings:Ironclad",  "IRONCLAD_CONNECTIONSTRING",    "connectionString",         null),
+            ("Introspection-Secret",        "INTROSPECTION_SECRET",         "introspectionSecret",      "secret"),
             ("Google-ClientId",             "GOOGLE_CLIENT_ID",             "googleClientId",           null),
             ("Google-Secret",               "GOOGLE_SECRET",                "googleSecret",             null),
         };

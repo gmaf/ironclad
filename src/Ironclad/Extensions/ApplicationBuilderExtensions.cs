@@ -12,13 +12,14 @@ namespace Ironclad
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Serilog;
 
     // TODO (Cameron): Contents of this should really be moved out into a class under the Data namespace.
     public static class ApplicationBuilderExtensions
     {
-        private const string DefaultAdminUserId = "ef130655a3a645afa8217b9bb402e8e0";
+        private const string DefaultAdminUserId = "e4744f59155040599fb057d62e84c079";
 
         public static IApplicationBuilder InitializeDatabase(this IApplicationBuilder app)
         {
@@ -32,7 +33,7 @@ namespace Ironclad
             return app;
         }
 
-        public static IApplicationBuilder SeedDatabase(this IApplicationBuilder app)
+        public static IApplicationBuilder SeedDatabase(this IApplicationBuilder app, IConfiguration configuration)
         {
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
@@ -46,6 +47,12 @@ namespace Ironclad
                 }
 
                 Log.Information("Configuring system for first use...");
+
+                user = userManager.FindByNameAsync("admin").Result;
+                if (user != null)
+                {
+                    userManager.DeleteAsync(user).Wait();
+                }
 
                 user = new ApplicationUser { Id = DefaultAdminUserId, UserName = "admin" };
 
@@ -72,7 +79,7 @@ namespace Ironclad
                     if (!session.Query<IdentityServer4.Postgresql.Entities.ApiResource>().Any())
                     {
                         Log.Information("Adding default API resources...");
-                        session.StoreObjects(Config.GetDefaultApiResources().Select(r => r.ToEntity()));
+                        session.StoreObjects(Config.GetDefaultApiResources(configuration).Select(r => r.ToEntity()));
                     }
 
                     if (!session.Query<IdentityServer4.Postgresql.Entities.IdentityResource>().Any())

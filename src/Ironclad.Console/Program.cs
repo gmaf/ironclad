@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable CA1812
+
 namespace Ironclad.Console
 {
     using System;
@@ -51,17 +53,10 @@ namespace Ironclad.Console
 
         public async Task<int> TryRunAsync(string[] args)
         {
-            var repository = new CommandDataRepository(this.provider);
-            var data = repository.GetCommandData() ??
-                new CommandData
-                {
-                    Authority = LoginCommand.DefaultAuthority,
-                };
-
             CommandLineOptions options;
             try
             {
-                options = CommandLineOptions.Parse(args, this.console, repository);
+                options = CommandLineOptions.Parse(args, this.console);
             }
             catch (CommandParsingException ex)
             {
@@ -83,6 +78,13 @@ namespace Ironclad.Console
             {
                 return 3;
             }
+
+            var repository = new CommandDataRepository(this.provider);
+            var data = repository.GetCommandData() ??
+                new CommandData
+                {
+                    Authority = LoginCommand.DefaultAuthority,
+                };
 
             // if the command is login then check the current
             if (options.Command?.GetType() != typeof(LoginCommand))
