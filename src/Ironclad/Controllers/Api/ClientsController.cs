@@ -19,7 +19,7 @@ namespace Ironclad.Controllers
     using IroncladClient = Ironclad.Client.Client;
     using PostgresClient = IdentityServer4.Postgresql.Entities.Client;
 
-    [Authorize(AuthenticationSchemes = "token")]
+    [Authorize("auth_admin")]
     [Route("api/[controller]")]
     public class ClientsController : Controller
     {
@@ -30,7 +30,6 @@ namespace Ironclad.Controllers
             this.store = store;
         }
 
-        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> Get(int skip = default, int take = 20)
         {
@@ -57,7 +56,6 @@ namespace Ironclad.Controllers
             }
         }
 
-        [AllowAnonymous]
         [HttpHead("{clientId}")]
         [HttpGet("{clientId}")]
         public async Task<IActionResult> Get(string clientId)

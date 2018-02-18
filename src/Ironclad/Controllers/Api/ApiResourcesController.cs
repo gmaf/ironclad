@@ -19,7 +19,7 @@ namespace Ironclad.Controllers.Api
     using IroncladResource = Ironclad.Client.ApiResource;
     using PostgresResource = IdentityServer4.Postgresql.Entities.ApiResource;
 
-    [Authorize(AuthenticationSchemes = "token")]
+    [Authorize("auth_admin")]
     [Route("api/[controller]")]
     public class ApiResourcesController : Controller
     {
@@ -30,7 +30,6 @@ namespace Ironclad.Controllers.Api
             this.store = store;
         }
 
-        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> Get(int skip = default, int take = 20)
         {
@@ -55,7 +54,6 @@ namespace Ironclad.Controllers.Api
             }
         }
 
-        [AllowAnonymous]
         [HttpHead("{resourceName}")]
         [HttpGet("{resourceName}")]
         public async Task<IActionResult> Get(string resourceName)

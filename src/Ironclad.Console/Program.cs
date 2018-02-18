@@ -101,6 +101,17 @@ namespace Ironclad.Console
             using (var rolesClient = new RolesHttpClient(data.Authority, handler))
             using (var usersClient = new UsersHttpClient(data.Authority, handler))
             {
+                handler.TokenRefreshed += (sender, e) =>
+                {
+                    repository.SetCommandData(
+                        new CommandData
+                        {
+                            Authority = data.Authority,
+                            AccessToken = e.AccessToken,
+                            RefreshToken = e.RefreshToken,
+                        });
+                };
+
                 var context = new CommandContext(
                     this.console,
                     clientsClient,
