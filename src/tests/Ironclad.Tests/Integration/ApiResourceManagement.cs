@@ -5,6 +5,7 @@ namespace Ironclad.Tests.Feature
 {
     using System;
     using System.Globalization;
+    using System.Net;
     using System.Threading.Tasks;
     using FluentAssertions;
     using IdentityModel.Client;
@@ -124,22 +125,22 @@ namespace Ironclad.Tests.Feature
         {
             // arrange
             var httpClient = new ApiResourcesHttpClient(this.Authority, this.Handler);
-            var expectedResource = new ApiResource
+            var resource = new ApiResource
             {
                 Name = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
                 DisplayName = $"{nameof(ApiResourceManagement)}.{nameof(this.CanRemoveApiResource)} (integration test)",
                 ApiSecret = "secret",
             };
 
-            await httpClient.AddApiResourceAsync(expectedResource).ConfigureAwait(false);
+            await httpClient.AddApiResourceAsync(resource).ConfigureAwait(false);
 
             // act
-            await httpClient.RemoveApiResourceAsync(expectedResource.Name).ConfigureAwait(false);
+            await httpClient.RemoveApiResourceAsync(resource.Name).ConfigureAwait(false);
 
             // assert
             var resourceSummaries = await httpClient.GetApiResourceSummariesAsync().ConfigureAwait(false);
             resourceSummaries.Should().NotBeNull();
-            resourceSummaries.Should().NotContain(summary => summary.Name == expectedResource.Name);
+            resourceSummaries.Should().NotContain(summary => summary.Name == resource.Name);
         }
 
         // LINK (Cameron): https://github.com/IdentityServer/IdentityServer4.AccessTokenValidation/blob/dev/src/IdentityServer4.AccessTokenValidation/IdentityServerAuthenticationOptions.cs#L231
@@ -169,17 +170,37 @@ namespace Ironclad.Tests.Feature
         {
             // arrange
             var httpClient = new ApiResourcesHttpClient(this.Authority, this.Handler);
-            var expectedResource = new ApiResource
+            var resource = new ApiResource
             {
                 Name = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
             };
 
             // act
-#pragma warning disable IDE0039
-            Func<Task> func = async () => await httpClient.AddApiResourceAsync(expectedResource).ConfigureAwait(false);
+            Func<Task> func = async () => await httpClient.AddApiResourceAsync(resource).ConfigureAwait(false);
 
             // assert
             func.Should().Throw<HttpException>();
+        }
+
+        [Fact]
+        public async Task CannotAddDuplicateApiResource()
+        {
+            // arrange
+            var httpClient = new ApiResourcesHttpClient(this.Authority, this.Handler);
+            var resource = new ApiResource
+            {
+                Name = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
+                DisplayName = $"{nameof(ApiResourceManagement)}.{nameof(this.CannotAddDuplicateApiResource)} (integration test)",
+                ApiSecret = "secret",
+            };
+
+            await httpClient.AddApiResourceAsync(resource).ConfigureAwait(false);
+
+            // act
+            Func<Task> func = async () => await httpClient.AddApiResourceAsync(resource).ConfigureAwait(false);
+
+            // assert
+            func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.Conflict);
         }
     }
 }

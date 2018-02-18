@@ -35,7 +35,7 @@ namespace Ironclad.Client
             this.GetAsync<ResourceSet<ClientSummary>>(this.RelativeUrl($"{ApiPath}?skip={start}&take={(size == 0 ? 20 : size)}"), cancellationToken);
 
         /// <summary>
-        /// Gets the client.
+        /// Gets the specified client.
         /// </summary>
         /// <param name="clientId">The client identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -44,7 +44,7 @@ namespace Ironclad.Client
             this.GetAsync<Client>(this.RelativeUrl($"{ApiPath}/{clientId}"), cancellationToken);
 
         /// <summary>
-        /// Registers the specified client.
+        /// Adds the specified client.
         /// </summary>
         /// <param name="client">The client.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -53,21 +53,21 @@ namespace Ironclad.Client
             this.SendAsync<Client>(HttpMethod.Post, this.RelativeUrl(ApiPath), client, cancellationToken);
 
         /// <summary>
-        /// Unregisters the specified client.
+        /// Removes the specified client.
         /// </summary>
         /// <param name="clientId">The client identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task RemoveClientAsync(string clientId, CancellationToken cancellationToken = default) =>
-            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{clientId}"), cancellationToken);
+            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{this.SafeGetValue(clientId, nameof(clientId))}"), cancellationToken);
 
         /// <summary>
-        /// Modifies the client.
+        /// Modifies the specified client.
         /// </summary>
         /// <param name="client">The client.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task ModifyClientAsync(Client client, CancellationToken cancellationToken = default) =>
-            this.SendAsync<Client>(HttpMethod.Put, this.RelativeUrl($"{ApiPath}/{client?.Id}"), client, cancellationToken);
+            this.SendAsync<Client>(HttpMethod.Put, this.RelativeUrl($"{ApiPath}/{this.SafeGetValue(client?.Id, "client.Id")}"), client, cancellationToken);
     }
 }

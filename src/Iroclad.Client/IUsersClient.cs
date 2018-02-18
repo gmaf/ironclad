@@ -21,7 +21,7 @@ namespace Ironclad.Client
         Task<ResourceSet<UserSummary>> GetUserSummariesAsync(int start = default, int size = default, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets the user.
+        /// Gets the specified user.
         /// </summary>
         /// <param name="username">The username.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -29,19 +29,28 @@ namespace Ironclad.Client
         Task<User> GetUserAsync(string username, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Registers the specified user.
+        /// Adds the specified user.
         /// </summary>
         /// <param name="user">The user.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The new user.</returns>
+        Task<User> AddUserAsync(User user, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Removes the specified user.
+        /// </summary>
+        /// <param name="username">The username.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
-        Task RegisterUserAsync(User user, CancellationToken cancellationToken = default);
+        Task RemoveUserAsync(string username, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Modifies the specified user.
         /// </summary>
         /// <param name="user">The user.</param>
+        /// <param name="currentUsername">The current username (if different from the specified user username).</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task object representing the asynchronous operation.</returns>
-        Task ModifyUserAsync(User user, CancellationToken cancellationToken = default);
+        /// <returns>The modified user.</returns>
+        Task<User> ModifyUserAsync(User user, string currentUsername = null, CancellationToken cancellationToken = default);
     }
 }

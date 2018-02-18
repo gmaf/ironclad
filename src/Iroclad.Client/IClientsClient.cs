@@ -21,7 +21,7 @@ namespace Ironclad.Client
         Task<ResourceSet<ClientSummary>> GetClientSummariesAsync(int start = default, int size = default, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets the client.
+        /// Gets the specified client.
         /// </summary>
         /// <param name="clientId">The client identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -45,7 +45,7 @@ namespace Ironclad.Client
         Task RemoveClientAsync(string clientId, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Modifies the client.
+        /// Modifies the specified client.
         /// </summary>
         /// <param name="client">The client.</param>
         /// <param name="cancellationToken">The cancellation token.</param>

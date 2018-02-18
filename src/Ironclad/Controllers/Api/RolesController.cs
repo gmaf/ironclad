@@ -77,7 +77,6 @@ namespace Ironclad.Controllers.Api
             var result = await this.roleManager.CreateAsync(new IdentityRole(model.Name));
             if (!result.Succeeded)
             {
-                // TODO (Cameron): Consider implications of surfacing this message.
                 return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = result.ToString() });
             }
 

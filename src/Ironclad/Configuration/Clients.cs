@@ -38,7 +38,6 @@ namespace Ironclad.Configuration
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
-                        ////"role",
                         "sample_api",
                     },
 

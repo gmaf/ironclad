@@ -21,7 +21,7 @@ namespace Ironclad.Client
         Task<ResourceSet<ResourceSummary>> GetApiResourceSummariesAsync(int start = default, int size = default, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets the API resource.
+        /// Gets the specified API resource.
         /// </summary>
         /// <param name="resourceName">The resource name.</param>
         /// <param name="cancellationToken">The cancellation token.</param>

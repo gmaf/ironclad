@@ -5,6 +5,7 @@ namespace Ironclad.Tests.Feature
 {
     using System;
     using System.Globalization;
+    using System.Net;
     using System.Threading.Tasks;
     using FluentAssertions;
     using Ironclad.Client;
@@ -23,13 +24,13 @@ namespace Ironclad.Tests.Feature
         {
             // arrange
             var httpClient = new RolesHttpClient(this.Authority, this.Handler);
-            var expectedRole = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+            var role = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
             // act
-            await httpClient.AddRoleAsync(expectedRole).ConfigureAwait(false);
+            await httpClient.AddRoleAsync(role).ConfigureAwait(false);
 
             // assert
-            var roleExists = await httpClient.RoleExistsAsync(expectedRole).ConfigureAwait(false);
+            var roleExists = await httpClient.RoleExistsAsync(role).ConfigureAwait(false);
             roleExists.Should().BeTrue();
         }
 
@@ -38,15 +39,15 @@ namespace Ironclad.Tests.Feature
         {
             // arrange
             var httpClient = new RolesHttpClient(this.Authority, this.Handler);
-            var expectedRole = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+            var role = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
             // act
-            await httpClient.AddRoleAsync(expectedRole).ConfigureAwait(false);
+            await httpClient.AddRoleAsync(role).ConfigureAwait(false);
 
             // assert
             var roles = await httpClient.GetRolesAsync().ConfigureAwait(false);
             roles.Should().NotBeNull();
-            roles.Should().Contain(expectedRole);
+            roles.Should().Contain(role);
         }
 
         [Fact]
@@ -54,17 +55,33 @@ namespace Ironclad.Tests.Feature
         {
             // arrange
             var httpClient = new RolesHttpClient(this.Authority, this.Handler);
-            var expectedRole = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+            var role = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
-            await httpClient.AddRoleAsync(expectedRole).ConfigureAwait(false);
+            await httpClient.AddRoleAsync(role).ConfigureAwait(false);
 
             // act
-            await httpClient.RemoveRoleAsync(expectedRole).ConfigureAwait(false);
+            await httpClient.RemoveRoleAsync(role).ConfigureAwait(false);
 
             // assert
             var roles = await httpClient.GetRolesAsync().ConfigureAwait(false);
             roles.Should().NotBeNull();
-            roles.Should().NotContain(expectedRole);
+            roles.Should().NotContain(role);
+        }
+
+        [Fact]
+        public async Task CannotAddDuplicateRole()
+        {
+            // arrange
+            var httpClient = new RolesHttpClient(this.Authority, this.Handler);
+            var role = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+
+            await httpClient.AddRoleAsync(role).ConfigureAwait(false);
+
+            // act
+            Func<Task> func = async () => await httpClient.AddRoleAsync(role).ConfigureAwait(false);
+
+            // assert
+            func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.Conflict);
         }
     }
 }

@@ -21,10 +21,12 @@ namespace Ironclad.Controllers.Api
     public class UsersController : Controller
     {
         private readonly UserManager<ApplicationUser> userManager;
+        private readonly RoleManager<IdentityRole> roleManager;
 
-        public UsersController(UserManager<ApplicationUser> userManager)
+        public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             this.userManager = userManager;
+            this.roleManager = roleManager;
         }
 
         [AllowAnonymous]
@@ -80,29 +82,44 @@ namespace Ironclad.Controllers.Api
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]User model)
         {
-            var user = new ApplicationUser
+            if (string.IsNullOrEmpty(model.Username))
             {
-                UserName = model.Username,
-                Email = model.Email,
-                PhoneNumber = model.PhoneNumber,
-            };
+                return this.BadRequest(new { Message = $"Cannot create a user without a username" });
+            }
 
-            ////if (await this.userManager.FindByNameAsync(model.Username) != null)
-            ////{
-            ////    return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "User already used" });
-            ////}
+            var user = new ApplicationUser(model.Username);
 
-            ////if (!string.IsNullOrEmpty(model.Email) &&
-            ////    await this.userManager.FindByEmailAsync(model.Email) != null)
-            ////{
-            ////    return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "Email already used" });
-            ////}
+            // optional properties
+            user.Email = model.Email ?? user.Email;
+            user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
 
-            var result = await this.userManager.CreateAsync(user, model.Password);
-            if (!result.Succeeded)
+            foreach (var role in model?.Roles)
             {
-                // TODO (Cameron): Consider implications of surfacing this message.
-                return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = result.ToString() });
+                if (!await this.roleManager.RoleExistsAsync(role))
+                {
+                    return this.BadRequest(new { Message = $"Cannot create a user with the role '{role}' when that role does not exist" });
+                }
+            }
+
+            var addUserResult = string.IsNullOrEmpty(model.Password) ? await this.userManager.CreateAsync(user) : await this.userManager.CreateAsync(user, model.Password);
+            if (!addUserResult.Succeeded)
+            {
+                if (addUserResult.Errors.Any(error => error.Code == "DuplicateUserName"))
+                {
+                    return this.StatusCode((int)HttpStatusCode.Conflict, new { Message = "User already exists" });
+                }
+
+                return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addUserResult.ToString() });
+            }
+
+            // roles
+            foreach (var role in model?.Roles)
+            {
+                var addToRolesResult = await this.userManager.AddToRolesAsync(user, model.Roles);
+                if (!addToRolesResult.Succeeded)
+                {
+                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addToRolesResult.ToString() });
+                }
             }
 
             return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + model.Username)), null);
@@ -117,13 +134,13 @@ namespace Ironclad.Controllers.Api
                 return this.NotFound(new { Message = $"User '{username}' not found" });
             }
 
+            user.UserName = model.Username ?? user.UserName;
             user.Email = model.Email ?? user.Email;
             user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
 
             var result = await this.userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {
-                // TODO (Cameron): Consider implications of surfacing this message.
                 return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = result.ToString() });
             }
 
@@ -135,7 +152,6 @@ namespace Ironclad.Controllers.Api
                 var removeResult = await this.userManager.RemoveFromRolesAsync(user, oldRoles);
                 if (!removeResult.Succeeded)
                 {
-                    // TODO (Cameron): Consider implications of surfacing this message.
                     return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = removeResult.ToString() });
                 }
             }
@@ -146,7 +162,6 @@ namespace Ironclad.Controllers.Api
                 var addResult = await this.userManager.AddToRolesAsync(user, newRoles);
                 if (!addResult.Succeeded)
                 {
-                    // TODO (Cameron): Consider implications of surfacing this message.
                     return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addResult.ToString() });
                 }
             }
