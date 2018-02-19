@@ -8,14 +8,14 @@ namespace Ironclad.Console.Commands
     // NOTE (Cameron): This command is informational only and cannot be executed (only 'show help' works) so inheriting ICommand is unnecessary.
     internal static class ApiResourcesCommand
     {
-        public static void Configure(CommandLineApplication app, CommandLineOptions options)
+        public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
             app.Description = $"Provides API resources related operations";
             app.HelpOption();
 
             // commands
-            app.Command("add", command => AddApiResourceCommand.Configure(command, options));
+            app.Command("add", command => AddApiResourceCommand.Configure(command, options, console));
             app.Command("show", command => ShowApiResourcesCommand.Configure(command, options));
             app.Command("remove", command => RemoveApiResourceCommand.Configure(command, options));
 
