@@ -24,7 +24,7 @@ namespace Ironclad.Console.Commands
             // commands
             app.Command("login", command => LoginCommand.Configure(command, options, console));
             app.Command("clients", command => ClientsCommand.Configure(command, options, console));
-            app.Command("apis", command => ApiResourcesCommand.Configure(command, options));
+            app.Command("apis", command => ApiResourcesCommand.Configure(command, options, console));
             app.Command("users", command => UsersCommand.Configure(command, options));
             app.Command("roles", command => RolesCommand.Configure(command, options));
 
