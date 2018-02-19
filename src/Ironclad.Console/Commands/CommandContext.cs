@@ -19,6 +19,7 @@ namespace Ironclad.Console.Commands
             ICommandDataRepository repository)
         {
             this.Console = console;
+            this.Reporter = new ConsoleReporter(console);
             this.ClientsClient = clientsClient;
             this.ApiResourcesClient = apiResourcesClient;
             this.IdentityResourcesClient = identityResourcesClient;
@@ -28,6 +29,8 @@ namespace Ironclad.Console.Commands
         }
 
         public IConsole Console { get; }
+
+        public IReporter Reporter { get; }
 
         public IClientsClient ClientsClient { get; }
 

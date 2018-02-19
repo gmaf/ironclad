@@ -52,7 +52,6 @@ namespace Ironclad.Console.Commands
             };
 
             await context.ClientsClient.ModifyClientAsync(client).ConfigureAwait(false);
-            await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }
 }
