@@ -21,6 +21,7 @@ namespace Ironclad.Console.Commands
             var reporter = new ConsoleReporter(console);
 
             app.HelpOption();
+            app.VerboseOption();
 
             // commands
             app.Command("login", command => LoginCommand.Configure(command, options, console));

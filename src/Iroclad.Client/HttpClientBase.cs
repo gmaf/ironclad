@@ -58,6 +58,38 @@ namespace Ironclad.Client
         }
 
         /// <summary>
+        /// Gets the valid parameter value.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="parameterName">Name of the parameter.</param>
+        /// <returns>The parameter value.</returns>
+        protected static string Valid(string value, string parameterName)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new ArgumentException("Value cannot be null.", parameterName);
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// Gets the valid parameter value.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="parameterName">Name of the parameter.</param>
+        /// <returns>The parameter value.</returns>
+        protected static int Valid(int value, string parameterName)
+        {
+            if (value < 0)
+            {
+                throw new ArgumentOutOfRangeException(parameterName, value, "Value cannot be less than zero.");
+            }
+
+            return value;
+        }
+
+        /// <summary>
         /// Performs an asynchronous HTTP GET operation.
         /// </summary>
         /// <typeparam name="T">The type of data transfer object.</typeparam>
@@ -127,22 +159,6 @@ namespace Ironclad.Client
             {
                 throw new HttpException(HttpMethod.Delete, new Uri(requestUri), ex);
             }
-        }
-
-        /// <summary>
-        /// Gets the parameter value.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <param name="parameterName">Name of the parameter.</param>
-        /// <returns>The parameter value.</returns>
-        protected string SafeGetValue(string value, string parameterName)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                throw new ArgumentException("Value cannot be null.", parameterName);
-            }
-
-            return value;
         }
 
         /// <summary>

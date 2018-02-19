@@ -38,7 +38,7 @@ namespace Ironclad.Console.Commands
                     }
 
                     var take = 20;
-                    if (optionTake.HasValue() && !int.TryParse(optionTake.Value(), out skip))
+                    if (optionTake.HasValue() && !int.TryParse(optionTake.Value(), out take))
                     {
                         throw new CommandParsingException(app, $"Unable to parse [take] value of '{optionTake.Value()}'");
                     }

@@ -18,7 +18,7 @@ namespace Ironclad.Console.Commands
             app.HelpOption();
 
             // arguments
-            var argumentUsername = app.Argument("username", "The username of a user. You can use wildcards for searching.", false);
+            var argumentUsername = app.Argument("username", "The username of a user." /* You can use wildcards for searching."*/, false);
 
             // options
             var optionSkip = app.Option("-s|--skip", "The number of users to skip.", CommandOptionType.SingleValue);
@@ -41,7 +41,7 @@ namespace Ironclad.Console.Commands
                     }
 
                     var take = 20;
-                    if (optionTake.HasValue() && !int.TryParse(optionTake.Value(), out skip))
+                    if (optionTake.HasValue() && !int.TryParse(optionTake.Value(), out take))
                     {
                         throw new CommandParsingException(app, $"Unable to parse [take] value of '{optionTake.Value()}'");
                     }
@@ -59,6 +59,11 @@ namespace Ironclad.Console.Commands
             public async Task ExecuteAsync(CommandContext context)
             {
                 var users = await context.UsersClient.GetUserSummariesAsync(this.Skip, this.Take).ConfigureAwait(false);
+                if (!users.Any())
+                {
+                    context.Reporter.QueryReturnedNoResults(this.Skip, users);
+                    return;
+                }
 
                 var maxUsernameLength = users.Max(c => c.Username?.Length ?? 0);
                 var maxUserEmailLength = users.Max(c => c.Email?.Length ?? 0);
@@ -67,11 +72,15 @@ namespace Ironclad.Console.Commands
 
                 await context.Console.Out.WriteLineAsync().ConfigureAwait(false);
 
+                context.Console.ForegroundColor = System.ConsoleColor.White;
                 context.Console.Out.WriteLine(outputFormat, "username", "email", "sub");
+                context.Console.ResetColor();
                 foreach (var user in users)
                 {
                     context.Console.Out.WriteLine(outputFormat, user.Username, user.Email, user.Id);
                 }
+
+                context.Console.ResetColor();
 
                 await context.Console.Out.WriteLineAsync().ConfigureAwait(false);
                 await context.Console.Out.WriteLineAsync($"Showing from {users.Start + 1} to {users.Start + users.Size} of {users.TotalSize} users in total.")
