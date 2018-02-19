@@ -4,6 +4,7 @@
 namespace Ironclad.Console.Commands
 {
     using Ironclad.Client;
+    using Ironclad.Console.Persistence;
     using McMaster.Extensions.CommandLineUtils;
 
     public class CommandContext
@@ -14,7 +15,8 @@ namespace Ironclad.Console.Commands
             IApiResourcesClient apiResourcesClient,
             IIdentityResourcesClient identityResourcesClient,
             IRolesClient rolesClient,
-            IUsersClient usersClient)
+            IUsersClient usersClient,
+            ICommandDataRepository repository)
         {
             this.Console = console;
             this.ClientsClient = clientsClient;
@@ -22,6 +24,7 @@ namespace Ironclad.Console.Commands
             this.IdentityResourcesClient = identityResourcesClient;
             this.RolesClient = rolesClient;
             this.UsersClient = usersClient;
+            this.Repository = repository;
         }
 
         public IConsole Console { get; }
@@ -35,5 +38,7 @@ namespace Ironclad.Console.Commands
         public IRolesClient RolesClient { get; }
 
         public IUsersClient UsersClient { get; }
+
+        public ICommandDataRepository Repository { get; }
     }
 }

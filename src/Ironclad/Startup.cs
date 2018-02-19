@@ -5,10 +5,13 @@ namespace Ironclad
 {
     using System;
     using System.Linq;
+    using IdentityServer4.AccessTokenValidation;
     using IdentityServer4.Postgresql.Extensions;
     using Ironclad.Application;
+    using Ironclad.Authorization;
     using Ironclad.Data;
     using Ironclad.Services;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.HttpOverrides;
@@ -52,6 +55,7 @@ namespace Ironclad
                 .AddDefaultTokenProviders();
 
             services.AddTransient<IEmailSender, EmailSender>();
+            services.AddSingleton<IAuthorizationHandler, AdministratorHandler>();
 
             services.AddMvc()
                 .AddJsonOptions(
@@ -69,7 +73,7 @@ namespace Ironclad
                 .AddAppAuthRedirectUriValidator()
                 .AddAspNetIdentity<ApplicationUser>();
 
-            services.AddAuthentication()
+            services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddGoogle(
                     options =>
                     {
@@ -82,8 +86,16 @@ namespace Ironclad
                     {
                         options.Authority = this.TryGetAuthority();
                         options.ApiName = "auth_api";
+                        options.ApiSecret = this.configuration.GetValue<string>("Introspection-Secret");
                         options.RequireHttpsMetadata = false;
                     });
+
+            services.AddAuthorization(
+                options =>
+                {
+                    options.AddPolicy("auth_admin", policy => policy.AddAuthenticationSchemes("token").Requirements.Add(new AdministratorRequirement("auth")));
+                    options.AddPolicy("user_admin", policy => policy.AddAuthenticationSchemes("token").Requirements.Add(new AdministratorRequirement("user")));
+                });
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -99,7 +111,7 @@ namespace Ironclad
             app.UseStaticFiles();
             app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();
-            app.InitializeDatabase().SeedDatabase();
+            app.InitializeDatabase().SeedDatabase(this.configuration);
         }
 
         public string TryGetAuthority()

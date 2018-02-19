@@ -91,6 +91,7 @@ namespace Ironclad.Configuration
                     },
 
                     RequireConsent = false,
+                    AccessTokenType = AccessTokenType.Reference,
                 },
             };
     }

@@ -14,7 +14,7 @@ namespace Ironclad.Controllers.Api
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
 
-    [Authorize(AuthenticationSchemes = "token")]
+    [Authorize("user_admin")]
     [Route("api/[controller]")]
     public class RolesController : Controller
     {
@@ -25,7 +25,6 @@ namespace Ironclad.Controllers.Api
             this.roleManager = roleManager;
         }
 
-        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> Get(int skip = default, int take = 20)
         {
@@ -47,7 +46,6 @@ namespace Ironclad.Controllers.Api
             return this.Ok(resourceSet);
         }
 
-        [AllowAnonymous]
         [HttpHead("{roleName}")]
         [HttpGet("{roleName}")]
         public async Task<IActionResult> Get(string roleName)

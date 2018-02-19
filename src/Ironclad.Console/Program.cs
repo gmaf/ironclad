@@ -1,23 +1,31 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable CA1812
+
 namespace Ironclad.Console
 {
     using System;
     using System.Threading.Tasks;
+    using IdentityModel.Client;
     using Ironclad.Client;
     using Ironclad.Console.Commands;
+    using Ironclad.Console.Persistence;
     using McMaster.Extensions.CommandLineUtils;
+    using Microsoft.AspNetCore.DataProtection;
+    using Microsoft.Extensions.DependencyInjection;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
 
     internal class Program
     {
         private readonly IConsole console;
+        private readonly IDataProtectionProvider provider;
 
-        public Program(IConsole console)
+        public Program(IConsole console, IDataProtectionProvider provider)
         {
             this.console = console;
+            this.provider = provider;
         }
 
         public static Task<int> Main(string[] args)
@@ -33,7 +41,14 @@ namespace Ironclad.Console
                     ContractResolver = new DefaultContractResolver { NamingStrategy = new SnakeCaseNamingStrategy() }
                 };
 
-            return new Program(PhysicalConsole.Singleton).TryRunAsync(args);
+            // LINK (Cameron): https://docs.microsoft.com/en-us/aspnet/core/security/data-protection/using-data-protection
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddDataProtection();
+            serviceCollection.AddSingleton(PhysicalConsole.Singleton);
+            var services = serviceCollection.BuildServiceProvider();
+
+            var instance = ActivatorUtilities.CreateInstance<Program>(services);
+            return instance.TryRunAsync(args);
         }
 
         public async Task<int> TryRunAsync(string[] args)
@@ -64,16 +79,47 @@ namespace Ironclad.Console
                 return 3;
             }
 
-            // NOTE (Cameron): This is basically setting up CommandContext as a container for our commands.
-            var authority = "http://localhost:5005";
+            var repository = new CommandDataRepository(this.provider);
+            var data = repository.GetCommandData() ??
+                new CommandData
+                {
+                    Authority = LoginCommand.DefaultAuthority,
+                };
 
-            using (var clientsClient = new ClientsHttpClient(authority))
-            using (var apiResourcesClient = new ApiResourcesHttpClient(authority))
-            using (var identityResourcesClient = new IdentityResourcesHttpClient(authority))
-            using (var rolesClient = new RolesHttpClient(authority))
-            using (var usersClient = new UsersHttpClient(authority))
+            // if the command is login then check the current
+            if (options.Command?.GetType() != typeof(LoginCommand))
             {
-                var context = new CommandContext(this.console, clientsClient, apiResourcesClient, identityResourcesClient, rolesClient, usersClient);
+                // validate tokens
+                this.console.WriteLine($"Executing command against {data.Authority}");
+            }
+
+            // by this point we have to have valid tokens unless we're calling the login command
+            using (var handler = new RefreshTokenHandler(new TokenClient(data.Authority), data.RefreshToken, data.AccessToken))
+            using (var clientsClient = new ClientsHttpClient(data.Authority, handler))
+            using (var apiResourcesClient = new ApiResourcesHttpClient(data.Authority, handler))
+            using (var identityResourcesClient = new IdentityResourcesHttpClient(data.Authority, handler))
+            using (var rolesClient = new RolesHttpClient(data.Authority, handler))
+            using (var usersClient = new UsersHttpClient(data.Authority, handler))
+            {
+                handler.TokenRefreshed += (sender, e) =>
+                {
+                    repository.SetCommandData(
+                        new CommandData
+                        {
+                            Authority = data.Authority,
+                            AccessToken = e.AccessToken,
+                            RefreshToken = e.RefreshToken,
+                        });
+                };
+
+                var context = new CommandContext(
+                    this.console,
+                    clientsClient,
+                    apiResourcesClient,
+                    identityResourcesClient,
+                    rolesClient,
+                    usersClient,
+                    repository);
 
                 try
                 {
