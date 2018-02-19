@@ -20,7 +20,7 @@ namespace Ironclad.Console.Commands
         {
         }
 
-        public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
+        public static void Configure(CommandLineApplication app, CommandLineOptions options, IReporter reporter)
         {
             // description
             app.Description = "Update URIs for the specified client";
@@ -44,7 +44,7 @@ namespace Ironclad.Console.Commands
 
                 if (string.IsNullOrEmpty(argumentUriName.Value))
                 {
-                    console.Out.WriteLine("Entering interactive mode. Leave entry empty to finish editing.");
+                    reporter.Output("Entering interactive mode. Leave entry empty to finish editing.");
 
                     string uriName;
                     var uriValues = new List<string>();
@@ -64,7 +64,7 @@ namespace Ironclad.Console.Commands
                         result = validator.GetValidationResult(command, null);
                         if (!string.IsNullOrEmpty(result?.ErrorMessage))
                         {
-                            console.Error.WriteLine(result.ErrorMessage);
+                            reporter.Error(result.ErrorMessage);
                         }
                     } while (result != null && !result.Equals(ValidationResult.Success));
 #pragma warning restore SA1500
@@ -82,7 +82,7 @@ namespace Ironclad.Console.Commands
                             break;
                         }
 
-                        console.Out.WriteLine("Added.");
+                        reporter.Output("Added.");
                         uriValues.Add(uriValue);
                     }
 
@@ -118,11 +118,10 @@ namespace Ironclad.Console.Commands
                 property.SetValue(client, this.clientUriValues);
 
                 await context.ClientsClient.ModifyClientAsync(client).ConfigureAwait(false);
-                await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                await context.Console.Error.WriteLineAsync(e.ToString()).ConfigureAwait(false);
+                context.Reporter.Error(e.ToString());
                 await context.Console.Out.WriteLineAsync("Failed!").ConfigureAwait(false);
             }
         }

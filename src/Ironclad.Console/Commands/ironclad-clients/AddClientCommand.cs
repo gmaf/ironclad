@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+
 namespace Ironclad.Console.Commands
 {
+    using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
@@ -16,10 +19,11 @@ namespace Ironclad.Console.Commands
         {
         }
 
-        public static void Configure(CommandLineApplication app, CommandLineOptions options)
+        public static void Configure(CommandLineApplication app, CommandLineOptions options, IReporter reporter)
         {
             // description
             app.Description = "Creates a new client trust relationship with the auth server";
+            app.ExtendedHelpText = $"{Environment.NewLine}Use \"clients add\" without argument to enter in interactive mode.{Environment.NewLine}";
             app.HelpOption();
 
             // arguments
@@ -33,18 +37,23 @@ namespace Ironclad.Console.Commands
             app.OnExecute(
                 () =>
                 {
-                    if (string.IsNullOrEmpty(argumentClientId.Value) || string.IsNullOrEmpty(argumentClientSecret.Value))
+                    if (string.IsNullOrEmpty(argumentClientId.Value))
                     {
-                        app.ShowHelp();
-                        return;
+                        options.Command = GetClientFromPrompt(reporter);
                     }
-
-                    options.Command = new AddClientCommand
+                    else if (string.IsNullOrEmpty(argumentClientSecret.Value))
                     {
-                        clientId = argumentClientId.Value,
-                        clientSecret = argumentClientSecret.Value,
-                        clientName = optionsName.Value()
-                    };
+                        app.ShowVersionAndHelp();
+                    }
+                    else
+                    {
+                        options.Command = new AddClientCommand
+                        {
+                            clientId = argumentClientId.Value,
+                            clientSecret = argumentClientSecret.Value,
+                            clientName = optionsName.Value()
+                        };
+                    }
                 });
         }
 
@@ -58,7 +67,61 @@ namespace Ironclad.Console.Commands
             };
 
             await context.ClientsClient.AddClientAsync(client).ConfigureAwait(false);
-            await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
+        }
+
+        private static AddClientCommand GetClientFromPrompt(IReporter reporter)
+        {
+            var id = Prompt.GetString("Unique Id:");
+            if (string.IsNullOrEmpty(id))
+            {
+                reporter.Error("Id cannot be null");
+                return null;
+            }
+
+            var name = Prompt.GetString("Name:", id);
+            var secret = Prompt.GetPassword("Secret:");
+            if (string.IsNullOrEmpty(secret))
+            {
+                reporter.Error("Secret cannot be null");
+                return null;
+            }
+
+            var accessTokenType = Prompt.GetString("AccessTokenType:", "JWT");
+            
+            var cors = PromptList("AllowedCorsOrigins", reporter);
+            var redirects = PromptList("RedirectUris", reporter);
+            var postLogoutRedirectUris = PromptList("PostLogoutRedirectUris", reporter);
+            var allowedScopes = PromptList("AllowedScopes", reporter);
+            var allowedGrantTypes = PromptList("AllowedGrantTypes", reporter);
+
+            var allowAccessTokensViaBrowser = Prompt.GetYesNo("Allow Access Token Via Browser ? ", true);
+            var allowOfflineAccess = Prompt.GetYesNo("Allow Offline Access ? ", true);
+
+            return new AddClientCommand
+            {
+                clientId = id,
+                clientName = name,
+                clientSecret = secret,
+            };
+        }
+
+        private static IEnumerable<string> PromptList(string elementName, IReporter reporter)
+        {
+            reporter.Output($"{elementName} part. Leave empty once we want no more scopes.");
+            
+            var elements = new List<string>();
+            while (true)
+            {
+                var element = Prompt.GetString($"{elementName} {elements.Count + 1}:");
+                if (string.IsNullOrEmpty(element))
+                {
+                    break;
+                }
+
+                elements.Add(element);
+            }
+
+            return elements;
         }
     }
 }
