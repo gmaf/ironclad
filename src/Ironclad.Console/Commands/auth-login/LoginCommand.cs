@@ -5,7 +5,9 @@ namespace Ironclad.Console.Commands
 {
     using System;
     using System.Net.Http;
+    using System.Security.Claims;
     using System.Threading.Tasks;
+    using IdentityModel.Client;
     using IdentityModel.OidcClient;
     using Ironclad.Console.Persistence;
     using McMaster.Extensions.CommandLineUtils;
@@ -15,12 +17,13 @@ namespace Ironclad.Console.Commands
     {
         public const string DefaultAuthority = "https://auth.lykkecloud.com";
 
-        private string authority;
         private Api api;
 
         private LoginCommand()
         {
         }
+
+        public string Authority { get; private set; }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
@@ -32,12 +35,20 @@ namespace Ironclad.Console.Commands
 
             // options
             var optionTest = app.Option("-t|--test", "Uses the Lykke TEST authorization server", CommandOptionType.NoValue);
+            var optionReset = app.Option("-r|--reset", "Resets the authorization context", CommandOptionType.NoValue);
             app.HelpOption();
 
             // action (for this command)
             app.OnExecute(
                 () =>
                 {
+                    if (!string.IsNullOrEmpty(optionReset.Value()) && string.IsNullOrEmpty(argumentAuthority.Value) && string.IsNullOrEmpty(optionTest.Value()))
+                    {
+                        // only --reset was specified
+                        options.Command = new Reset();
+                        return;
+                    }
+
                     var authority = argumentAuthority.Value;
                     if (string.IsNullOrEmpty(authority))
                     {
@@ -78,23 +89,47 @@ namespace Ironclad.Console.Commands
                         return;
                     }
 
-                    options.Command = new LoginCommand { authority = authority, api = api };
+                    options.Command = new LoginCommand { Authority = authority, api = api };
                 });
         }
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            context.Console.WriteLine($"Logging in to {this.authority} ({this.api.Title} v{this.api.Version} running on {this.api.OS})...");
+            context.Console.WriteLine($"Logging in to {this.Authority} ({this.api.Title} v{this.api.Version} running on {this.api.OS})...");
 
-            //// TODO (Cameron): Check to see if we have to log in...
+            var data = context.Repository.GetCommandData();
+            if (data != null && data.Authority == this.Authority)
+            {
+                // already logged in?
+                var discoveryResponse = default(DiscoveryResponse);
+                using (var discoveryClient = new DiscoveryClient(this.Authority))
+                {
+                    discoveryResponse = await discoveryClient.GetAsync().ConfigureAwait(false);
+                    if (!discoveryResponse.IsError)
+                    {
+                        using (var tokenClient = new TokenClient(discoveryResponse.TokenEndpoint, "auth_console"))
+                        using (var refreshTokenHandler = new RefreshTokenHandler(tokenClient, data.RefreshToken, data.AccessToken))
+                        using (var userInfoClient = new UserInfoClient(discoveryResponse.UserInfoEndpoint, refreshTokenHandler))
+                        {
+                            var response = await userInfoClient.GetAsync(data.AccessToken).ConfigureAwait(false);
+                            if (!response.IsError)
+                            {
+                                var claimsIdentity = new ClaimsIdentity(response.Claims, "idSvr", "name", "role");
+                                context.Console.WriteLine($"Logged in as {claimsIdentity.Name}.");
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
 
             var browser = new SystemBrowser();
             var options = new OidcClientOptions
             {
-                Authority = this.authority,
+                Authority = this.Authority,
                 ClientId = "auth_console",
                 RedirectUri = $"http://127.0.0.1:{browser.Port}",
-                Scope = "openid email auth_api offline_access",
+                Scope = "openid profile email auth_api offline_access",
                 FilterClaims = false,
                 Browser = browser
             };
@@ -110,10 +145,21 @@ namespace Ironclad.Console.Commands
             context.Repository.SetCommandData(
                 new CommandData
                 {
-                    Authority = this.authority,
+                    Authority = this.Authority,
                     AccessToken = result.AccessToken,
                     RefreshToken = result.RefreshToken,
                 });
+
+            context.Console.WriteLine($"Logged in as {result.User.Identity.Name}.");
+        }
+
+        public class Reset : ICommand
+        {
+            public Task ExecuteAsync(CommandContext context)
+            {
+                context.Repository.SetCommandData(null);
+                return Task.CompletedTask;
+            }
         }
 
 #pragma warning disable CA1812

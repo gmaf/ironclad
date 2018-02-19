@@ -19,8 +19,6 @@ namespace Ironclad
     // TODO (Cameron): Contents of this should really be moved out into a class under the Data namespace.
     public static class ApplicationBuilderExtensions
     {
-        private const string DefaultAdminUserId = "e4744f59155040599fb057d62e84c079";
-
         public static IApplicationBuilder InitializeDatabase(this IApplicationBuilder app)
         {
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
@@ -40,28 +38,28 @@ namespace Ironclad
                 var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
                 var roleManager = serviceScope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-                var user = userManager.FindByIdAsync(DefaultAdminUserId).Result;
-                if (user != null)
+                var adminUser = userManager.FindByIdAsync(Config.DefaultAdminUserId).Result;
+                if (adminUser != null)
                 {
                     return app;
                 }
 
                 Log.Information("Configuring system for first use...");
 
-                user = userManager.FindByNameAsync("admin").Result;
-                if (user != null)
-                {
-                    userManager.DeleteAsync(user).Wait();
-                }
+                adminUser = Config.GetDefaultAdminUser();
 
-                user = new ApplicationUser { Id = DefaultAdminUserId, UserName = "admin" };
+                var existingAdminUser = userManager.FindByNameAsync(adminUser.UserName).Result;
+                if (existingAdminUser != null)
+                {
+                    userManager.DeleteAsync(existingAdminUser).Wait();
+                }
 
                 roleManager.CreateAsync(new IdentityRole("admin")).Wait();
                 roleManager.CreateAsync(new IdentityRole("auth_admin")).Wait();
                 roleManager.CreateAsync(new IdentityRole("user_admin")).Wait();
 
-                userManager.CreateAsync(user = new ApplicationUser { Id = DefaultAdminUserId, UserName = "admin" }, "password").Wait();
-                userManager.AddToRoleAsync(user, "admin").Wait();
+                userManager.CreateAsync(adminUser, "password").Wait();
+                userManager.AddToRoleAsync(adminUser, "admin").Wait();
 
                 // NOTE (Cameron): Set up default clients in Postgres.
                 var store = serviceScope.ServiceProvider.GetRequiredService<IDocumentStore>();
