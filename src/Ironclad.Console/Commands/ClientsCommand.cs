@@ -16,8 +16,8 @@ namespace Ironclad.Console.Commands
 
             // commands
             app.Command("show", command => ShowClientsCommand.Configure(command, options));
-            app.Command("new", command => NewClientCommand.Configure(command, options));
-            app.Command("unregister", command => UnregisterClientCommand.Configure(command, options));
+            app.Command("add", command => AddClientCommand.Configure(command, options));
+            app.Command("remove", command => RemoveClientCommand.Configure(command, options));
             app.Command("scopes", command => ModifyClientScopesCommand.Configure(command, options));
             app.Command("enable", command => EnableClientCommand.Configure(command, options));
             app.Command("disable", command => DisableClientCommand.Configure(command, options));

@@ -8,7 +8,9 @@ namespace Ironclad.Console.Commands
 
     internal class AddClientCommand : ICommand
     {
-        private Ironclad.Client.Client client;
+        private string clientId;
+        private string clientSecret;
+        private string clientName;
 
         private AddClientCommand()
         {
@@ -21,23 +23,10 @@ namespace Ironclad.Console.Commands
             app.HelpOption();
 
             // arguments
-            var argumentClientId = app.Argument("type", "The type of client to add. Allowed values are s[erver], w[ebsite], and c[onsole].", false);
+            var argumentClientId = app.Argument("id", "The client ID", false);
+            var argumentClientSecret = app.Argument("secret", "The client secret", false);
 
             // options
-            var optionsName = app.Option("-i|--id", "The name of the client", CommandOptionType.SingleValue);
-            var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
-            var optionsName = app.Option("-s|--secret", "The name of the client", CommandOptionType.SingleValue);
-            var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
-            var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
-            var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
-            var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
-            var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
-            var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
-            var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
-            var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
-            var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
-            var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
-            var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
             var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
 
             // action (for this command)
@@ -50,7 +39,7 @@ namespace Ironclad.Console.Commands
                         return;
                     }
 
-                    options.Command = new NewClientCommand
+                    options.Command = new AddClientCommand
                     {
                         clientId = argumentClientId.Value,
                         clientSecret = argumentClientSecret.Value,
@@ -59,6 +48,17 @@ namespace Ironclad.Console.Commands
                 });
         }
 
-        public async Task ExecuteAsync(CommandContext context) => await context.ClientsClient.RegisterClientAsync(client).ConfigureAwait(false);
+        public async Task ExecuteAsync(CommandContext context)
+        {
+            var client = new Ironclad.Client.Client
+            {
+                Id = this.clientId,
+                Name = this.clientName,
+                Secret = this.clientSecret,
+            };
+
+            await context.ClientsClient.AddClientAsync(client).ConfigureAwait(false);
+            await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
+        }
     }
 }

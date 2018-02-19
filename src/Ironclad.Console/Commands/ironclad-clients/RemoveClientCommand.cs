@@ -6,11 +6,11 @@ namespace Ironclad.Console.Commands
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
-    internal class UnregisterClientCommand : ICommand
+    internal class RemoveClientCommand : ICommand
     {
         private string clientId;
 
-        private UnregisterClientCommand()
+        private RemoveClientCommand()
         {
         }
 
@@ -33,7 +33,7 @@ namespace Ironclad.Console.Commands
                         return;
                     }
 
-                    options.Command = new UnregisterClientCommand { clientId = argumentClientId.Value };
+                    options.Command = new RemoveClientCommand { clientId = argumentClientId.Value };
                 });
         }
 
