@@ -25,10 +25,10 @@ namespace Ironclad.Console.Commands
 
             // commands
             app.Command("login", command => LoginCommand.Configure(command, options, console));
-            app.Command("clients", command => ClientsCommand.Configure(command, options, reporter));
-            app.Command("apis", command => ApiResourcesCommand.Configure(command, options, console));
-            app.Command("users", command => UsersCommand.Configure(command, options));
-            app.Command("roles", command => RolesCommand.Configure(command, options));
+            app.Command("clients", command => ClientsOptions.Configure(command, options, reporter));
+            app.Command("apis", command => ApisOptions.Configure(command, options, console));
+            app.Command("users", command => UsersOptions.Configure(command, options));
+            app.Command("roles", command => RolesOptions.Configure(command, options));
 
             // action (for this command)
             app.OnExecute(() => app.ShowVersionAndHelp());

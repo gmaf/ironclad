@@ -125,5 +125,13 @@ namespace Ironclad.Console.Commands
                 await context.Console.Out.WriteLineAsync("Failed!").ConfigureAwait(false);
             }
         }
+
+        private class AbortCommand : ICommand
+        {
+            public async Task ExecuteAsync(CommandContext context)
+            {
+                await context.Console.Out.WriteLineAsync("Aborted!").ConfigureAwait(false);
+            }
+        }
     }
 }

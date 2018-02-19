@@ -6,7 +6,7 @@ namespace Ironclad.Console.Commands
     using McMaster.Extensions.CommandLineUtils;
 
     // NOTE (Cameron): This command is informational only and cannot be executed (only 'show help' works) so inheriting ICommand is unnecessary.
-    internal static class UsersCommand
+    internal static class UsersOptions
     {
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
