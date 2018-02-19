@@ -7,6 +7,7 @@ namespace Ironclad.Console.Commands
 {
     using System;
     using System.IO;
+    using System.Net;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
@@ -69,15 +70,15 @@ namespace Ironclad.Console.Commands
             app.Run(
                 async ctx =>
                 {
-                    if (ctx.Request.Method == "GET")
+                    if (ctx.Request.Method == HttpMethods.Get)
                     {
                         this.SetResult(ctx.Request.QueryString.Value, ctx);
                     }
-                    else if (ctx.Request.Method == "POST")
+                    else if (ctx.Request.Method == HttpMethods.Post)
                     {
                         if (!ctx.Request.ContentType.Equals("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
                         {
-                            ctx.Response.StatusCode = 415;
+                            ctx.Response.StatusCode = (int)HttpStatusCode.UnsupportedMediaType;
                         }
                         else
                         {
@@ -90,7 +91,7 @@ namespace Ironclad.Console.Commands
                     }
                     else
                     {
-                        ctx.Response.StatusCode = 405;
+                        ctx.Response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
                     }
                 });
         }

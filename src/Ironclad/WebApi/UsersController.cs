@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-namespace Ironclad.Controllers.Api
+namespace Ironclad.WebApi
 {
     using System;
     using System.Collections.Generic;
@@ -11,6 +11,7 @@ namespace Ironclad.Controllers.Api
     using IdentityServer4.Extensions;
     using Ironclad.Application;
     using Ironclad.Client;
+    using Ironclad.Configuration;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -132,6 +133,11 @@ namespace Ironclad.Controllers.Api
                 return this.NotFound(new { Message = $"User '{username}' not found" });
             }
 
+            if (user.Id == Config.DefaultAdminUserId && model.Roles != null && !model.Roles.Contains("admin"))
+            {
+                return this.BadRequest(new { Message = $"Cannot remove the role 'admin' from the default admin user" });
+            }
+
             user.UserName = model.Username ?? user.UserName;
             user.Email = model.Email ?? user.Email;
             user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
@@ -171,10 +177,17 @@ namespace Ironclad.Controllers.Api
         public async Task<IActionResult> Delete(string username)
         {
             var user = await this.userManager.FindByNameAsync(username);
-            if (user != null)
+            if (user == null)
             {
-                await this.userManager.DeleteAsync(user);
+                return this.Ok();
             }
+
+            if (user.Id == Config.DefaultAdminUserId)
+            {
+                return this.BadRequest(new { Message = $"Cannot remove the default admin user" });
+            }
+
+            await this.userManager.DeleteAsync(user);
 
             return this.Ok();
         }

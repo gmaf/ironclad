@@ -8,7 +8,6 @@ namespace Ironclad.Tests.Feature
     using System.Net;
     using System.Threading.Tasks;
     using FluentAssertions;
-    using IdentityModel.Client;
     using IdentityModel.OidcClient;
     using Ironclad.Client;
     using Ironclad.Tests.Sdk;
@@ -200,6 +199,38 @@ namespace Ironclad.Tests.Feature
 
             // assert
             func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        }
+
+        [Fact]
+        public void CannotRemoveDefaultAdminUser()
+        {
+            // arrange
+            var httpClient = new UsersHttpClient(this.Authority, this.Handler);
+            var username = "admin";
+
+            // act
+            Func<Task> func = async () => await httpClient.RemoveUserAsync(username).ConfigureAwait(false);
+
+            // assert
+            func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public void CannotRemoveAdminRoleFromDefaultAdminUser()
+        {
+            // arrange
+            var httpClient = new UsersHttpClient(this.Authority, this.Handler);
+            var user = new User
+            {
+                Username = "admin",
+                Roles = { },
+            };
+
+            // act
+            Func<Task> func = async () => await httpClient.ModifyUserAsync(user).ConfigureAwait(false);
+
+            // assert
+            func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
     }
 }

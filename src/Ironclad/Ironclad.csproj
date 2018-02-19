@@ -68,15 +68,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\Iroclad.Client\Dto\ApiResource.cs" Link="Controllers\Api\Dto\ApiResource.cs" />
-    <Compile Include="..\Iroclad.Client\Dto\Client.cs" Link="Controllers\Api\Dto\Client.cs" />
-    <Compile Include="..\Iroclad.Client\Dto\ClientSummary.cs" Link="Controllers\Api\Dto\ClientSummary.cs" />
-    <Compile Include="..\Iroclad.Client\Dto\IdentityResource.cs" Link="Controllers\Api\Dto\IdentityResource.cs" />
-    <Compile Include="..\Iroclad.Client\Dto\ResourceSet.cs" Link="Controllers\Api\Dto\ResourceSet.cs" />
-    <Compile Include="..\Iroclad.Client\Dto\ResourceSummary.cs" Link="Controllers\Api\Dto\ResourceSummary.cs" />
-    <Compile Include="..\Iroclad.Client\Dto\Role.cs" Link="Controllers\Api\Dto\Role.cs" />
-    <Compile Include="..\Iroclad.Client\Dto\User.cs" Link="Controllers\Api\Dto\User.cs" />
-    <Compile Include="..\Iroclad.Client\Dto\UserSummary.cs" Link="Controllers\Api\Dto\UserSummary.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\ApiResource.cs" Link="WebApi\Dto\ApiResource.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\Client.cs" Link="WebApi\Dto\Client.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\ClientSummary.cs" Link="WebApi\Dto\ClientSummary.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\IdentityResource.cs" Link="WebApi\Dto\IdentityResource.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\ResourceSet.cs" Link="WebApi\Dto\ResourceSet.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\ResourceSummary.cs" Link="WebApi\Dto\ResourceSummary.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\Role.cs" Link="WebApi\Dto\Role.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\User.cs" Link="WebApi\Dto\User.cs" />
+    <Compile Include="..\Iroclad.Client\Dto\UserSummary.cs" Link="WebApi\Dto\UserSummary.cs" />
   </ItemGroup>
 
   <ItemGroup>

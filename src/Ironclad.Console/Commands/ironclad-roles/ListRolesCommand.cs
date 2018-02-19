@@ -57,10 +57,10 @@ namespace Ironclad.Console.Commands
 
             foreach (var role in roles)
             {
-                context.Console.Out.WriteLine(outputFormat, role);
+                context.Console.Out.WriteLine($"  {role}");
             }
 
-            await context.Console.Out.WriteLineAsync($"Showing from {roles.Start + 1} to {roles.Start + roles.Size} of {roles.TotalSize} in total.")
+            await context.Console.Out.WriteLineAsync($"Showing from {roles.Start + 1:N0} to {roles.Start + roles.Size:N0} of {roles.TotalSize:N0} in total.")
                 .ConfigureAwait(false);
         }
     }
