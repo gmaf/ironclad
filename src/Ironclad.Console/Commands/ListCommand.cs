@@ -35,7 +35,7 @@ namespace Ironclad.Console.Commands
             var results = await this.query(context).ConfigureAwait(false);
             if (!results.Any())
             {
-                context.Reporter.QueryReturnedNoResults(results);
+                context.Reporter.QueryReturnedNoResults(results, this.type);
                 return;
             }
 
