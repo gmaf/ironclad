@@ -15,9 +15,8 @@ namespace Ironclad.Console.Commands
             app.HelpOption();
 
             // commands
-            app.Command("list", command => ListUsersCommand.Configure(command, options));
-            app.Command("show", command => ShowUserCommand.Configure(command, options));
-            app.Command("register", command => RegisterUserCommand.Configure(command, options));
+            app.Command("add", command => AddUserCommand.Configure(command, options));
+            app.Command("show", command => ShowUsersCommand.Configure(command, options));
             app.Command("modify", command => ModifyUserCommand.Configure(command, options));
             app.Command("roles", command => AssignUserRolesCommand.Configure(command, options));
 

@@ -80,46 +80,64 @@ namespace Ironclad.Console
             }
 
             var repository = new CommandDataRepository(this.provider);
+
+            if (options.Command is LoginCommand.Reset)
+            {
+                await options.Command.ExecuteAsync(new CommandContext(this.console, null, null, null, null, null, repository)).ConfigureAwait(false);
+                return 0;
+            }
+
             var data = repository.GetCommandData() ??
                 new CommandData
                 {
                     Authority = LoginCommand.DefaultAuthority,
                 };
 
-            // if the command is login then check the current
-            if (options.Command?.GetType() != typeof(LoginCommand))
+            var authority = data.Authority;
+            if (options.Command is LoginCommand loginCommand)
             {
-                // validate tokens
-                this.console.WriteLine($"Executing command against {data.Authority}");
+                authority = loginCommand.Authority;
+            }
+            else
+            {
+                this.console.Write("Executing command against ");
+                this.console.ForegroundColor = ConsoleColor.White;
+                this.console.Write(authority);
+                this.console.ResetColor();
+                this.console.WriteLine("...");
             }
 
-            // by this point we have to have valid tokens unless we're calling the login command
-            using (var handler = new RefreshTokenHandler(new TokenClient(data.Authority), data.RefreshToken, data.AccessToken))
-            using (var clientsClient = new ClientsHttpClient(data.Authority, handler))
-            using (var apiResourcesClient = new ApiResourcesHttpClient(data.Authority, handler))
-            using (var identityResourcesClient = new IdentityResourcesHttpClient(data.Authority, handler))
-            using (var rolesClient = new RolesHttpClient(data.Authority, handler))
-            using (var usersClient = new UsersHttpClient(data.Authority, handler))
+            var discoveryResponse = default(DiscoveryResponse);
+            using (var discoveryClient = new DiscoveryClient(authority))
             {
-                handler.TokenRefreshed += (sender, e) =>
+                discoveryResponse = await discoveryClient.GetAsync().ConfigureAwait(false);
+                if (discoveryResponse.IsError)
+                {
+                    await this.console.Error.WriteLineAsync(discoveryResponse.Error).ConfigureAwait(false);
+                    return 500;
+                }
+            }
+
+            using (var tokenClient = new TokenClient(discoveryResponse.TokenEndpoint, "auth_console"))
+            using (var refreshTokenHandler = new RefreshTokenHandler(tokenClient, data.RefreshToken, data.AccessToken))
+            using (var clientsClient = new ClientsHttpClient(authority, refreshTokenHandler))
+            using (var apiResourcesClient = new ApiResourcesHttpClient(authority, refreshTokenHandler))
+            using (var identityResourcesClient = new IdentityResourcesHttpClient(authority, refreshTokenHandler))
+            using (var rolesClient = new RolesHttpClient(authority, refreshTokenHandler))
+            using (var usersClient = new UsersHttpClient(authority, refreshTokenHandler))
+            {
+                refreshTokenHandler.TokenRefreshed += (sender, e) =>
                 {
                     repository.SetCommandData(
                         new CommandData
                         {
-                            Authority = data.Authority,
+                            Authority = authority,
                             AccessToken = e.AccessToken,
                             RefreshToken = e.RefreshToken,
                         });
                 };
 
-                var context = new CommandContext(
-                    this.console,
-                    clientsClient,
-                    apiResourcesClient,
-                    identityResourcesClient,
-                    rolesClient,
-                    usersClient,
-                    repository);
+                var context = new CommandContext(this.console, clientsClient, apiResourcesClient, identityResourcesClient, rolesClient, usersClient, repository);
 
                 try
                 {

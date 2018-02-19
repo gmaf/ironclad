@@ -3,23 +3,18 @@
 
 namespace Ironclad.Console.Persistence
 {
-    using System;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Runtime.InteropServices;
     using System.Text;
     using System.Xml.Linq;
     using System.Xml.Serialization;
     using Microsoft.AspNetCore.DataProtection;
-    using Microsoft.AspNetCore.DataProtection.Repositories;
-    using Microsoft.Extensions.Logging.Abstractions;
 
     public class CommandDataRepository : ICommandDataRepository
     {
         private static readonly XmlSerializer Serializer = new XmlSerializer(typeof(CommandData));
 
-        private readonly IXmlRepository innerRepository = new CustomFileSystemXmlRepository();
+        private readonly CustomFileSystemXmlRepository innerRepository = new CustomFileSystemXmlRepository();
         private readonly IDataProtector protector;
 
         public CommandDataRepository(IDataProtectionProvider provider)
@@ -47,6 +42,13 @@ namespace Ironclad.Console.Persistence
 
         public void SetCommandData(CommandData commandData)
         {
+            if (commandData == null)
+            {
+                var filename = Path.Combine(this.innerRepository.Directory.FullName, "command-data.xml");
+                File.Delete(filename); // won't throw if the file doesn't exist
+                return;
+            }
+
             ////var authority = this.protector.Protect(commandData.Authority);
             var data = new CommandData
             {
