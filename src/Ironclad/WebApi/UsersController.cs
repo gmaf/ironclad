@@ -112,13 +112,10 @@ namespace Ironclad.WebApi
             }
 
             // roles
-            foreach (var role in model?.Roles)
+            var addToRolesResult = await this.userManager.AddToRolesAsync(user, model.Roles);
+            if (!addToRolesResult.Succeeded)
             {
-                var addToRolesResult = await this.userManager.AddToRolesAsync(user, model.Roles);
-                if (!addToRolesResult.Succeeded)
-                {
-                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addToRolesResult.ToString() });
-                }
+                return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addToRolesResult.ToString() });
             }
 
             return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + model.Username)), null);

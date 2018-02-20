@@ -30,7 +30,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Bug\" />
     <Folder Include="Unit\" />
   </ItemGroup>
 

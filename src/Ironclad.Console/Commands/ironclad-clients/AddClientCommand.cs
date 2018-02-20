@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-
 namespace Ironclad.Console.Commands
 {
     using System;
@@ -87,7 +86,7 @@ namespace Ironclad.Console.Commands
             }
 
             var accessTokenType = Prompt.GetString("AccessTokenType:", "JWT");
-            
+
             var cors = PromptList("AllowedCorsOrigins", reporter);
             var redirects = PromptList("RedirectUris", reporter);
             var postLogoutRedirectUris = PromptList("PostLogoutRedirectUris", reporter);
@@ -108,7 +107,7 @@ namespace Ironclad.Console.Commands
         private static IEnumerable<string> PromptList(string elementName, IReporter reporter)
         {
             reporter.Output($"{elementName} part. Leave empty once we want no more scopes.");
-            
+
             var elements = new List<string>();
             while (true)
             {
