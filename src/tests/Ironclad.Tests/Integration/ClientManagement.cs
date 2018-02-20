@@ -85,13 +85,37 @@ namespace Ironclad.Tests.Feature
                 Name = $"{nameof(ClientManagement)}.{nameof(this.CanGetClientSummaries)} (integration test)",
             };
 
-            // act
             await httpClient.AddClientAsync(expectedClient).ConfigureAwait(false);
 
-            // assert
+            // act
             var clientSummaries = await httpClient.GetClientSummariesAsync().ConfigureAwait(false);
+
+            // assert
             clientSummaries.Should().NotBeNull();
             clientSummaries.Should().Contain(summary => summary.Id == expectedClient.Id && summary.Name == expectedClient.Name);
+        }
+
+        [Fact]
+        public async Task CanGetClientSummariesWithQuery()
+        {
+            // arrange
+            var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
+            var client1 = new Client { Id = "query" };
+            var client2 = new Client { Id = "query_test_02" };
+            var client3 = new Client { Id = "query_test_03" };
+
+            await httpClient.AddClientAsync(client1).ConfigureAwait(false);
+            await httpClient.AddClientAsync(client2).ConfigureAwait(false);
+            await httpClient.AddClientAsync(client3).ConfigureAwait(false);
+
+            // act
+            var clientSummaries = await httpClient.GetClientSummariesAsync("query_").ConfigureAwait(false);
+
+            // assert
+            clientSummaries.Should().NotBeNull();
+            clientSummaries.Should().HaveCount(2);
+            clientSummaries.Should().Contain(summary => summary.Id == client2.Id);
+            clientSummaries.Should().Contain(summary => summary.Id == client3.Id);
         }
 
         [Fact]

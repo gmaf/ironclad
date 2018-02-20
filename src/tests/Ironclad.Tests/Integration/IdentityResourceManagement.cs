@@ -74,13 +74,37 @@ namespace Ironclad.Tests.Feature
                 UserClaims = { "role" },
             };
 
-            // act
             await httpClient.AddIdentityResourceAsync(expectedResource).ConfigureAwait(false);
 
-            // assert
+            // act
             var resourceSummaries = await httpClient.GetIdentityResourceSummariesAsync().ConfigureAwait(false);
+
+            // assert
             resourceSummaries.Should().NotBeNull();
             resourceSummaries.Should().Contain(summary => summary.Name == expectedResource.Name && summary.DisplayName == expectedResource.DisplayName);
+        }
+
+        [Fact]
+        public async Task CanGetIdentityResourceSummariesWithQuery()
+        {
+            // arrange
+            var httpClient = new IdentityResourcesHttpClient(this.Authority, this.Handler);
+            var resource1 = new IdentityResource { Name = "query", UserClaims = { "name" } };
+            var resource2 = new IdentityResource { Name = "query_test_02", UserClaims = { "name" } };
+            var resource3 = new IdentityResource { Name = "query_test_03", UserClaims = { "name" } };
+
+            await httpClient.AddIdentityResourceAsync(resource1).ConfigureAwait(false);
+            await httpClient.AddIdentityResourceAsync(resource2).ConfigureAwait(false);
+            await httpClient.AddIdentityResourceAsync(resource3).ConfigureAwait(false);
+
+            // act
+            var resourceSummaries = await httpClient.GetIdentityResourceSummariesAsync("query_").ConfigureAwait(false);
+
+            // assert
+            resourceSummaries.Should().NotBeNull();
+            resourceSummaries.Should().HaveCount(2);
+            resourceSummaries.Should().Contain(summary => summary.Name == resource2.Name);
+            resourceSummaries.Should().Contain(summary => summary.Name == resource3.Name);
         }
 
         [Fact]

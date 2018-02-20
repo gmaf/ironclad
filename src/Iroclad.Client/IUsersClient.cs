@@ -14,11 +14,12 @@ namespace Ironclad.Client
         /// <summary>
         /// Get the user summaries (or a subset thereof).
         /// </summary>
+        /// <param name="startsWith">The start of the username.</param>
         /// <param name="start">The zero-based start ordinal of the user set to return.</param>
         /// <param name="size">The total size of the user set.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The user summaries.</returns>
-        Task<ResourceSet<UserSummary>> GetUserSummariesAsync(int start = 0, int size = 20, CancellationToken cancellationToken = default);
+        Task<ResourceSet<UserSummary>> GetUserSummariesAsync(string startsWith = default, int start = 0, int size = 20, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the specified user.

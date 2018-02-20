@@ -47,7 +47,7 @@ namespace Ironclad.Console.Commands
 
                     options.Command = new ListCommand<ClientSummary>(
                         "clients",
-                        async context => await context.ClientsClient.GetClientSummariesAsync(skip, take).ConfigureAwait(false),
+                        async context => await context.ClientsClient.GetClientSummariesAsync(start: skip, size: take).ConfigureAwait(false),
                         ("id",      client => client.Id),
                         ("name",    client => client.Name),
                         ("enabled", client => client.Enabled.ToString(CultureInfo.InvariantCulture)));

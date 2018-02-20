@@ -3,6 +3,7 @@
 
 namespace Ironclad.Client
 {
+    using System.Net;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
@@ -27,12 +28,19 @@ namespace Ironclad.Client
         /// <summary>
         /// Get the user summaries (or a subset thereof).
         /// </summary>
+        /// <param name="startsWith">The start of the username.</param>
         /// <param name="start">The zero-based start ordinal of the user set to return.</param>
         /// <param name="size">The total size of the user set.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The user summaries.</returns>
-        public Task<ResourceSet<UserSummary>> GetUserSummariesAsync(int start = 0, int size = 20, CancellationToken cancellationToken = default) =>
-            this.GetAsync<ResourceSet<UserSummary>>(this.RelativeUrl($"{ApiPath}?skip={NotNegative(start, nameof(start))}&take={NotNegative(size, nameof(size))}"), cancellationToken);
+        public Task<ResourceSet<UserSummary>> GetUserSummariesAsync(
+            string startsWith = default,
+            int start = 0,
+            int size = 20,
+            CancellationToken cancellationToken = default) =>
+            this.GetAsync<ResourceSet<UserSummary>>(
+                this.RelativeUrl($"{ApiPath}?username={WebUtility.UrlEncode(startsWith)}&skip={NotNegative(start, nameof(start))}&take={NotNegative(size, nameof(size))}"),
+                cancellationToken);
 
         /// <summary>
         /// Gets the user.
@@ -41,7 +49,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The user.</returns>
         public Task<User> GetUserAsync(string username, CancellationToken cancellationToken = default) =>
-            this.GetAsync<User>(this.RelativeUrl($"{ApiPath}/{username}"), cancellationToken);
+            this.GetAsync<User>(this.RelativeUrl($"{ApiPath}/{WebUtility.UrlEncode(NotNull(username, nameof(username)))}"), cancellationToken);
 
         /// <summary>
         /// Adds the specified user.
@@ -62,7 +70,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task RemoveUserAsync(string username, CancellationToken cancellationToken = default) =>
-            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{NotNull(username, nameof(username))}"), cancellationToken);
+            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{WebUtility.UrlEncode(NotNull(username, nameof(username)))}"), cancellationToken);
 
         /// <summary>
         /// Modifies the specified user.
@@ -73,9 +81,8 @@ namespace Ironclad.Client
         /// <returns>The modified user.</returns>
         public async Task<User> ModifyUserAsync(User user, string currentUsername = null, CancellationToken cancellationToken = default)
         {
-            var username = currentUsername ?? NotNull(user?.Username, "user.Username");
-
-            await this.SendAsync<User>(HttpMethod.Put, this.RelativeUrl($"{ApiPath}/{username}"), user, cancellationToken).ConfigureAwait(false);
+            var url = this.RelativeUrl($"{ApiPath}/{WebUtility.UrlEncode(currentUsername ?? NotNull(user?.Username, "user.Username"))}");
+            await this.SendAsync<User>(HttpMethod.Put, url, user, cancellationToken).ConfigureAwait(false);
             return await this.GetUserAsync(user.Username, cancellationToken).ConfigureAwait(false);
         }
     }

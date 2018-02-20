@@ -48,7 +48,7 @@ namespace Ironclad.Console.Commands
 
                     options.Command = new ListCommand<ResourceSummary>(
                         "APIs",
-                        async context => await context.ApiResourcesClient.GetApiResourceSummariesAsync(skip, take).ConfigureAwait(false),
+                        async context => await context.ApiResourcesClient.GetApiResourceSummariesAsync(start: skip, size: take).ConfigureAwait(false),
                         ("name",        resource => resource.Name),
                         ("description", resource => resource.DisplayName),
                         ("enabled",     resource => resource.Enabled.ToString(CultureInfo.InvariantCulture)));

@@ -71,13 +71,37 @@ namespace Ironclad.Tests.Feature
                 Email = "bob@bob.com",
             };
 
-            // act
             var actualUser = await httpClient.AddUserAsync(expectedUser).ConfigureAwait(false);
 
-            // assert
+            // act
             var userSummaries = await httpClient.GetUserSummariesAsync().ConfigureAwait(false);
+
+            // assert
             userSummaries.Should().NotBeNull();
             userSummaries.Should().Contain(summary => summary.Id == actualUser.Id && summary.Username == expectedUser.Username && summary.Email == expectedUser.Email);
+        }
+
+        [Fact]
+        public async Task CanGetRoleSummariesWithQuery()
+        {
+            // arrange
+            var httpClient = new UsersHttpClient(this.Authority, this.Handler);
+            var user1 = new User { Username = "query" };
+            var user2 = new User { Username = "query_test_02" };
+            var user3 = new User { Username = "query_test_03" };
+
+            await httpClient.AddUserAsync(user1).ConfigureAwait(false);
+            await httpClient.AddUserAsync(user2).ConfigureAwait(false);
+            await httpClient.AddUserAsync(user3).ConfigureAwait(false);
+
+            // act
+            var userSummaries = await httpClient.GetUserSummariesAsync("query_").ConfigureAwait(false);
+
+            // assert
+            userSummaries.Should().NotBeNull();
+            userSummaries.Should().HaveCount(2);
+            userSummaries.Should().Contain(summary => summary.Username == user2.Username);
+            userSummaries.Should().Contain(summary => summary.Username == user3.Username);
         }
 
         [Fact]
