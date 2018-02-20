@@ -35,25 +35,37 @@ namespace Ironclad.Client
         /// </summary>
         /// <value>The allowed CORS origins.</value>
 #pragma warning disable CA2227
-        public ICollection<string> AllowedCorsOrigins { get; set; } = new HashSet<string>();
+        public ICollection<string> AllowedCorsOrigins { get; set; }
+#if CLIENT
+            = new HashSet<string>();
+#endif
 
         /// <summary>
         /// Gets or sets the redirect URIs.
         /// </summary>
         /// <value>The redirect URIs.</value>
-        public ICollection<string> RedirectUris { get; set; } = new HashSet<string>();
+        public ICollection<string> RedirectUris { get; set; }
+#if CLIENT
+            = new HashSet<string>();
+#endif
 
         /// <summary>
         /// Gets or sets the post logout redirect URIs.
         /// </summary>
         /// <value>The post logout redirect URIs.</value>
-        public ICollection<string> PostLogoutRedirectUris { get; set; } = new HashSet<string>();
+        public ICollection<string> PostLogoutRedirectUris { get; set; }
+#if CLIENT
+            = new HashSet<string>();
+#endif
 
         /// <summary>
         /// Gets or sets the allowed scopes.
         /// </summary>
         /// <value>The allowed scopes.</value>
-        public ICollection<string> AllowedScopes { get; set; } = new HashSet<string>();
+        public ICollection<string> AllowedScopes { get; set; }
+#if CLIENT
+            = new HashSet<string>();
+#endif
 
         /// <summary>
         /// Gets or sets the type of the access token.
@@ -65,7 +77,10 @@ namespace Ironclad.Client
         /// Gets or sets the allowed grant types.
         /// </summary>
         /// <value>The allowed grant types.</value>
-        public ICollection<string> AllowedGrantTypes { get; set; } = new HashSet<string>();
+        public ICollection<string> AllowedGrantTypes { get; set; }
+#if CLIENT
+            = new HashSet<string>();
+#endif
 
         /// <summary>
         /// Gets or sets a value indicating whether to allow access tokens via the browser.

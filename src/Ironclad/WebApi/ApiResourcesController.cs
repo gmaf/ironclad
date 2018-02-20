@@ -181,6 +181,7 @@ namespace Ironclad.WebApi
         }
 
 #pragma warning disable CA1034, CA1056
+
         public class ResourceResource : IroncladResource
         {
             public string Url { get; set; }

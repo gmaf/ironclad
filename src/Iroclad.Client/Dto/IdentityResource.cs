@@ -28,7 +28,10 @@ namespace Ironclad.Client
         /// </summary>
         /// <value>The user claims.</value>
 #pragma warning disable CA2227
-        public ICollection<string> UserClaims { get; set; } = new HashSet<string>();
+        public ICollection<string> UserClaims { get; set; }
+#if CLIENT
+            = new HashSet<string>();
+#endif
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="IdentityResource"/> is enabled.
