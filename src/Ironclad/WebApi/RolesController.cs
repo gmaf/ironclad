@@ -26,13 +26,17 @@ namespace Ironclad.WebApi
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(int skip = default, int take = 20)
+        public async Task<IActionResult> Get(string name, int skip = default, int take = 20)
         {
             skip = Math.Max(0, skip);
             take = take < 0 ? 20 : Math.Min(take, 100);
 
-            var totalSize = await this.roleManager.Roles.CountAsync();
-            var roles = await this.roleManager.Roles.Skip(skip).Take(take).ToListAsync();
+            var roleQuery = string.IsNullOrEmpty(name)
+                ? this.roleManager.Roles
+                : this.roleManager.Roles.Where(role => role.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase));
+
+            var totalSize = await roleQuery.CountAsync();
+            var roles = await roleQuery.OrderBy(role => role.Name).Skip(skip).Take(take).ToListAsync();
             var resources = roles.Select(
                 role =>
                 new RoleResource
