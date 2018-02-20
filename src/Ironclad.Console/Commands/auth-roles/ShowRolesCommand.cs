@@ -3,7 +3,7 @@
 
 namespace Ironclad.Console.Commands
 {
-    using Ironclad.Client;
+    using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
     internal static class ShowRolesCommand
@@ -15,7 +15,7 @@ namespace Ironclad.Console.Commands
             app.HelpOption();
 
             // arguments
-            var argument = app.Argument("role", "The role." /* You can use wildcards for searching."*/, false);
+            var argument = app.Argument("role", "The role. You can end the role with a wildcard.", false);
 
             // options
             var optionSkip = app.Option("-s|--skip", "The number of roles to skip.", CommandOptionType.SingleValue);
@@ -25,11 +25,13 @@ namespace Ironclad.Console.Commands
             app.OnExecute(
                 () =>
                 {
-                    if (!string.IsNullOrEmpty(argument.Value))
+                    if (!string.IsNullOrEmpty(argument.Value) && !argument.Value.EndsWith('*'))
                     {
-                        options.Command = new ShowCommand<User>(async context => await context.UsersClient.GetUserAsync(argument.Value).ConfigureAwait(false));
+                        options.Command = new ExistsCommand { RoleName = argument.Value };
                         return;
                     }
+
+                    var startsWith = argument.Value?.TrimEnd('*') ?? argument.Value;
 
                     var skip = 0;
                     if (optionSkip.HasValue() && !int.TryParse(optionSkip.Value(), out skip))
@@ -45,9 +47,20 @@ namespace Ironclad.Console.Commands
 
                     options.Command = new ListCommand<string>(
                         "roles",
-                        async context => await context.RolesClient.GetRolesAsync(skip, take).ConfigureAwait(false),
+                        async context => await context.RolesClient.GetRolesAsync(startsWith, skip, take).ConfigureAwait(false),
                         ("role", role => role));
                 });
+        }
+
+        private class ExistsCommand : ICommand
+        {
+            public string RoleName { get; set; }
+
+            public async Task ExecuteAsync(CommandContext context)
+            {
+                var exists = await context.RolesClient.RoleExistsAsync(this.RoleName).ConfigureAwait(false);
+                context.Reporter.Output(exists ? this.RoleName : $"Role '{this.RoleName}' not found");
+            }
         }
     }
 }

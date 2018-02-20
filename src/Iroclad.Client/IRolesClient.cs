@@ -14,11 +14,12 @@ namespace Ironclad.Client
         /// <summary>
         /// Gets the roles (or a subset thereof).
         /// </summary>
+        /// <param name="startsWith">The start of the role name.</param>
         /// <param name="start">The zero-based start ordinal of the role set to return.</param>
         /// <param name="size">The total size of the role set.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The roles.</returns>
-        Task<ResourceSet<string>> GetRolesAsync(int start = 0, int size = 20, CancellationToken cancellationToken = default);
+        Task<ResourceSet<string>> GetRolesAsync(string startsWith = default, int start = 0, int size = 20, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Checks the role exists.
