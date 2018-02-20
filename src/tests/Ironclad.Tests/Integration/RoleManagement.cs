@@ -106,5 +106,19 @@ namespace Ironclad.Tests.Feature
             // assert
             func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.Conflict);
         }
+
+        [Fact]
+        public void CannotRemoveAdminRole()
+        {
+            // arrange
+            var httpClient = new RolesHttpClient(this.Authority, this.Handler);
+            var role = "admin";
+
+            // act
+            Func<Task> func = async () => await httpClient.RemoveRoleAsync(role).ConfigureAwait(false);
+
+            // assert
+            func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
     }
 }

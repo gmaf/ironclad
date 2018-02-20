@@ -146,6 +146,11 @@ namespace Ironclad.WebApi
         [HttpPut("{clientId}")]
         public async Task<IActionResult> Put(string clientId, [FromBody]IroncladClient model)
         {
+            if (string.Equals(clientId, "auth_console", StringComparison.OrdinalIgnoreCase))
+            {
+                return this.BadRequest(new { Message = $"Cannot modify the authorization console client" });
+            }
+
             using (var session = this.store.LightweightSession())
             {
                 var document = await session.Query<PostgresClient>().SingleOrDefaultAsync(item => item.ClientId == clientId);
@@ -211,6 +216,11 @@ namespace Ironclad.WebApi
         [HttpDelete("{clientId}")]
         public async Task<IActionResult> Delete(string clientId)
         {
+            if (string.Equals(clientId, "auth_console", StringComparison.OrdinalIgnoreCase))
+            {
+                return this.BadRequest(new { Message = $"Cannot remove the authorization console client" });
+            }
+
             using (var session = this.store.LightweightSession())
             {
                 session.DeleteWhere<PostgresClient>(document => document.ClientId == clientId);
