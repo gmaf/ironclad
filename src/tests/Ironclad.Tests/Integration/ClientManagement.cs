@@ -325,5 +325,37 @@ namespace Ironclad.Tests.Feature
             // assert
             func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.Conflict);
         }
+
+        [Fact]
+        public void CannotModifyAuthorizationServerManagementConsole()
+        {
+            // arrange
+            var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
+            var client = new Client
+            {
+                Id = "auth_console",
+                AllowedScopes = { "openid" },
+            };
+
+            // act
+            Func<Task> func = async () => await httpClient.ModifyClientAsync(client).ConfigureAwait(false);
+
+            // assert
+            func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public void CannotRemoveAuthorizationServerManagementConsole()
+        {
+            // arrange
+            var httpClient = new ClientsHttpClient(this.Authority, this.Handler);
+            var clientId = "auth_console";
+
+            // act
+            Func<Task> func = async () => await httpClient.RemoveClientAsync(clientId).ConfigureAwait(false);
+
+            // assert
+            func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
     }
 }

@@ -226,5 +226,37 @@ namespace Ironclad.Tests.Feature
             // assert
             func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.Conflict);
         }
+
+        [Fact]
+        public void CannotModifyAuthorizationServerWebApi()
+        {
+            // arrange
+            var httpClient = new ApiResourcesHttpClient(this.Authority, this.Handler);
+            var resource = new ApiResource
+            {
+                Name = "auth_api",
+                UserClaims = Array.Empty<string>(),
+            };
+
+            // act
+            Func<Task> func = async () => await httpClient.ModifyApiResourceAsync(resource).ConfigureAwait(false);
+
+            // assert
+            func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public void CannotRemoveAuthorizationServerWebApi()
+        {
+            // arrange
+            var httpClient = new ApiResourcesHttpClient(this.Authority, this.Handler);
+            var resourceName = "auth_api";
+
+            // act
+            Func<Task> func = async () => await httpClient.RemoveApiResourceAsync(resourceName).ConfigureAwait(false);
+
+            // assert
+            func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
     }
 }
