@@ -37,10 +37,6 @@ namespace Ironclad.Console.Commands
                 });
         }
 
-        public async Task ExecuteAsync(CommandContext context)
-        {
-            await context.RolesClient.AddRoleAsync(this.roleName).ConfigureAwait(false);
-            await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
-        }
+        public async Task ExecuteAsync(CommandContext context) => await context.RolesClient.AddRoleAsync(this.roleName).ConfigureAwait(false);
     }
 }

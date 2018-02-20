@@ -3,6 +3,7 @@
 
 namespace Ironclad.Console.Commands
 {
+    using Ironclad.Client;
     using McMaster.Extensions.CommandLineUtils;
 
     // NOTE (Cameron): This command is informational only and cannot be executed (only 'show help' works) so inheriting ICommand is unnecessary.
@@ -16,12 +17,38 @@ namespace Ironclad.Console.Commands
 
             // commands
             app.Command("add", command => AddUserCommand.Configure(command, options));
-            app.Command("show", command => ShowUsersCommand.Configure(command, options));
+            app.Command("remove", command => RemoveCommand.Configure(command, options, GetRemoveCommandOptions()));
+            app.Command("show", command => ShowCommand.Configure(command, options, GetShowCommandOptions()));
             app.Command("modify", command => ModifyUserCommand.Configure(command, options));
             app.Command("roles", command => AssignUserRolesCommand.Configure(command, options));
 
             // action (for this command)
             app.OnExecute(() => app.ShowVersionAndHelp());
         }
+
+        private static RemoveCommandOptions GetRemoveCommandOptions() =>
+            new RemoveCommandOptions
+            {
+                Type = "user",
+                ArgumentName = "username",
+                ArgumentDescription = "The username of the user to remove.",
+                RemoveCommand = value => new RemoveCommand(async context => await context.UsersClient.RemoveUserAsync(value).ConfigureAwait(false)),
+            };
+
+        private static ShowCommandOptions GetShowCommandOptions() =>
+            new ShowCommandOptions
+            {
+                Type = "user",
+                ArgumentName = "username",
+                ArgumentDescription = "The username. You can end the username with a wildcard to search.",
+                DisplayCommand = (string value) => new ShowCommand.Display<User>(async context => await context.UsersClient.GetUserAsync(value).ConfigureAwait(false)),
+                ListCommand = (string startsWith, int skip, int take) =>
+                    new ShowCommand.List<UserSummary>(
+                        "users",
+                        async context => await context.UsersClient.GetUserSummariesAsync(startsWith, skip, take).ConfigureAwait(false),
+                        ("username", user => user.Username),
+                        ("email", user => user.Email),
+                        ("sub", user => user.Id)),
+            };
     }
 }

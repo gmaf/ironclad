@@ -3,6 +3,8 @@
 
 namespace Ironclad.Console.Commands
 {
+    using System.Globalization;
+    using Ironclad.Client;
     using McMaster.Extensions.CommandLineUtils;
 
     // NOTE (Cameron): This command is informational only and cannot be executed (only 'show help' works) so inheriting ICommand is unnecessary.
@@ -15,9 +17,9 @@ namespace Ironclad.Console.Commands
             app.HelpOption();
 
             // commands
-            app.Command("show", command => ShowClientsCommand.Configure(command, options));
             app.Command("add", command => AddClientCommand.Configure(command, options, reporter));
-            app.Command("remove", command => RemoveClientCommand.Configure(command, options));
+            app.Command("remove", command => RemoveCommand.Configure(command, options, GetRemoveCommandOptions()));
+            app.Command("show", command => ShowCommand.Configure(command, options, GetShowCommandOptions()));
             app.Command("scopes", command => ModifyClientScopesCommand.Configure(command, options));
             app.Command("enable", command => EnableClientCommand.Configure(command, options));
             app.Command("disable", command => DisableClientCommand.Configure(command, options));
@@ -27,5 +29,30 @@ namespace Ironclad.Console.Commands
             // action (for this command)
             app.OnExecute(() => app.ShowVersionAndHelp());
         }
+
+        private static RemoveCommandOptions GetRemoveCommandOptions() =>
+            new RemoveCommandOptions
+            {
+                Type = "client",
+                ArgumentName = "id",
+                ArgumentDescription = "The client identifier for the client to remove.",
+                RemoveCommand = value => new RemoveCommand(async context => await context.ClientsClient.RemoveClientAsync(value).ConfigureAwait(false)),
+            };
+
+        private static ShowCommandOptions GetShowCommandOptions() =>
+            new ShowCommandOptions
+            {
+                Type = "client",
+                ArgumentName = "id",
+                ArgumentDescription = "The client identifier. You can end the client identifier with a wildcard to search.",
+                DisplayCommand = (string value) => new ShowCommand.Display<Client>(async context => await context.ClientsClient.GetClientAsync(value).ConfigureAwait(false)),
+                ListCommand = (string startsWith, int skip, int take) =>
+                    new ShowCommand.List<ClientSummary>(
+                        "clients",
+                        async context => await context.ClientsClient.GetClientSummariesAsync(startsWith, skip, take).ConfigureAwait(false),
+                        ("id", client => client.Id),
+                        ("name", client => client.Name),
+                        ("enabled", client => client.Enabled.ToString(CultureInfo.InvariantCulture))),
+            };
     }
 }
