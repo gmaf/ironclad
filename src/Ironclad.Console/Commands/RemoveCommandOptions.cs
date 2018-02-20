@@ -4,8 +4,9 @@
 namespace Ironclad.Console.Commands
 {
     using System;
+    using System.Threading.Tasks;
 
-    public class ShowCommandOptions
+    public class RemoveCommandOptions
     {
         public string Type { get; set; }
 
@@ -13,8 +14,6 @@ namespace Ironclad.Console.Commands
 
         public string ArgumentDescription { get; set; }
 
-        public Func<string, ICommand> DisplayCommand { get; set; }
-
-        public Func<string, int, int, ICommand> ListCommand { get; set; }
+        public Func<string, ICommand> RemoveCommand { get; set; }
     }
 }

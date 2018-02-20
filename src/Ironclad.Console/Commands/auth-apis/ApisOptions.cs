@@ -18,19 +18,28 @@ namespace Ironclad.Console.Commands
 
             // commands
             app.Command("add", command => AddApiResourceCommand.Configure(command, options, console));
-            app.Command("remove", command => RemoveApiResourceCommand.Configure(command, options));
+            app.Command("remove", command => RemoveCommand.Configure(command, options, GetRemoveCommandOptions()));
             app.Command("show", command => ShowCommand.Configure(command, options, GetShowCommandOptions()));
 
             // action (for this command)
             app.OnExecute(() => app.ShowVersionAndHelp());
         }
 
+        private static RemoveCommandOptions GetRemoveCommandOptions() =>
+            new RemoveCommandOptions
+            {
+                Type = "API",
+                ArgumentName = "name",
+                ArgumentDescription = "The name of the API to remove.",
+                RemoveCommand = value => new RemoveCommand(async context => await context.ApiResourcesClient.RemoveApiResourceAsync(value).ConfigureAwait(false)),
+            };
+
         private static ShowCommandOptions GetShowCommandOptions() =>
             new ShowCommandOptions
             {
-                CommandName = "API",
+                Type = "API",
                 ArgumentName = "name",
-                ArgumentDescription = "The name of the API.",
+                ArgumentDescription = "The API name. You can end the API name with a wildcard to search.",
                 DisplayCommand = (string value) =>
                     new ShowCommand.Display<ApiResource>(async context => await context.ApiResourcesClient.GetApiResourceAsync(value).ConfigureAwait(false)),
                 ListCommand = (string startsWith, int skip, int take) =>

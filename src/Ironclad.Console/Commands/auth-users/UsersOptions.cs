@@ -17,6 +17,7 @@ namespace Ironclad.Console.Commands
 
             // commands
             app.Command("add", command => AddUserCommand.Configure(command, options));
+            app.Command("remove", command => RemoveCommand.Configure(command, options, GetRemoveCommandOptions()));
             app.Command("show", command => ShowCommand.Configure(command, options, GetShowCommandOptions()));
             app.Command("modify", command => ModifyUserCommand.Configure(command, options));
             app.Command("roles", command => AssignUserRolesCommand.Configure(command, options));
@@ -25,12 +26,21 @@ namespace Ironclad.Console.Commands
             app.OnExecute(() => app.ShowVersionAndHelp());
         }
 
+        private static RemoveCommandOptions GetRemoveCommandOptions() =>
+            new RemoveCommandOptions
+            {
+                Type = "user",
+                ArgumentName = "username",
+                ArgumentDescription = "The username of the user to remove.",
+                RemoveCommand = value => new RemoveCommand(async context => await context.UsersClient.RemoveUserAsync(value).ConfigureAwait(false)),
+            };
+
         private static ShowCommandOptions GetShowCommandOptions() =>
             new ShowCommandOptions
             {
-                CommandName = "user",
+                Type = "user",
                 ArgumentName = "username",
-                ArgumentDescription = "The username of the user.",
+                ArgumentDescription = "The username. You can end the username with a wildcard to search.",
                 DisplayCommand = (string value) => new ShowCommand.Display<User>(async context => await context.UsersClient.GetUserAsync(value).ConfigureAwait(false)),
                 ListCommand = (string startsWith, int skip, int take) =>
                     new ShowCommand.List<UserSummary>(

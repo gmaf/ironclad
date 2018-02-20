@@ -3,6 +3,7 @@
 
 namespace Ironclad.Console.Commands
 {
+    using System;
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
@@ -17,19 +18,28 @@ namespace Ironclad.Console.Commands
 
             // commands
             app.Command("add", command => AddRoleCommand.Configure(command, options));
-            app.Command("remove", command => RemoveRoleCommand.Configure(command, options));
+            app.Command("remove", command => RemoveCommand.Configure(command, options, GetRemoveCommandOptions()));
             app.Command("show", command => ShowCommand.Configure(command, options, GetShowCommandOptions()));
 
             // action (for this command)
             app.OnExecute(() => app.ShowVersionAndHelp());
         }
 
+        private static RemoveCommandOptions GetRemoveCommandOptions() =>
+            new RemoveCommandOptions
+            {
+                Type = "role",
+                ArgumentName = "role",
+                ArgumentDescription = "The role to remove.",
+                RemoveCommand = value => new RemoveCommand(async context => await context.RolesClient.RemoveRoleAsync(value).ConfigureAwait(false)),
+            };
+
         private static ShowCommandOptions GetShowCommandOptions() =>
             new ShowCommandOptions
             {
-                CommandName = "role",
+                Type = "role",
                 ArgumentName = "role",
-                ArgumentDescription = "The role. You can end the role with a wildcard.",
+                ArgumentDescription = "The role. You can end the role with a wildcard to search.",
                 DisplayCommand = (string value) => new ExistsCommand { RoleName = value },
                 ListCommand = (string startsWith, int skip, int take) =>
                     new ShowCommand.List<string>(
