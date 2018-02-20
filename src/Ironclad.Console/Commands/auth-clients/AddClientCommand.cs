@@ -10,9 +10,7 @@ namespace Ironclad.Console.Commands
 
     internal class AddClientCommand : ICommand
     {
-        private string clientId;
-        private string clientSecret;
-        private string clientName;
+        private Client.Client client;
 
         private AddClientCommand()
         {
@@ -30,7 +28,18 @@ namespace Ironclad.Console.Commands
             var argumentClientSecret = app.Argument("secret", "The client secret", false);
 
             // options
-            var optionsName = app.Option("-n|--name", "The name of the client", CommandOptionType.SingleValue);
+            var optionsAccessToken = app.Option("-b|--access_tokens_via_browser", "Allow tokens access from browser.", CommandOptionType.NoValue);
+            var optionsCors = app.Option("-c|--cors_uri <uri>", "An allowed CORS origin of the client. You can call this several times.", CommandOptionType.MultipleValue);
+            var optionsGrants = app.Option("-g|--grant_types <type>", "A grant type of the client. You can call this several times.", CommandOptionType.MultipleValue);
+            var optionsSecretRequired = app.Option("-k|--secret_required", "Set client secret required.", CommandOptionType.NoValue);
+            var optionsLogouts = app.Option("-l|--logout_uri <uri>", "A logout URI of the client. You can call this several times.", CommandOptionType.MultipleValue);
+            var optionsName = app.Option("-n|--name <name>", "The name of the client", CommandOptionType.SingleValue);
+            var optionsOffline = app.Option("-o|--offline", "Allow offline access.", CommandOptionType.NoValue);
+            var optionsPkceRequired = app.Option("-p|--pkce_requred", "Set Proof Key for Code Exchange (PKCE) required.", CommandOptionType.NoValue);
+            var optionsConsentRequired = app.Option("-q|--constent_required", "Set consent required.", CommandOptionType.NoValue);
+            var optionsRedirects = app.Option("-r|--redirect_uri <uri>", "A redirect URI of the client. You can call this several times.", CommandOptionType.MultipleValue);
+            var optionsScopes = app.Option("-s|--scope <scope>", "An allowed scope for the client. You can call this several times.", CommandOptionType.MultipleValue);
+            var optionsToken = app.Option("-t|--token <Jwt/Reference>", "The access token type of the client", CommandOptionType.SingleValue);
 
             // action (for this command)
             app.OnExecute(
@@ -48,9 +57,23 @@ namespace Ironclad.Console.Commands
                     {
                         options.Command = new AddClientCommand
                         {
-                            clientId = argumentClientId.Value,
-                            clientSecret = argumentClientSecret.Value,
-                            clientName = optionsName.Value()
+                            client = new Client.Client
+                            {
+                                Id = argumentClientId.Value,
+                                Secret = argumentClientSecret.Value,
+                                Name = optionsName.Value(),
+                                AccessTokenType = optionsToken.Value(),
+                                AllowedCorsOrigins = optionsCors.Values,
+                                RedirectUris = optionsRedirects.Values,
+                                PostLogoutRedirectUris = optionsLogouts.Values,
+                                AllowedScopes = optionsScopes.Values,
+                                AllowedGrantTypes = optionsGrants.Values,
+                                AllowAccessTokensViaBrowser = optionsAccessToken.HasValue(),
+                                AllowOfflineAccess = optionsOffline.HasValue(),
+                                RequirePkce = optionsPkceRequired.HasValue(),
+                                RequireClientSecret = optionsSecretRequired.HasValue(),
+                                RequireConsent = optionsConsentRequired.HasValue()
+                            }
                         };
                     }
                 });
@@ -58,53 +81,49 @@ namespace Ironclad.Console.Commands
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            var client = new Ironclad.Client.Client
-            {
-                Id = this.clientId,
-                Name = this.clientName,
-                Secret = this.clientSecret,
-            };
-
-            await context.ClientsClient.AddClientAsync(client).ConfigureAwait(false);
+            await context.ClientsClient.AddClientAsync(this.client).ConfigureAwait(false);
         }
 
         private static AddClientCommand GetClientFromPrompt(IReporter reporter)
         {
-            var id = Prompt.GetString("Unique Id:");
-            if (string.IsNullOrEmpty(id))
+            var clientDto = new Client.Client();
+
+            clientDto.Id = Prompt.GetString("Unique Id:");
+            if (string.IsNullOrEmpty(clientDto.Id))
             {
                 reporter.Error("Id cannot be null");
                 return null;
             }
 
-            var name = Prompt.GetString("Name:", id);
-            var secret = Prompt.GetPassword("Secret:");
-            if (string.IsNullOrEmpty(secret))
+            clientDto.Name = Prompt.GetString("Name:", clientDto.Id);
+            clientDto.Secret = Prompt.GetPassword("Secret:");
+            if (string.IsNullOrEmpty(clientDto.Secret))
             {
                 reporter.Error("Secret cannot be null");
                 return null;
             }
 
-            var accessTokenType = Prompt.GetString("AccessTokenType:", "JWT");
+            clientDto.AccessTokenType = Prompt.GetString("AccessTokenType:", "Jwt");
 
-            var cors = PromptList("AllowedCorsOrigins", reporter);
-            var redirects = PromptList("RedirectUris", reporter);
-            var postLogoutRedirectUris = PromptList("PostLogoutRedirectUris", reporter);
-            var allowedScopes = PromptList("AllowedScopes", reporter);
-            var allowedGrantTypes = PromptList("AllowedGrantTypes", reporter);
+            clientDto.AllowedCorsOrigins = PromptList("AllowedCorsOrigins", reporter);
+            clientDto.RedirectUris = PromptList("RedirectUris", reporter);
+            clientDto.PostLogoutRedirectUris = PromptList("PostLogoutRedirectUris", reporter);
+            clientDto.AllowedScopes = PromptList("AllowedScopes", reporter);
+            clientDto.AllowedGrantTypes = PromptList("AllowedGrantTypes", reporter);
 
-            var allowAccessTokensViaBrowser = Prompt.GetYesNo("Allow Access Token Via Browser ? ", true);
-            var allowOfflineAccess = Prompt.GetYesNo("Allow Offline Access ? ", true);
+            clientDto.AllowAccessTokensViaBrowser = Prompt.GetYesNo("Allow Access Token Via Browser ? ", true);
+            clientDto.AllowOfflineAccess = Prompt.GetYesNo("Allow Offline Access ? ", true);
+            clientDto.RequireClientSecret = Prompt.GetYesNo("Is client secret required ?", false);
+            clientDto.RequirePkce = Prompt.GetYesNo("Is Proof Key for Code Exchange (PKCE) required ?", false);
+            clientDto.RequireConsent = Prompt.GetYesNo("Is consent required ? ", false);
 
             return new AddClientCommand
             {
-                clientId = id,
-                clientName = name,
-                clientSecret = secret,
+                client = clientDto,
             };
         }
 
-        private static IEnumerable<string> PromptList(string elementName, IReporter reporter)
+        private static ICollection<string> PromptList(string elementName, IReporter reporter)
         {
             reporter.Output($"{elementName} part. Leave empty once we want no more scopes.");
 
