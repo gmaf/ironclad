@@ -17,9 +17,9 @@ namespace Ironclad.Console.Commands
             app.HelpOption();
 
             // commands
-            app.Command("show", command => CommonShowCommand.Configure(command, options, new ClientsShowTraits()));
             app.Command("add", command => AddClientCommand.Configure(command, options, reporter));
             app.Command("remove", command => RemoveClientCommand.Configure(command, options));
+            app.Command("show", command => ShowCommand.Configure(command, options, GetShowCommandOptions()));
             app.Command("scopes", command => ModifyClientScopesCommand.Configure(command, options));
             app.Command("enable", command => EnableClientCommand.Configure(command, options));
             app.Command("disable", command => DisableClientCommand.Configure(command, options));
@@ -30,23 +30,20 @@ namespace Ironclad.Console.Commands
             app.OnExecute(() => app.ShowVersionAndHelp());
         }
 
-        private class ClientsShowTraits : IShowTraits
-        {
-            public string Name => "client";
-
-            public string ArgumentName => "id";
-
-            public string ArgumentDescription => "The client Id.";
-
-            public ICommand GetShowCommand(string value) =>
-                new ShowCommand<Client>(async context => await context.ClientsClient.GetClientAsync(value).ConfigureAwait(false));
-
-            public ICommand GetListCommand(string startsWith, int skip, int take) => new ListCommand<ClientSummary>(
-                "clients",
-                async context => await context.ClientsClient.GetClientSummariesAsync(startsWith, skip, take).ConfigureAwait(false),
-                ("id", client => client.Id),
-                ("name", client => client.Name),
-                ("enabled", client => client.Enabled.ToString(CultureInfo.InvariantCulture)));
-        }
+        private static ShowCommandOptions GetShowCommandOptions() =>
+            new ShowCommandOptions
+            {
+                CommandName = "client",
+                ArgumentName = "id",
+                ArgumentDescription = "The client identifier.",
+                DisplayCommand = (string value) => new ShowCommand.Display<Client>(async context => await context.ClientsClient.GetClientAsync(value).ConfigureAwait(false)),
+                ListCommand = (string startsWith, int skip, int take) =>
+                    new ShowCommand.List<ClientSummary>(
+                        "clients",
+                        async context => await context.ClientsClient.GetClientSummariesAsync(startsWith, skip, take).ConfigureAwait(false),
+                        ("id", client => client.Id),
+                        ("name", client => client.Name),
+                        ("enabled", client => client.Enabled.ToString(CultureInfo.InvariantCulture))),
+            };
     }
 }

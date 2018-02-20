@@ -18,30 +18,28 @@ namespace Ironclad.Console.Commands
 
             // commands
             app.Command("add", command => AddApiResourceCommand.Configure(command, options, console));
-            app.Command("show", command => CommonShowCommand.Configure(command, options, new ApisShowTraits()));
             app.Command("remove", command => RemoveApiResourceCommand.Configure(command, options));
+            app.Command("show", command => ShowCommand.Configure(command, options, GetShowCommandOptions()));
 
             // action (for this command)
             app.OnExecute(() => app.ShowVersionAndHelp());
         }
 
-        private class ApisShowTraits : IShowTraits
-        {
-            public string Name => "API";
-
-            public string ArgumentName => "name";
-
-            public string ArgumentDescription => "The name of the API.";
-
-            public ICommand GetShowCommand(string value) =>
-                new ShowCommand<ApiResource>(async context => await context.ApiResourcesClient.GetApiResourceAsync(value).ConfigureAwait(false));
-
-            public ICommand GetListCommand(string startsWith, int skip, int take) => new ListCommand<ResourceSummary>(
-                "APIs",
-                async context => await context.ApiResourcesClient.GetApiResourceSummariesAsync(startsWith, skip, take).ConfigureAwait(false),
-                ("name", resource => resource.Name),
-                ("description", resource => resource.DisplayName),
-                ("enabled", resource => resource.Enabled.ToString(CultureInfo.InvariantCulture)));
-        }
+        private static ShowCommandOptions GetShowCommandOptions() =>
+            new ShowCommandOptions
+            {
+                CommandName = "API",
+                ArgumentName = "name",
+                ArgumentDescription = "The name of the API.",
+                DisplayCommand = (string value) =>
+                    new ShowCommand.Display<ApiResource>(async context => await context.ApiResourcesClient.GetApiResourceAsync(value).ConfigureAwait(false)),
+                ListCommand = (string startsWith, int skip, int take) =>
+                    new ShowCommand.List<ResourceSummary>(
+                        "APIs",
+                        async context => await context.ApiResourcesClient.GetApiResourceSummariesAsync(startsWith, skip, take).ConfigureAwait(false),
+                        ("name", resource => resource.Name),
+                        ("description", resource => resource.DisplayName),
+                        ("enabled", resource => resource.Enabled.ToString(CultureInfo.InvariantCulture))),
+            };
     }
 }
