@@ -106,10 +106,11 @@ namespace Ironclad.Console.Commands
                 var format = " ";
                 foreach (var column in this.columns.Take(this.columns.Count - 1))
                 {
+                    var index = this.columns.IndexOf(column);
                     format += string.Format(
                         CultureInfo.InvariantCulture,
-                        $"{{{{{this.columns.IndexOf(column)}, -{{0}}}}}}",
-                        results.Max(result => column(result)?.Length ?? 0) + 2);
+                        $"{{{{{index}, -{{0}}}}}}",
+                        Math.Max(results.Max(result => column(result)?.Length ?? 0), this.columnNames[index].Length) + 2);
                 }
 
                 format += $"{{{this.columns.Count - 1}}}";
