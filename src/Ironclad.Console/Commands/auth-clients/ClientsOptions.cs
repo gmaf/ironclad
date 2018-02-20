@@ -3,6 +3,8 @@
 
 namespace Ironclad.Console.Commands
 {
+    using System.Globalization;
+    using Ironclad.Client;
     using McMaster.Extensions.CommandLineUtils;
 
     // NOTE (Cameron): This command is informational only and cannot be executed (only 'show help' works) so inheriting ICommand is unnecessary.
@@ -15,7 +17,7 @@ namespace Ironclad.Console.Commands
             app.HelpOption();
 
             // commands
-            app.Command("show", command => ShowClientsCommand.Configure(command, options));
+            app.Command("show", command => CommonShowCommand.Configure(command, options, new ClientsShowTraits()));
             app.Command("add", command => AddClientCommand.Configure(command, options, reporter));
             app.Command("remove", command => RemoveClientCommand.Configure(command, options));
             app.Command("scopes", command => ModifyClientScopesCommand.Configure(command, options));
@@ -26,6 +28,25 @@ namespace Ironclad.Console.Commands
 
             // action (for this command)
             app.OnExecute(() => app.ShowVersionAndHelp());
+        }
+
+        private class ClientsShowTraits : IShowTraits
+        {
+            public string Name => "client";
+
+            public string ArgumentName => "id";
+
+            public string ArgumentDescription => "The client Id.";
+
+            public ICommand GetShowCommand(string value) =>
+                new ShowCommand<Client>(async context => await context.ClientsClient.GetClientAsync(value).ConfigureAwait(false));
+
+            public ICommand GetListCommand(string startsWith, int skip, int take) => new ListCommand<ClientSummary>(
+                "clients",
+                async context => await context.ClientsClient.GetClientSummariesAsync(startsWith, skip, take).ConfigureAwait(false),
+                ("id", client => client.Id),
+                ("name", client => client.Name),
+                ("enabled", client => client.Enabled.ToString(CultureInfo.InvariantCulture)));
         }
     }
 }
