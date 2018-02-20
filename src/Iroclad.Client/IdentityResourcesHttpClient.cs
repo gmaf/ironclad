@@ -32,7 +32,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The resource summaries.</returns>
         public Task<ResourceSet<ResourceSummary>> GetIdentityResourceSummariesAsync(int start = 0, int size = 20, CancellationToken cancellationToken = default) =>
-            this.GetAsync<ResourceSet<ResourceSummary>>(this.RelativeUrl($"{ApiPath}?skip={Valid(start, nameof(start))}&take={Valid(size, nameof(size))}"), cancellationToken);
+            this.GetAsync<ResourceSet<ResourceSummary>>(this.RelativeUrl($"{ApiPath}?skip={NotNegative(start, nameof(start))}&take={NotNegative(size, nameof(size))}"), cancellationToken);
 
         /// <summary>
         /// Gets the specified identity resource.
@@ -41,7 +41,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The resource.</returns>
         public Task<IdentityResource> GetIdentityResourceAsync(string resourceName, CancellationToken cancellationToken = default) =>
-            this.GetAsync<IdentityResource>(this.RelativeUrl($"{ApiPath}/{Valid(resourceName, nameof(resourceName))}"), cancellationToken);
+            this.GetAsync<IdentityResource>(this.RelativeUrl($"{ApiPath}/{NotNull(resourceName, nameof(resourceName))}"), cancellationToken);
 
         /// <summary>
         /// Adds the specified identity resource.
@@ -59,7 +59,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task RemoveIdentityResourceAsync(string resourceName, CancellationToken cancellationToken = default) =>
-            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{Valid(resourceName, nameof(resourceName))}"), cancellationToken);
+            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{NotNull(resourceName, nameof(resourceName))}"), cancellationToken);
 
         /// <summary>
         /// Modifies the specified identity resource.
@@ -70,7 +70,7 @@ namespace Ironclad.Client
         public Task ModifyIdentityResourceAsync(IdentityResource resource, CancellationToken cancellationToken = default) =>
             this.SendAsync<IdentityResource>(
                 HttpMethod.Put,
-                this.RelativeUrl($"{ApiPath}/{Valid(resource?.Name, "resource.Name")}"),
+                this.RelativeUrl($"{ApiPath}/{NotNull(resource?.Name, "resource.Name")}"),
                 resource,
                 cancellationToken);
     }

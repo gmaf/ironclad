@@ -37,7 +37,7 @@ namespace Ironclad.Client
         public async Task<ResourceSet<string>> GetRolesAsync(int start = 0, int size = 20, CancellationToken cancellationToken = default)
         {
             var resourceSet = await this.GetAsync<ResourceSet<Role>>(
-                this.RelativeUrl($"{ApiPath}?skip={Valid(start, nameof(start))}&take={Valid(size, nameof(size))}"),
+                this.RelativeUrl($"{ApiPath}?skip={NotNegative(start, nameof(start))}&take={NotNegative(size, nameof(size))}"),
                 cancellationToken)
                 .ConfigureAwait(false);
 
@@ -52,7 +52,7 @@ namespace Ironclad.Client
         /// <returns>Returns <c>true</c> if the role exists; otherwise, <c>false</c>.</returns>
         public async Task<bool> RoleExistsAsync(string role, CancellationToken cancellationToken = default)
         {
-            var url = this.RelativeUrl($"/api/roles/{Valid(role, nameof(role))}");
+            var url = this.RelativeUrl($"/api/roles/{NotNull(role, nameof(role))}");
 
             try
             {
@@ -81,7 +81,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task AddRoleAsync(string role, CancellationToken cancellationToken = default) =>
-            this.SendAsync<Role>(HttpMethod.Post, this.RelativeUrl(ApiPath), new Role { Name = Valid(role, nameof(role)) }, cancellationToken);
+            this.SendAsync<Role>(HttpMethod.Post, this.RelativeUrl(ApiPath), new Role { Name = NotNull(role, nameof(role)) }, cancellationToken);
 
         /// <summary>
         /// Removes the specified role.
@@ -90,6 +90,6 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task RemoveRoleAsync(string role, CancellationToken cancellationToken = default) =>
-            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{Valid(role, nameof(role))}"), cancellationToken);
+            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{NotNull(role, nameof(role))}"), cancellationToken);
     }
 }

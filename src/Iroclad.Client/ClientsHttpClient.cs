@@ -32,7 +32,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The client summaries.</returns>
         public Task<ResourceSet<ClientSummary>> GetClientSummariesAsync(int start = 0, int size = 20, CancellationToken cancellationToken = default) =>
-            this.GetAsync<ResourceSet<ClientSummary>>(this.RelativeUrl($"{ApiPath}?skip={Valid(start, nameof(start))}&take={Valid(size, nameof(size))}"), cancellationToken);
+            this.GetAsync<ResourceSet<ClientSummary>>(this.RelativeUrl($"{ApiPath}?skip={NotNegative(start, nameof(start))}&take={NotNegative(size, nameof(size))}"), cancellationToken);
 
         /// <summary>
         /// Gets the specified client.
@@ -41,7 +41,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The client.</returns>
         public Task<Client> GetClientAsync(string clientId, CancellationToken cancellationToken = default) =>
-            this.GetAsync<Client>(this.RelativeUrl($"{ApiPath}/{Valid(clientId, nameof(clientId))}"), cancellationToken);
+            this.GetAsync<Client>(this.RelativeUrl($"{ApiPath}/{NotNull(clientId, nameof(clientId))}"), cancellationToken);
 
         /// <summary>
         /// Adds the specified client.
@@ -59,7 +59,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task RemoveClientAsync(string clientId, CancellationToken cancellationToken = default) =>
-            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{Valid(clientId, nameof(clientId))}"), cancellationToken);
+            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{NotNull(clientId, nameof(clientId))}"), cancellationToken);
 
         /// <summary>
         /// Modifies the specified client.
@@ -68,6 +68,6 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task ModifyClientAsync(Client client, CancellationToken cancellationToken = default) =>
-            this.SendAsync<Client>(HttpMethod.Put, this.RelativeUrl($"{ApiPath}/{Valid(client?.Id, "client.Id")}"), client, cancellationToken);
+            this.SendAsync<Client>(HttpMethod.Put, this.RelativeUrl($"{ApiPath}/{NotNull(client?.Id, "client.Id")}"), client, cancellationToken);
     }
 }

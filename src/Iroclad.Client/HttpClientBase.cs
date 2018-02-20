@@ -58,12 +58,12 @@ namespace Ironclad.Client
         }
 
         /// <summary>
-        /// Gets the valid parameter value.
+        /// Gets the parameter value.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <param name="parameterName">Name of the parameter.</param>
         /// <returns>The parameter value.</returns>
-        protected static string Valid(string value, string parameterName)
+        protected static string NotNull(string value, string parameterName)
         {
             if (string.IsNullOrWhiteSpace(value))
             {
@@ -74,12 +74,12 @@ namespace Ironclad.Client
         }
 
         /// <summary>
-        /// Gets the valid parameter value.
+        /// Gets the parameter value.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <param name="parameterName">Name of the parameter.</param>
         /// <returns>The parameter value.</returns>
-        protected static int Valid(int value, string parameterName)
+        protected static int NotNegative(int value, string parameterName)
         {
             if (value < 0)
             {
