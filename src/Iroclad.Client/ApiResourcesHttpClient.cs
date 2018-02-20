@@ -31,8 +31,8 @@ namespace Ironclad.Client
         /// <param name="size">The total size of the resource set.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The resource summaries.</returns>
-        public Task<ResourceSet<ResourceSummary>> GetApiResourceSummariesAsync(int start = 0, int size = 0, CancellationToken cancellationToken = default) =>
-            this.GetAsync<ResourceSet<ResourceSummary>>(this.RelativeUrl($"{ApiPath}?skip={start}&take={(size == 0 ? 20 : size)}"), cancellationToken);
+        public Task<ResourceSet<ResourceSummary>> GetApiResourceSummariesAsync(int start = 0, int size = 20, CancellationToken cancellationToken = default) =>
+            this.GetAsync<ResourceSet<ResourceSummary>>(this.RelativeUrl($"{ApiPath}?skip={Valid(start, nameof(start))}&take={Valid(size, nameof(size))}"), cancellationToken);
 
         /// <summary>
         /// Gets the specified API resource.
@@ -41,7 +41,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The resource.</returns>
         public Task<ApiResource> GetApiResourceAsync(string resourceName, CancellationToken cancellationToken = default) =>
-            this.GetAsync<ApiResource>(this.RelativeUrl($"{ApiPath}/{resourceName}"), cancellationToken);
+            this.GetAsync<ApiResource>(this.RelativeUrl($"{ApiPath}/{Valid(resourceName, nameof(resourceName))}"), cancellationToken);
 
         /// <summary>
         /// Adds the specified API resource.
@@ -59,7 +59,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task RemoveApiResourceAsync(string resourceName, CancellationToken cancellationToken = default) =>
-            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{this.SafeGetValue(resourceName, nameof(resourceName))}"), cancellationToken);
+            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{Valid(resourceName, nameof(resourceName))}"), cancellationToken);
 
         /// <summary>
         /// Modifies the specified API resource.
@@ -68,6 +68,6 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task ModifyApiResourceAsync(ApiResource resource, CancellationToken cancellationToken = default) =>
-            this.SendAsync<ApiResource>(HttpMethod.Put, this.RelativeUrl($"{ApiPath}/{this.SafeGetValue(resource?.Name, "resource.Name")}"), resource, cancellationToken);
+            this.SendAsync<ApiResource>(HttpMethod.Put, this.RelativeUrl($"{ApiPath}/{Valid(resource?.Name, "resource.Name")}"), resource, cancellationToken);
     }
  }

@@ -1,30 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <OutputType>Exe</OutputType>
-    <AssemblyName>auth</AssemblyName>
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <AssemblyName>auth</AssemblyName>
+    <Version>0.0.1-developer</Version>
+    <Authors>Ironclad Contributers</Authors>
+    <Company>Lykke</Company>
+    <Copyright>Copyright (c) Lykke Corp. All rights reserved.</Copyright>
+    <Product>Ironclad</Product>
+    <PackageId>Ironclad.Console</PackageId>
+  </PropertyGroup>
+  
   <PropertyGroup>
     <CodeAnalysisRuleSet>../Ironclad.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <WarningsAsErrors />
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
-    <Copyright>Copyright (c) Ironclad Contributers. All rights reserved.</Copyright>
-    <Product>Ironclad</Product>
-    <Company>Lykke</Company>
-    <Authors>Ironclad Contributers</Authors>
-    <PackageId>Ironclad.Console</PackageId>
-    <Version>0.0.1-developer</Version>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\Iroclad.Client\Ironclad.Client.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <AdditionalFiles Include="../stylecop.json" />
-  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="IdentityModel.OidcClient" Version="2.4.0" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.1.1" />
@@ -33,4 +34,9 @@
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.0-beta2" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" />
   </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="../stylecop.json" />
+  </ItemGroup>
+
 </Project>

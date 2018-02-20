@@ -34,9 +34,11 @@ namespace Ironclad.Client
         /// <param name="size">The total size of the role set.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The roles.</returns>
-        public async Task<ResourceSet<string>> GetRolesAsync(int start = 0, int size = 0, CancellationToken cancellationToken = default)
+        public async Task<ResourceSet<string>> GetRolesAsync(int start = 0, int size = 20, CancellationToken cancellationToken = default)
         {
-            var resourceSet = await this.GetAsync<ResourceSet<Role>>(this.RelativeUrl($"{ApiPath}?skip={start}&take={(size == 0 ? 20 : size)}"), cancellationToken)
+            var resourceSet = await this.GetAsync<ResourceSet<Role>>(
+                this.RelativeUrl($"{ApiPath}?skip={Valid(start, nameof(start))}&take={Valid(size, nameof(size))}"),
+                cancellationToken)
                 .ConfigureAwait(false);
 
             return new ResourceSet<string>(resourceSet.Start, resourceSet.TotalSize, resourceSet.Select(role => role.Name));
@@ -50,7 +52,7 @@ namespace Ironclad.Client
         /// <returns>Returns <c>true</c> if the role exists; otherwise, <c>false</c>.</returns>
         public async Task<bool> RoleExistsAsync(string role, CancellationToken cancellationToken = default)
         {
-            var url = this.RelativeUrl($"/api/roles/{role}");
+            var url = this.RelativeUrl($"/api/roles/{Valid(role, nameof(role))}");
 
             try
             {
@@ -79,7 +81,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task AddRoleAsync(string role, CancellationToken cancellationToken = default) =>
-            this.SendAsync<Role>(HttpMethod.Post, this.RelativeUrl(ApiPath), new Role { Name = role }, cancellationToken);
+            this.SendAsync<Role>(HttpMethod.Post, this.RelativeUrl(ApiPath), new Role { Name = Valid(role, nameof(role)) }, cancellationToken);
 
         /// <summary>
         /// Removes the specified role.
@@ -88,6 +90,6 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task RemoveRoleAsync(string role, CancellationToken cancellationToken = default) =>
-            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{this.SafeGetValue(role, nameof(role))}"), cancellationToken);
+            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{Valid(role, nameof(role))}"), cancellationToken);
     }
 }

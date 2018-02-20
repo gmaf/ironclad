@@ -31,8 +31,8 @@ namespace Ironclad.Client
         /// <param name="size">The total size of the user set.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The user summaries.</returns>
-        public Task<ResourceSet<UserSummary>> GetUserSummariesAsync(int start = default, int size = default, CancellationToken cancellationToken = default) =>
-            this.GetAsync<ResourceSet<UserSummary>>(this.RelativeUrl($"{ApiPath}?skip={start}&take={(size == 0 ? 20 : size)}"), cancellationToken);
+        public Task<ResourceSet<UserSummary>> GetUserSummariesAsync(int start = 0, int size = 20, CancellationToken cancellationToken = default) =>
+            this.GetAsync<ResourceSet<UserSummary>>(this.RelativeUrl($"{ApiPath}?skip={Valid(start, nameof(start))}&take={Valid(size, nameof(size))}"), cancellationToken);
 
         /// <summary>
         /// Gets the user.
@@ -62,7 +62,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task RemoveUserAsync(string username, CancellationToken cancellationToken = default) =>
-            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{this.SafeGetValue(username, nameof(username))}"), cancellationToken);
+            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{Valid(username, nameof(username))}"), cancellationToken);
 
         /// <summary>
         /// Modifies the specified user.
@@ -73,7 +73,7 @@ namespace Ironclad.Client
         /// <returns>The modified user.</returns>
         public async Task<User> ModifyUserAsync(User user, string currentUsername = null, CancellationToken cancellationToken = default)
         {
-            var username = currentUsername ?? this.SafeGetValue(user?.Username, "user.Username");
+            var username = currentUsername ?? Valid(user?.Username, "user.Username");
 
             await this.SendAsync<User>(HttpMethod.Put, this.RelativeUrl($"{ApiPath}/{username}"), user, cancellationToken).ConfigureAwait(false);
             return await this.GetUserAsync(user.Username, cancellationToken).ConfigureAwait(false);

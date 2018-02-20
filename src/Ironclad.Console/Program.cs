@@ -148,6 +148,10 @@ namespace Ironclad.Console
                     await this.console.Out.WriteLineAsync(ex.Message).ConfigureAwait(false);
                     return 500;
                 }
+                finally
+                {
+                    this.console.ResetColor();
+                }
 
                 return 0;
             }
