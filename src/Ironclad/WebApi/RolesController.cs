@@ -88,6 +88,11 @@ namespace Ironclad.WebApi
         [HttpDelete("{roleName}")]
         public async Task<IActionResult> Delete(string roleName)
         {
+            if (string.Equals(roleName, "admin", StringComparison.OrdinalIgnoreCase))
+            {
+                return this.BadRequest(new { Message = $"Cannot remove the administrator role" });
+            }
+
             var role = await this.roleManager.FindByNameAsync(roleName);
             if (role != null)
             {

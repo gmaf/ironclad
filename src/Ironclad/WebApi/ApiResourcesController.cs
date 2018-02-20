@@ -126,6 +126,11 @@ namespace Ironclad.WebApi
         [HttpPut("{resourceName}")]
         public async Task<IActionResult> Put(string resourceName, [FromBody]IroncladResource model)
         {
+            if (string.Equals(resourceName, "auth_api", StringComparison.OrdinalIgnoreCase))
+            {
+                return this.BadRequest(new { Message = $"Cannot modify the authorization console web API" });
+            }
+
             using (var session = this.store.LightweightSession())
             {
                 var document = await session.Query<PostgresResource>().SingleOrDefaultAsync(item => item.Name == resourceName);
@@ -171,6 +176,11 @@ namespace Ironclad.WebApi
         [HttpDelete("{resourceName}")]
         public async Task<IActionResult> Delete(string resourceName)
         {
+            if (string.Equals(resourceName, "auth_api", StringComparison.OrdinalIgnoreCase))
+            {
+                return this.BadRequest(new { Message = $"Cannot remove the authorization console web API" });
+            }
+
             using (var session = this.store.LightweightSession())
             {
                 session.DeleteWhere<PostgresResource>(document => document.Name == resourceName);
