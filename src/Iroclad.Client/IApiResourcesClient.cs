@@ -14,11 +14,12 @@ namespace Ironclad.Client
         /// <summary>
         /// Gets the API resource summaries (or a subset thereof).
         /// </summary>
+        /// <param name="startsWith">The start of the resource name.</param>
         /// <param name="start">The zero-based start ordinal of the resource set to return.</param>
         /// <param name="size">The total size of the resource set.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The resource summaries.</returns>
-        Task<ResourceSet<ResourceSummary>> GetApiResourceSummariesAsync(int start = 0, int size = 20, CancellationToken cancellationToken = default);
+        Task<ResourceSet<ResourceSummary>> GetApiResourceSummariesAsync(string startsWith = default, int start = 0, int size = 20, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the specified API resource.

@@ -45,7 +45,7 @@ namespace Ironclad.Console.Commands
 
                     options.Command = new ListCommand<UserSummary>(
                         "users",
-                        async context => await context.UsersClient.GetUserSummariesAsync(skip, take).ConfigureAwait(false),
+                        async context => await context.UsersClient.GetUserSummariesAsync(start: skip, size: take).ConfigureAwait(false),
                         ("username", user => user.Username),
                         ("email",    user => user.Email),
                         ("sub",      user => user.Id));

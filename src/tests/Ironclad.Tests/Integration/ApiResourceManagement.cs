@@ -76,13 +76,37 @@ namespace Ironclad.Tests.Feature
                 ApiSecret = "secret",
             };
 
-            // act
             await httpClient.AddApiResourceAsync(expectedResource).ConfigureAwait(false);
 
-            // assert
+            // act
             var resourceSummaries = await httpClient.GetApiResourceSummariesAsync().ConfigureAwait(false);
+
+            // assert
             resourceSummaries.Should().NotBeNull();
             resourceSummaries.Should().Contain(summary => summary.Name == expectedResource.Name && summary.DisplayName == expectedResource.DisplayName);
+        }
+
+        [Fact]
+        public async Task CanGetApiResourceSummariesWithQuery()
+        {
+            // arrange
+            var httpClient = new ApiResourcesHttpClient(this.Authority, this.Handler);
+            var resource1 = new ApiResource { Name = "query", ApiSecret = "secret" };
+            var resource2 = new ApiResource { Name = "query_test_02", ApiSecret = "secret" };
+            var resource3 = new ApiResource { Name = "query_test_03", ApiSecret = "secret" };
+
+            await httpClient.AddApiResourceAsync(resource1).ConfigureAwait(false);
+            await httpClient.AddApiResourceAsync(resource2).ConfigureAwait(false);
+            await httpClient.AddApiResourceAsync(resource3).ConfigureAwait(false);
+
+            // act
+            var resourceSummaries = await httpClient.GetApiResourceSummariesAsync("query_").ConfigureAwait(false);
+
+            // assert
+            resourceSummaries.Should().NotBeNull();
+            resourceSummaries.Should().HaveCount(2);
+            resourceSummaries.Should().Contain(summary => summary.Name == resource2.Name);
+            resourceSummaries.Should().Contain(summary => summary.Name == resource3.Name);
         }
 
         [Fact]

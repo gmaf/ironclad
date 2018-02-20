@@ -31,14 +31,17 @@ namespace Ironclad.WebApi
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(int skip = default, int take = 20)
+        public async Task<IActionResult> Get(string username, int skip = default, int take = 20)
         {
             skip = Math.Max(0, skip);
             take = take < 0 ? 20 : Math.Min(take, 100);
 
-            var totalSize = await this.userManager.Users.CountAsync();
+            var userQuery = string.IsNullOrEmpty(username)
+                ? this.userManager.Users
+                : this.userManager.Users.Where(user => user.UserName.StartsWith(username, StringComparison.OrdinalIgnoreCase));
 
-            var users = await this.userManager.Users.Skip(skip).Take(take).ToListAsync();
+            var totalSize = await userQuery.CountAsync();
+            var users = await userQuery.OrderBy(user => user.UserName).Skip(skip).Take(take).ToListAsync();
             var resources = users.Select(
                 user =>
                 new UserSummaryResource

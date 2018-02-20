@@ -14,11 +14,12 @@ namespace Ironclad.Client
         /// <summary>
         /// Gets the client summaries (or a subset thereof).
         /// </summary>
+        /// <param name="startsWith">The start of the client identifier.</param>
         /// <param name="start">The zero-based start ordinal of the client set to return.</param>
         /// <param name="size">The total size of the client set.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The client summaries.</returns>
-        Task<ResourceSet<ClientSummary>> GetClientSummariesAsync(int start = 0, int size = 20, CancellationToken cancellationToken = default);
+        Task<ResourceSet<ClientSummary>> GetClientSummariesAsync(string startsWith = default, int start = 0, int size = 20, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the specified client.

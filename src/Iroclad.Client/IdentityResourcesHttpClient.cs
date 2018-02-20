@@ -3,6 +3,7 @@
 
 namespace Ironclad.Client
 {
+    using System.Net;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
@@ -27,12 +28,19 @@ namespace Ironclad.Client
         /// <summary>
         /// Gets the identity resource summaries (or a subset thereof).
         /// </summary>
+        /// <param name="startsWith">The start of the resource name.</param>
         /// <param name="start">The zero-based start ordinal of the resource set to return.</param>
         /// <param name="size">The total size of the resource set.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The resource summaries.</returns>
-        public Task<ResourceSet<ResourceSummary>> GetIdentityResourceSummariesAsync(int start = 0, int size = 20, CancellationToken cancellationToken = default) =>
-            this.GetAsync<ResourceSet<ResourceSummary>>(this.RelativeUrl($"{ApiPath}?skip={NotNegative(start, nameof(start))}&take={NotNegative(size, nameof(size))}"), cancellationToken);
+        public Task<ResourceSet<ResourceSummary>> GetIdentityResourceSummariesAsync(
+            string startsWith = default,
+            int start = 0,
+            int size = 20,
+            CancellationToken cancellationToken = default) =>
+            this.GetAsync<ResourceSet<ResourceSummary>>(
+                this.RelativeUrl($"{ApiPath}?name={WebUtility.UrlEncode(startsWith)}&skip={NotNegative(start, nameof(start))}&take={NotNegative(size, nameof(size))}"),
+                cancellationToken);
 
         /// <summary>
         /// Gets the specified identity resource.
@@ -41,7 +49,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The resource.</returns>
         public Task<IdentityResource> GetIdentityResourceAsync(string resourceName, CancellationToken cancellationToken = default) =>
-            this.GetAsync<IdentityResource>(this.RelativeUrl($"{ApiPath}/{NotNull(resourceName, nameof(resourceName))}"), cancellationToken);
+            this.GetAsync<IdentityResource>(this.RelativeUrl($"{ApiPath}/{WebUtility.UrlEncode(NotNull(resourceName, nameof(resourceName)))}"), cancellationToken);
 
         /// <summary>
         /// Adds the specified identity resource.
@@ -59,7 +67,7 @@ namespace Ironclad.Client
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task object representing the asynchronous operation.</returns>
         public Task RemoveIdentityResourceAsync(string resourceName, CancellationToken cancellationToken = default) =>
-            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{NotNull(resourceName, nameof(resourceName))}"), cancellationToken);
+            this.DeleteAsync(this.RelativeUrl($"{ApiPath}/{WebUtility.UrlEncode(NotNull(resourceName, nameof(resourceName)))}"), cancellationToken);
 
         /// <summary>
         /// Modifies the specified identity resource.
@@ -70,7 +78,7 @@ namespace Ironclad.Client
         public Task ModifyIdentityResourceAsync(IdentityResource resource, CancellationToken cancellationToken = default) =>
             this.SendAsync<IdentityResource>(
                 HttpMethod.Put,
-                this.RelativeUrl($"{ApiPath}/{NotNull(resource?.Name, "resource.Name")}"),
+                this.RelativeUrl($"{ApiPath}/{WebUtility.UrlEncode(NotNull(resource?.Name, "resource.Name"))}"),
                 resource,
                 cancellationToken);
     }

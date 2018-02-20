@@ -31,15 +31,19 @@ namespace Ironclad.WebApi
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(int skip = default, int take = 20)
+        public async Task<IActionResult> Get(string name, int skip = default, int take = 20)
         {
             skip = Math.Max(0, skip);
             take = take < 0 ? 20 : Math.Min(take, 100);
 
             using (var session = this.store.LightweightSession())
             {
-                var totalSize = await session.Query<PostgresResource>().CountAsync();
-                var documents = await session.Query<PostgresResource>().Skip(skip).Take(take).ToListAsync();
+                var resourceQuery = string.IsNullOrEmpty(name)
+                    ? session.Query<PostgresResource>()
+                    : session.Query<PostgresResource>().Where(resource => resource.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase));
+
+                var totalSize = await resourceQuery.CountAsync();
+                var documents = await resourceQuery.OrderBy(resource => resource.Name).Skip(skip).Take(take).ToListAsync();
                 var resources = documents.Select(
                     document =>
                     new ResourceSummaryResource
