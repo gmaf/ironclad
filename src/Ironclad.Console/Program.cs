@@ -69,7 +69,7 @@ namespace Ironclad.Console
                 return 1;
             }
 
-            if (options.IsHelp)
+            if (options.Help.HasValue())
             {
                 return 2;
             }
@@ -83,7 +83,7 @@ namespace Ironclad.Console
 
             if (options.Command is LoginCommand.Reset)
             {
-                await options.Command.ExecuteAsync(new CommandContext(this.console, null, null, null, null, null, repository)).ConfigureAwait(false);
+                await options.Command.ExecuteAsync(new CommandContext(this.console, null, null, null, null, null, null, repository)).ConfigureAwait(false);
                 return 0;
             }
 
@@ -137,7 +137,8 @@ namespace Ironclad.Console
                         });
                 };
 
-                var context = new CommandContext(this.console, clientsClient, apiResourcesClient, identityResourcesClient, rolesClient, usersClient, repository);
+                var reporter = new ConsoleReporter(this.console, options.Verbose.HasValue(), false);
+                var context = new CommandContext(this.console, reporter, clientsClient, apiResourcesClient, identityResourcesClient, rolesClient, usersClient, repository);
 
                 try
                 {
@@ -145,7 +146,7 @@ namespace Ironclad.Console
                 }
                 catch (Exception ex)
                 {
-                    await this.console.Out.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                    reporter.Error(ex.Message);
                     return 500;
                 }
                 finally

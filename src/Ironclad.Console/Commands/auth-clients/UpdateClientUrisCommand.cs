@@ -20,7 +20,7 @@ namespace Ironclad.Console.Commands
         {
         }
 
-        public static void Configure(CommandLineApplication app, CommandLineOptions options, IReporter reporter)
+        public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
             app.Description = "Update URIs for the specified client";
@@ -44,7 +44,7 @@ namespace Ironclad.Console.Commands
 
                 if (string.IsNullOrEmpty(argumentUriName.Value))
                 {
-                    reporter.Output("Entering interactive mode. Leave entry empty to finish editing.");
+                    console.Out.WriteLine("Entering interactive mode. Leave entry empty to finish editing.");
 
                     string uriName;
                     var uriValues = new List<string>();
@@ -64,7 +64,7 @@ namespace Ironclad.Console.Commands
                         result = validator.GetValidationResult(command, null);
                         if (!string.IsNullOrEmpty(result?.ErrorMessage))
                         {
-                            reporter.Error(result.ErrorMessage);
+                            console.WriteLine(result.ErrorMessage);
                         }
                     } while (result != null && !result.Equals(ValidationResult.Success));
 #pragma warning restore SA1500
@@ -82,7 +82,7 @@ namespace Ironclad.Console.Commands
                             break;
                         }
 
-                        reporter.Output("Added.");
+                        console.WriteLine("Added.");
                         uriValues.Add(uriValue);
                     }
 

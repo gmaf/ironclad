@@ -138,7 +138,7 @@ namespace Ironclad.Console.Commands
             var result = await oidcClient.LoginAsync(new LoginRequest()).ConfigureAwait(false);
             if (result.IsError)
             {
-                context.Console.Error.WriteLine($"Error attempting to log in:\r\n{result.Error}");
+                context.Console.Error.WriteLine($"Error attempting to log in:{Environment.NewLine}{result.Error}");
                 return;
             }
 

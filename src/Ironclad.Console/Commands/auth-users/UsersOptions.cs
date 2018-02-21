@@ -9,14 +9,14 @@ namespace Ironclad.Console.Commands
     // NOTE (Cameron): This command is informational only and cannot be executed (only 'show help' works) so inheriting ICommand is unnecessary.
     internal static class UsersOptions
     {
-        public static void Configure(CommandLineApplication app, CommandLineOptions options)
+        public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
             app.Description = "Provides user related operations";
             app.HelpOption();
 
             // commands
-            app.Command("add", command => AddUserCommand.Configure(command, options));
+            app.Command("add", command => AddUserCommand.Configure(command, options, console));
             app.Command("remove", command => RemoveCommand.Configure(command, options, GetRemoveCommandOptions()));
             app.Command("show", command => ShowCommand.Configure(command, options, GetShowCommandOptions()));
             app.Command("modify", command => ModifyUserCommand.Configure(command, options));

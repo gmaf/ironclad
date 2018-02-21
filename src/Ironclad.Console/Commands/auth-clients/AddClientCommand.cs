@@ -5,141 +5,301 @@ namespace Ironclad.Console.Commands
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
+    using Newtonsoft.Json;
+    using IroncladClient = Ironclad.Client.Client;
 
     internal class AddClientCommand : ICommand
     {
-        private Client.Client client;
+        private IroncladClient client;
 
         private AddClientCommand()
         {
         }
 
-        public static void Configure(CommandLineApplication app, CommandLineOptions options, IReporter reporter)
+        private interface IClientHelper
+        {
+            IroncladClient GetPrototype(IroncladClient client);
+
+            bool IsValid(IroncladClient client);
+
+            IroncladClient GetValid(IroncladClient client);
+        }
+
+        public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
-            app.Description = "Creates a new client trust relationship with the auth server";
-            app.ExtendedHelpText = $"{Environment.NewLine}Use \"clients add\" without argument to enter in interactive mode.{Environment.NewLine}";
-            app.HelpOption();
+            app.Description = "Creates a new client trust relationship with the authorization server.";
+            app.ExtendedHelpText = $"{Environment.NewLine}Use 'clients add -i' to enter interactive mode.{Environment.NewLine}";
 
             // arguments
-            var argumentClientId = app.Argument("id", "The client ID", false);
-            var argumentClientSecret = app.Argument("secret", "The client secret", false);
+            var argumentType = app.Argument("type", "The type of client to add. Allowed values are s[erver], w[ebsite], and c[onsole].", false);
+            var argumentClientId = app.Argument("id", "The client identifier.", false);
 
             // options
-            var optionsAccessToken = app.Option("-b|--access_tokens_via_browser", "Allow tokens access from browser.", CommandOptionType.NoValue);
-            var optionsCors = app.Option("-c|--cors_uri <uri>", "An allowed CORS origin of the client. You can call this several times.", CommandOptionType.MultipleValue);
-            var optionsGrants = app.Option("-g|--grant_types <type>", "A grant type of the client. You can call this several times.", CommandOptionType.MultipleValue);
-            var optionsSecretRequired = app.Option("-k|--secret_required", "Set client secret required.", CommandOptionType.NoValue);
-            var optionsLogouts = app.Option("-l|--logout_uri <uri>", "A logout URI of the client. You can call this several times.", CommandOptionType.MultipleValue);
-            var optionsName = app.Option("-n|--name <name>", "The name of the client", CommandOptionType.SingleValue);
-            var optionsOffline = app.Option("-o|--offline", "Allow offline access.", CommandOptionType.NoValue);
-            var optionsPkceRequired = app.Option("-p|--pkce_requred", "Set Proof Key for Code Exchange (PKCE) required.", CommandOptionType.NoValue);
-            var optionsConsentRequired = app.Option("-q|--constent_required", "Set consent required.", CommandOptionType.NoValue);
-            var optionsRedirects = app.Option("-r|--redirect_uri <uri>", "A redirect URI of the client. You can call this several times.", CommandOptionType.MultipleValue);
-            var optionsScopes = app.Option("-s|--scope <scope>", "An allowed scope for the client. You can call this several times.", CommandOptionType.MultipleValue);
-            var optionsToken = app.Option("-t|--token <Jwt/Reference>", "The access token type of the client", CommandOptionType.SingleValue);
+#pragma warning disable SA1025
+            var optionName =                        app.Option("-n|--name <name>",                 "The name of the client.",                                                 CommandOptionType.SingleValue);
+            var optionSecret =                      app.Option("-s|--secret <secret>",             "The client secret.",                                                      CommandOptionType.SingleValue);
+            var optionAllowedCorsOrigins =          app.Option("-c|--cors_uri <uri>",              "An allowed CORS origin for the client. You can call this several times.", CommandOptionType.MultipleValue);
+            var optionRedirectUris =                app.Option("-r|--redirect_uri <uri>",          "A redirect URI for the client. You can call this several times.",         CommandOptionType.MultipleValue);
+            var optionPostLogoutRedirectUris =      app.Option("-l|--logout_uri <uri>",            "A logout URI for the client. You can call this several times.",           CommandOptionType.MultipleValue);
+            var optionAllowedScopes =               app.Option("-a|--scope <scope>",               "An allowed scope for the client. You can call this several times.",       CommandOptionType.MultipleValue);
+            var optionAccessTokenType =             app.Option("-t|--token_type <Jwt/Reference>",  "The access token type for the client",                                    CommandOptionType.SingleValue);
+            var optionAllowedGrantTypes =           app.Option("-g|--grant_type <type>",           "A grant type for the client. You can call this several times.",           CommandOptionType.MultipleValue);
+            var optionAllowAccessTokensViaBrowser = app.Option("-b|--browser",                     "Allow access tokens via browser.",                                        CommandOptionType.NoValue);
+            var optionAllowOfflineAccess =          app.Option("-o|--offline",                     "Allow offline access.",                                                   CommandOptionType.NoValue);
+            var optionDoNotRequireClientSecret =    app.Option("-k|--no_secret",                   "Do not require client secret.",                                           CommandOptionType.NoValue);
+            var optionRequirePkce =                 app.Option("-p|--pkce",                        "Require Proof Key for Code Exchange (PKCE).",                             CommandOptionType.NoValue);
+            var optionDoNotRequireConsent =         app.Option("-q|--no_constent",                 "Do not require consent.",                                                 CommandOptionType.NoValue);
+            var optionDisabled =                    app.Option("-d|--disabled",                    "Creates the new client in a disabled state.",                             CommandOptionType.NoValue);
+            var optionInteractive =                 app.Option("-i|--interactive",                 "Enters interactive mode.",                                                CommandOptionType.NoValue);
+#pragma warning restore SA1025
+
+            app.HelpOption();
 
             // action (for this command)
             app.OnExecute(
                 () =>
                 {
-                    if (string.IsNullOrEmpty(argumentClientId.Value))
+                    var helper = default(IClientHelper);
+                    switch (argumentType.Value?.ToUpperInvariant())
                     {
-                        options.Command = GetClientFromPrompt(reporter);
-                    }
-                    else if (string.IsNullOrEmpty(argumentClientSecret.Value))
-                    {
-                        app.ShowVersionAndHelp();
-                    }
-                    else
-                    {
-                        options.Command = new AddClientCommand
-                        {
-                            client = new Client.Client
+                        case "S":
+                        case "SERVER":
+                            helper = new ServerClientHelper();
+                            break;
+
+                        case "W":
+                        case "WEBSITE":
+                            helper = new WebsiteClientHelper();
+                            break;
+
+                        case "C":
+                        case "CONSOLE":
+                            helper = new ConsoleClientHelper();
+                            break;
+
+                        case null:
+                        default:
+                            if (!optionInteractive.HasValue())
                             {
-                                Id = argumentClientId.Value,
-                                Secret = argumentClientSecret.Value,
-                                Name = optionsName.Value(),
-                                AccessTokenType = optionsToken.Value(),
-                                AllowedCorsOrigins = optionsCors.Values,
-                                RedirectUris = optionsRedirects.Values,
-                                PostLogoutRedirectUris = optionsLogouts.Values,
-                                AllowedScopes = optionsScopes.Values,
-                                AllowedGrantTypes = optionsGrants.Values,
-                                AllowAccessTokensViaBrowser = optionsAccessToken.HasValue(),
-                                AllowOfflineAccess = optionsOffline.HasValue(),
-                                RequirePkce = optionsPkceRequired.HasValue(),
-                                RequireClientSecret = optionsSecretRequired.HasValue(),
-                                RequireConsent = optionsConsentRequired.HasValue()
+                                app.ShowVersionAndHelp();
+                                return;
                             }
-                        };
+                            break;
                     }
+
+                    var reporter = new ConsoleReporter(console, options.Verbose.HasValue(), false);
+
+#pragma warning disable CA1308
+                    reporter.Verbose(
+                        $"Command type configured for '{helper.GetType().Name.ToLowerInvariant().Replace("ClientHelper", string.Empty, StringComparison.OrdinalIgnoreCase)}'.");
+#pragma warning restore CA1308
+
+                    var client = helper.GetPrototype(
+                        new IroncladClient
+                        {
+                            Id = argumentClientId.Value,
+                            Secret = optionSecret.Value(),
+                            Name = optionName.Value(),
+                            AccessTokenType = optionAccessTokenType.Value(),
+                            AllowedCorsOrigins = optionAllowedCorsOrigins.HasValue() ? optionAllowedCorsOrigins.Values.Distinct().ToHashSet() : null,
+                            RedirectUris = optionRedirectUris.HasValue() ? optionRedirectUris.Values.Distinct().ToHashSet() : null,
+                            PostLogoutRedirectUris = optionPostLogoutRedirectUris.HasValue() ? optionPostLogoutRedirectUris.Values.Distinct().ToHashSet() : null,
+                            AllowedScopes = optionAllowedScopes.HasValue() ? optionAllowedScopes.Values.Distinct().ToHashSet() : null,
+                            AllowedGrantTypes = optionAllowedGrantTypes.HasValue() ? optionAllowedGrantTypes.Values.Distinct().ToHashSet() : null,
+                            AllowAccessTokensViaBrowser = optionAllowAccessTokensViaBrowser.HasValue() ? (bool?)(optionAllowAccessTokensViaBrowser.Value() == "on") : null,
+                            AllowOfflineAccess = optionAllowOfflineAccess.HasValue() ? (bool?)(optionAllowOfflineAccess.Value() == "on") : null,
+                            RequirePkce = optionRequirePkce.HasValue() ? (bool?)(optionRequirePkce.Value() == "on") : null,
+                            RequireClientSecret = optionDoNotRequireClientSecret.HasValue() ? (bool?)(!(optionDoNotRequireClientSecret.Value() == "on")) : null,
+                            RequireConsent = optionDoNotRequireConsent.HasValue() ? (bool?)(!(optionDoNotRequireConsent.Value() == "on")) : null,
+                            Enabled = optionDisabled.HasValue() ? (bool?)(!(optionDisabled.Value() == "on")) : null,
+                        });
+
+                    reporter.Verbose("Prototype client (from command line arguments):");
+                    reporter.Verbose(JsonConvert.SerializeObject(client));
+
+                    if (!helper.IsValid(client) || optionInteractive.HasValue())
+                    {
+                        try
+                        {
+                            client = helper.GetValid(client);
+                        }
+                        catch (NotSupportedException ex)
+                        {
+                            throw new CommandParsingException(app, $"Operation Aborted. {ex.Message}", ex);
+                        }
+
+                        reporter.Verbose("Validated client (from interactive console):");
+                        reporter.Verbose(JsonConvert.SerializeObject(client));
+                    }
+
+                    options.Command = new AddClientCommand { client = client };
                 });
         }
 
-        public async Task ExecuteAsync(CommandContext context)
-        {
-            await context.ClientsClient.AddClientAsync(this.client).ConfigureAwait(false);
-        }
+        public Task ExecuteAsync(CommandContext context) => context.ClientsClient.AddClientAsync(this.client);
 
-        private static AddClientCommand GetClientFromPrompt(IReporter reporter)
+        private static string Safe(string value, string errorMessage)
         {
-            var clientDto = new Client.Client();
-
-            clientDto.Id = Prompt.GetString("Unique Id:");
-            if (string.IsNullOrEmpty(clientDto.Id))
+            if (string.IsNullOrWhiteSpace(value))
             {
-                reporter.Error("Id cannot be null");
-                return null;
+                throw new NotSupportedException(errorMessage);
             }
 
-            clientDto.Name = Prompt.GetString("Name:", clientDto.Id);
-            clientDto.Secret = Prompt.GetPassword("Secret:");
-            if (string.IsNullOrEmpty(clientDto.Secret))
-            {
-                reporter.Error("Secret cannot be null");
-                return null;
-            }
-
-            clientDto.AccessTokenType = Prompt.GetString("AccessTokenType:", "Jwt");
-
-            clientDto.AllowedCorsOrigins = PromptList("AllowedCorsOrigins", reporter);
-            clientDto.RedirectUris = PromptList("RedirectUris", reporter);
-            clientDto.PostLogoutRedirectUris = PromptList("PostLogoutRedirectUris", reporter);
-            clientDto.AllowedScopes = PromptList("AllowedScopes", reporter);
-            clientDto.AllowedGrantTypes = PromptList("AllowedGrantTypes", reporter);
-
-            clientDto.AllowAccessTokensViaBrowser = Prompt.GetYesNo("Allow Access Token Via Browser ? ", true);
-            clientDto.AllowOfflineAccess = Prompt.GetYesNo("Allow Offline Access ? ", true);
-            clientDto.RequireClientSecret = Prompt.GetYesNo("Is client secret required ?", false);
-            clientDto.RequirePkce = Prompt.GetYesNo("Is Proof Key for Code Exchange (PKCE) required ?", false);
-            clientDto.RequireConsent = Prompt.GetYesNo("Is consent required ? ", false);
-
-            return new AddClientCommand
-            {
-                client = clientDto,
-            };
+            return value;
         }
 
-        private static ICollection<string> PromptList(string elementName, IReporter reporter)
+        private class ServerClientHelper : IClientHelper
         {
-            reporter.Output($"{elementName} part. Leave empty once we want no more scopes.");
-
-            var elements = new List<string>();
-            while (true)
+            public IroncladClient GetPrototype(IroncladClient client)
             {
-                var element = Prompt.GetString($"{elementName} {elements.Count + 1}:");
-                if (string.IsNullOrEmpty(element))
+                client.AllowedGrantTypes = client.AllowedGrantTypes ?? new HashSet<string> { "client_credentials" };
+                return client;
+            }
+
+            public bool IsValid(IroncladClient client) =>
+                !string.IsNullOrEmpty(client.Id) &&
+                !string.IsNullOrEmpty(client.Secret) &&
+                client.AllowedScopes?.Any() == true &&
+                client.AllowedGrantTypes.Contains("client_credentials");
+
+            public IroncladClient GetValid(IroncladClient client)
+            {
+                client.Id = Safe(Prompt.GetString("Client identifier:", client.Id), "Cannot create a server client without a client identifier.");
+                client.Name = Prompt.GetString("Client name:", client.Name);
+                client.Secret = client.Secret ?? Safe(Prompt.GetPassword("Client secret:"), "Cannot create a server client without a client secret.");
+                client.AllowedScopes = Safe(
+                    Prompt.GetString(
+                        "Allowed scopes for the client (space separated):",
+                        client.AllowedScopes == null ? null : string.Join(", ", client.AllowedScopes)),
+                    "Cannot create a server client without any allowed scopes.")
+                    .Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                client.RequireConsent = Prompt.GetYesNo("Require consent?", true);
+
+                // defaults
+                client.Name = string.IsNullOrWhiteSpace(client.Name) ? null : client.Name;
+                if (!client.AllowedGrantTypes.Contains("client_credentials"))
                 {
-                    break;
+                    client.AllowedGrantTypes.Add("client_credentials");
                 }
 
-                elements.Add(element);
+                return client;
+            }
+        }
+
+        private class WebsiteClientHelper : IClientHelper
+        {
+            public IroncladClient GetPrototype(IroncladClient client)
+            {
+                client.AllowAccessTokensViaBrowser = client.AllowAccessTokensViaBrowser ?? true;
+                client.AllowedGrantTypes = client.AllowedGrantTypes ?? new HashSet<string> { "implicit" };
+                return client;
             }
 
-            return elements;
+            public bool IsValid(IroncladClient client) =>
+                !string.IsNullOrEmpty(client.Id) &&
+                !string.IsNullOrEmpty(client.Secret) &&
+                client.AllowedCorsOrigins?.Any() == true &&
+                client.RedirectUris?.Any() == true &&
+                client.PostLogoutRedirectUris?.Any() == true &&
+                client.AllowedScopes?.Any() == true &&
+                client.AllowAccessTokensViaBrowser == true &&
+                client.AllowedGrantTypes.Contains("implicit");
+
+            public IroncladClient GetValid(IroncladClient client)
+            {
+                client.Id = Safe(Prompt.GetString("Client identifier:", client.Id), "Cannot create a website client without a client identifier.");
+                client.Name = Prompt.GetString("Client name:", client.Name);
+                client.AllowedCorsOrigins = Safe(
+                    Prompt.GetString(
+                        "Allowed CORS origins for the client (space separated):",
+                        client.AllowedCorsOrigins == null ? null : string.Join(", ", client.AllowedCorsOrigins)),
+                    "Cannot create a website client without any allowed CORS origins.")
+                    .Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                client.RedirectUris = Safe(
+                    Prompt.GetString(
+                        "Redirect URIs for the client (space separated):",
+                        client.RedirectUris == null ? null : string.Join(", ", client.RedirectUris)),
+                    "Cannot create a website client without any redirect URIs.")
+                    .Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                client.PostLogoutRedirectUris = Prompt.GetString(
+                    "Allowed post-logout redirect URIs for the client (space separated) [optional]:",
+                    client.PostLogoutRedirectUris == null ? null : string.Join(", ", client.PostLogoutRedirectUris))
+                    ?.Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                client.AllowedScopes = Safe(
+                    Prompt.GetString(
+                        "Allowed scopes for the client (space separated):",
+                        client.AllowedScopes == null ? null : string.Join(", ", client.AllowedScopes)),
+                    "Cannot create a website client without any allowed scopes.")
+                    .Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                client.RequireConsent = Prompt.GetYesNo("Require consent?", true);
+
+                // defaults
+                client.Name = string.IsNullOrWhiteSpace(client.Name) ? null : client.Name;
+                client.AllowAccessTokensViaBrowser = true;
+                if (!client.AllowedGrantTypes.Contains("implicit"))
+                {
+                    client.AllowedGrantTypes.Add("implicit");
+                }
+
+                return client;
+            }
+        }
+
+        private class ConsoleClientHelper : IClientHelper
+        {
+            public IroncladClient GetPrototype(IroncladClient client)
+            {
+                client.RedirectUris = client.RedirectUris ?? new HashSet<string> { "http://127.0.0.1" };
+                client.AllowedGrantTypes = client.AllowedGrantTypes ?? new HashSet<string> { "hybrid" };
+                client.AllowOfflineAccess = client.AllowOfflineAccess ?? true;
+                client.RequireClientSecret = client.RequireClientSecret ?? false;
+                client.RequirePkce = client.RequirePkce ?? true;
+                client.AccessTokenType = client.AccessTokenType ?? "Reference";
+                return client;
+            }
+
+            public bool IsValid(IroncladClient client) =>
+                !string.IsNullOrEmpty(client.Id) &&
+                client.AllowedScopes?.Any() == true &&
+                client.RedirectUris?.Any() == true &&
+                client.AllowOfflineAccess == true &&
+                client.RequireClientSecret == false &&
+                client.RequirePkce == true &&
+                client.AllowedGrantTypes.Contains("hybrid");
+
+            public IroncladClient GetValid(IroncladClient client)
+            {
+                client.Id = Safe(Prompt.GetString("Client identifier:", client.Id), "Cannot create a console client without a client identifier.");
+                client.Name = Prompt.GetString("Client name:", client.Name);
+                client.AllowedScopes = Safe(
+                    Prompt.GetString(
+                        "Allowed scopes for the client (space separated):",
+                        client.AllowedScopes == null ? null : string.Join(", ", client.AllowedScopes)),
+                    "Cannot create a console client without any allowed scopes.")
+                    .Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                client.AllowOfflineAccess = Prompt.GetYesNo("Allow offline access?", true);
+                client.RequireConsent = Prompt.GetYesNo("Require consent?", true);
+
+                // defaults
+                client.Name = string.IsNullOrWhiteSpace(client.Name) ? null : client.Name;
+                client.RequireClientSecret = true;
+                client.RequirePkce = true;
+                if (!client.RedirectUris.Contains("http://127.0.0.1"))
+                {
+                    client.RedirectUris.Add("http://127.0.0.1");
+                }
+
+                if (!client.AllowedGrantTypes.Contains("hybrid"))
+                {
+                    client.AllowedGrantTypes.Add("hybrid");
+                }
+
+                return client;
+            }
         }
     }
 }

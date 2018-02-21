@@ -3,12 +3,13 @@
 
 namespace Ironclad.Console.Commands
 {
-    using Ironclad.Console.Persistence;
     using McMaster.Extensions.CommandLineUtils;
 
     public class CommandLineOptions
     {
-        public bool IsHelp { get; private set; }
+        public CommandOption Help { get; private set; }
+
+        public CommandOption Verbose { get; private set; }
 
         public ICommand Command { get; set; }
 
@@ -18,16 +19,15 @@ namespace Ironclad.Console.Commands
             var options = new CommandLineOptions();
 
             var app = new CommandLineApplication(console);
-            var reporter = new ConsoleReporter(console);
 
-            app.HelpOption();
-            app.VerboseOption();
+            options.Verbose = app.VerboseOption();
+            options.Help = app.HelpOption();
 
             // commands
             app.Command("login", command => LoginCommand.Configure(command, options, console));
-            app.Command("clients", command => ClientsOptions.Configure(command, options, reporter));
+            app.Command("clients", command => ClientsOptions.Configure(command, options, console));
             app.Command("apis", command => ApisOptions.Configure(command, options, console));
-            app.Command("users", command => UsersOptions.Configure(command, options));
+            app.Command("users", command => UsersOptions.Configure(command, options, console));
             app.Command("roles", command => RolesOptions.Configure(command, options));
 
             // action (for this command)
@@ -39,8 +39,6 @@ namespace Ironclad.Console.Commands
                 // when command line parsing error in subcommand
                 return null;
             }
-
-            options.IsHelp = app.IsShowingInformation;
 
             return options;
         }
