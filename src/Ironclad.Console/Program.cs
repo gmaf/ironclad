@@ -60,7 +60,7 @@ namespace Ironclad.Console
             }
             catch (CommandParsingException ex)
             {
-                await this.console.Out.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                new ConsoleReporter(this.console).Warn(ex.Message);
                 return 1;
             }
 

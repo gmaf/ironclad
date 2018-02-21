@@ -31,12 +31,10 @@ namespace Ironclad.Console.Commands
 #pragma warning disable SA1025
             var optionPassword =    app.Option("-p|--password <password>", "The password",                                                       CommandOptionType.SingleValue);
             var optionEmail =       app.Option("-e|--email <email>",       "The email address for the user",                                     CommandOptionType.SingleValue);
-            var optionPhoneNumber = app.Option("-p|--phone <phone>",       "The phone number for the user",                                      CommandOptionType.SingleValue);
+            var optionPhoneNumber = app.Option("-n|--phone <phone>",       "The phone number for the user",                                      CommandOptionType.SingleValue);
             var optionRoles =       app.Option("-r|--role <role>",         "A role to assign the new user to (you can call this several times)", CommandOptionType.MultipleValue);
             var optionInteractive = app.Option("-i|--interactive",         "Enters interactive mode",                                            CommandOptionType.NoValue);
 #pragma warning restore SA1025
-
-            app.HelpOption();
 
             // action (for this command)
             app.OnExecute(
