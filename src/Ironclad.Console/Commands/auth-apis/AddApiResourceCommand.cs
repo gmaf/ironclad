@@ -143,6 +143,5 @@ namespace Ironclad.Console.Commands
                 return resource;
             }
         }
-
     }
 }

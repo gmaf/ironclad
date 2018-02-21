@@ -20,11 +20,8 @@ namespace Ironclad.Console.Commands
             app.Command("add", command => AddClientCommand.Configure(command, options, console));
             app.Command("remove", command => RemoveCommand.Configure(command, options, GetRemoveCommandOptions()));
             app.Command("show", command => ShowCommand.Configure(command, options, GetShowCommandOptions()));
-            app.Command("scopes", command => ModifyClientScopesCommand.Configure(command, options));
             app.Command("enable", command => EnableClientCommand.Configure(command, options));
             app.Command("disable", command => DisableClientCommand.Configure(command, options));
-            app.Command("token", command => ChangeClientTokenTypeCommand.Configure(command, options));
-            app.Command("uris", command => UpdateClientUrisCommand.Configure(command, options, console));
 
             // action (for this command)
             app.OnExecute(() => app.ShowVersionAndHelp());
