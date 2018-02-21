@@ -21,19 +21,19 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
-            app.Description = "Creates a new user on the authorization server.";
-            app.ExtendedHelpText = $"{Environment.NewLine}Use 'users add -i' to enter interactive mode.{Environment.NewLine}";
+            app.Description = "Creates a new user";
+            app.ExtendedHelpText = $"{Environment.NewLine}Use 'users add -i' to enter interactive mode{Environment.NewLine}";
 
             // arguments
-            var argumentUsername = app.Argument("username", "The username.", false);
+            var argumentUsername = app.Argument("username", "The username", false);
 
             // options
 #pragma warning disable SA1025
-            var optionPassword =    app.Option("-p|--password <password>", "The password.",                                                      CommandOptionType.SingleValue);
-            var optionEmail =       app.Option("-e|--email <email>",       "The email address for the user.",                                    CommandOptionType.SingleValue);
-            var optionPhoneNumber = app.Option("-p|--phone <phone>",       "The phone number for the user.",                                     CommandOptionType.SingleValue);
-            var optionRoles =       app.Option("-r|--role <role>",         "A role to assign the new user to. You can call this several times.", CommandOptionType.MultipleValue);
-            var optionInteractive = app.Option("-i|--interactive",         "Enters interactive mode.",                                           CommandOptionType.NoValue);
+            var optionPassword =    app.Option("-p|--password <password>", "The password",                                                       CommandOptionType.SingleValue);
+            var optionEmail =       app.Option("-e|--email <email>",       "The email address for the user",                                     CommandOptionType.SingleValue);
+            var optionPhoneNumber = app.Option("-p|--phone <phone>",       "The phone number for the user",                                      CommandOptionType.SingleValue);
+            var optionRoles =       app.Option("-r|--role <role>",         "A role to assign the new user to (you can call this several times)", CommandOptionType.MultipleValue);
+            var optionInteractive = app.Option("-i|--interactive",         "Enters interactive mode",                                            CommandOptionType.NoValue);
 #pragma warning restore SA1025
 
             app.HelpOption();

@@ -19,7 +19,7 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions commandLineOptions, RemoveCommandOptions removeCommandOptions)
         {
             // description
-            app.Description = $"Removes the specified {removeCommandOptions.Type}.";
+            app.Description = $"Removes a {removeCommandOptions.Type}";
             app.HelpOption();
 
             // arguments

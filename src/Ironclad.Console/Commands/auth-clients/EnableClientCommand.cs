@@ -17,11 +17,11 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Enable the specified client";
+            app.Description = "Enable a client";
             app.HelpOption();
 
             // arguments
-            var argumentClientId = app.Argument("id", "The client ID", false);
+            var argumentClientId = app.Argument("id", "The client identifier", false);
 
             // action (for this command)
             app.OnExecute(

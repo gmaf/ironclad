@@ -21,7 +21,7 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Assign the roles to the specified user";
+            app.Description = "Assigns roles to a user";
             app.HelpOption();
 
             // arguments
@@ -51,7 +51,6 @@ namespace Ironclad.Console.Commands
             };
 
             await context.UsersClient.ModifyUserAsync(user).ConfigureAwait(false);
-            await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }
 }

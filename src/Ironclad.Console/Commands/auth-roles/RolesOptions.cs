@@ -13,7 +13,7 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Provides role related operations";
+            app.Description = "Manage roles";
             app.HelpOption();
 
             // commands
@@ -30,7 +30,7 @@ namespace Ironclad.Console.Commands
             {
                 Type = "role",
                 ArgumentName = "role",
-                ArgumentDescription = "The role to remove.",
+                ArgumentDescription = "The role to remove",
                 RemoveCommand = value => new RemoveCommand(async context => await context.RolesClient.RemoveRoleAsync(value).ConfigureAwait(false)),
             };
 
@@ -39,7 +39,7 @@ namespace Ironclad.Console.Commands
             {
                 Type = "role",
                 ArgumentName = "role",
-                ArgumentDescription = "The role. You can end the role with a wildcard to search.",
+                ArgumentDescription = "The role (you can end the role with a wildcard to search)",
                 DisplayCommand = (string value) => new ExistsCommand { RoleName = value },
                 ListCommand = (string startsWith, int skip, int take) =>
                     new ShowCommand.List<string>(

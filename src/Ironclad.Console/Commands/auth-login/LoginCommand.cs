@@ -28,7 +28,7 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
-            app.Description = "Logs in to the specified authorization server";
+            app.Description = "Log in to an authorization server";
 
             // arguments
             var argumentAuthority = app.Argument("authority", "The URL for the authorization server to log in to");

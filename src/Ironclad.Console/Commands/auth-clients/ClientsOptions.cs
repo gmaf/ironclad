@@ -13,7 +13,7 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
-            app.Description = "Provides client related operations";
+            app.Description = "Manage clients";
             app.HelpOption();
 
             // commands
@@ -32,7 +32,7 @@ namespace Ironclad.Console.Commands
             {
                 Type = "client",
                 ArgumentName = "id",
-                ArgumentDescription = "The client identifier for the client to remove.",
+                ArgumentDescription = "The client identifier for the client to remove",
                 RemoveCommand = value => new RemoveCommand(async context => await context.ClientsClient.RemoveClientAsync(value).ConfigureAwait(false)),
             };
 
@@ -41,7 +41,7 @@ namespace Ironclad.Console.Commands
             {
                 Type = "client",
                 ArgumentName = "id",
-                ArgumentDescription = "The client identifier. You can end the client identifier with a wildcard to search.",
+                ArgumentDescription = "The client identifier (you can end the client identifier with a wildcard to search)",
                 DisplayCommand = (string value) => new ShowCommand.Display<Client>(async context => await context.ClientsClient.GetClientAsync(value).ConfigureAwait(false)),
                 ListCommand = (string startsWith, int skip, int take) =>
                     new ShowCommand.List<ClientSummary>(

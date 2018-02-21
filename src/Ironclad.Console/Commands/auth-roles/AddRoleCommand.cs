@@ -17,10 +17,10 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Creates a new role on the authorization server.";
+            app.Description = "Creates a new role";
 
             // arguments
-            var argumentRole = app.Argument("name", "The role name.", false);
+            var argumentRole = app.Argument("name", "The role name", false);
 
             app.HelpOption();
 

@@ -22,20 +22,20 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
-            app.Description = $"Creates a new API trust relationship with the authorization server.";
-            app.ExtendedHelpText = $"{Environment.NewLine}Use 'apis add -i' to enter interactive mode.{Environment.NewLine}To add user claims to scopes please use interactive mode.{Environment.NewLine}";
+            app.Description = $"Creates a new API";
+            app.ExtendedHelpText = $"{Environment.NewLine}Use 'apis add -i' to enter interactive mode{Environment.NewLine}To add user claims to scopes please use interactive mode{Environment.NewLine}";
 
             // arguments
-            var argumentName = app.Argument("name", "The API name.", false);
-            var argumentApiSecret = app.Argument("secret", "The API secret.", false);
+            var argumentName = app.Argument("name", "The API name", false);
+            var argumentApiSecret = app.Argument("secret", "The API secret", false);
 
             // options
 #pragma warning disable SA1025
-            var optionDisplayName = app.Option("-d|--description <description>",     "The API description.",                                               CommandOptionType.SingleValue);
-            var optionUserClaims =  app.Option("-c|--claim <claim>",                 "A user claim required by the API. You can call this several times.", CommandOptionType.MultipleValue);
-            var optionApiScopes =   app.Option("-a|--scope <scope>",                 "A scope associated with this API. You can call this several times.", CommandOptionType.MultipleValue);
-            var optionDisabled =    app.Option("-d|--disabled",                      "Creates the new API in a disabled state.",                           CommandOptionType.NoValue);
-            var optionInteractive = app.Option("-i|--interactive",                   "Enters interactive mode.",                                           CommandOptionType.NoValue);
+            var optionDisplayName = app.Option("-d|--description <description>",     "The API description",                                               CommandOptionType.SingleValue);
+            var optionUserClaims =  app.Option("-c|--claim <claim>",                 "A user claim required by the API (you can call this several times)", CommandOptionType.MultipleValue);
+            var optionApiScopes =   app.Option("-a|--scope <scope>",                 "A scope associated with this API (you can call this several times)", CommandOptionType.MultipleValue);
+            var optionDisabled =    app.Option("-d|--disabled",                      "Creates the new API in a disabled state",                           CommandOptionType.NoValue);
+            var optionInteractive = app.Option("-i|--interactive",                   "Enters interactive mode",                                           CommandOptionType.NoValue);
 #pragma warning restore SA1025
 
             app.HelpOption();

@@ -12,7 +12,7 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
-            app.Description = "Provides user related operations";
+            app.Description = "Manage users";
             app.HelpOption();
 
             // commands
@@ -31,7 +31,7 @@ namespace Ironclad.Console.Commands
             {
                 Type = "user",
                 ArgumentName = "username",
-                ArgumentDescription = "The username of the user to remove.",
+                ArgumentDescription = "The username of the user to remove",
                 RemoveCommand = value => new RemoveCommand(async context => await context.UsersClient.RemoveUserAsync(value).ConfigureAwait(false)),
             };
 
@@ -40,7 +40,7 @@ namespace Ironclad.Console.Commands
             {
                 Type = "user",
                 ArgumentName = "username",
-                ArgumentDescription = "The username. You can end the username with a wildcard to search.",
+                ArgumentDescription = "The username (you can end the username with a wildcard to search)",
                 DisplayCommand = (string value) => new ShowCommand.Display<User>(async context => await context.UsersClient.GetUserAsync(value).ConfigureAwait(false)),
                 ListCommand = (string startsWith, int skip, int take) =>
                     new ShowCommand.List<UserSummary>(
