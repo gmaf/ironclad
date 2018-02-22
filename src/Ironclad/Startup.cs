@@ -3,10 +3,15 @@
 
 namespace Ironclad
 {
+    using System;
+    using System.Linq;
+    using IdentityServer4.AccessTokenValidation;
     using IdentityServer4.Postgresql.Extensions;
     using Ironclad.Application;
+    using Ironclad.Authorization;
     using Ironclad.Data;
     using Ironclad.Services;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.HttpOverrides;
@@ -14,6 +19,9 @@ namespace Ironclad
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
+    using Newtonsoft.Json.Serialization;
 
     public class Startup
     {
@@ -47,22 +55,47 @@ namespace Ironclad
                 .AddDefaultTokenProviders();
 
             services.AddTransient<IEmailSender, EmailSender>();
+            services.AddSingleton<IAuthorizationHandler, AdministratorHandler>();
 
-            services.AddMvc();
+            services.AddMvc()
+                .AddJsonOptions(
+                    options =>
+                    {
+                        options.SerializerSettings.ContractResolver = new DefaultContractResolver { NamingStrategy = new SnakeCaseNamingStrategy() };
+                        options.SerializerSettings.Converters.Add(new StringEnumConverter());
+                        options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                    });
 
             services.AddIdentityServer(options => options.PublicOrigin = this.configuration.GetValue<string>("PUBLIC_ORIGIN"))
                 .AddDeveloperSigningCredential()
                 .AddConfigurationStore(this.configuration.GetConnectionString("Ironclad"))
                 .AddOperationalStore()
+                .AddAppAuthRedirectUriValidator()
                 .AddAspNetIdentity<ApplicationUser>();
 
-            services.AddAuthentication()
+            services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddGoogle(
                     options =>
                     {
                         options.ClientId = this.configuration.GetValue<string>("Google-ClientId");
                         options.ClientSecret = this.configuration.GetValue<string>("Google-Secret");
+                    })
+                .AddIdentityServerAuthentication(
+                    "token",
+                    options =>
+                    {
+                        options.Authority = this.TryGetAuthority();
+                        options.ApiName = "auth_api";
+                        options.ApiSecret = this.configuration.GetValue<string>("Introspection-Secret");
+                        options.RequireHttpsMetadata = false;
                     });
+
+            services.AddAuthorization(
+                options =>
+                {
+                    options.AddPolicy("auth_admin", policy => policy.AddAuthenticationSchemes("token").Requirements.Add(new AdministratorRequirement("auth")));
+                    options.AddPolicy("user_admin", policy => policy.AddAuthenticationSchemes("token").Requirements.Add(new AdministratorRequirement("user")));
+                });
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -78,7 +111,15 @@ namespace Ironclad
             app.UseStaticFiles();
             app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();
-            app.InitializeDatabase().SeedDatabase();
+            app.InitializeDatabase().SeedDatabase(this.configuration);
+        }
+
+        public string TryGetAuthority()
+        {
+            return this.configuration.GetValue<string>("PUBLIC_ORIGIN") ??
+                this.configuration.GetValue<string>("urls").Split(";").FirstOrDefault()?
+                    .Replace("*", "localhost", StringComparison.OrdinalIgnoreCase)
+                    .Replace("+", "localhost", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

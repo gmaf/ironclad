@@ -13,14 +13,11 @@ namespace Ironclad.Controllers
     using IdentityModel;
     using IdentityServer4.Extensions;
     using IdentityServer4.Services;
-    using IdentityServer4.Stores;
     using Ironclad.Application;
     using Ironclad.Models;
-    using Ironclad.Sdk;
     using Ironclad.Services;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Logging;
@@ -79,7 +76,7 @@ namespace Ironclad.Controllers
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await this.signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                var result = await this.signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     this.logger.LogInformation("User logged in.");

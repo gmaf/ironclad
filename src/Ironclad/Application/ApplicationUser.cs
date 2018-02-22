@@ -3,13 +3,21 @@
 
 namespace Ironclad.Application
 {
+    using System;
+    using System.Globalization;
     using Microsoft.AspNetCore.Identity;
 
     public class ApplicationUser : IdentityUser
     {
-////        public string DisplayName { get; set; }
+        public ApplicationUser()
+        {
+            this.Id = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+        }
 
-////#pragma warning disable CA1056
-////        public string AvatarUrl { get; set; }
+        public ApplicationUser(string username)
+            : this()
+        {
+            this.UserName = username;
+        }
     }
 }

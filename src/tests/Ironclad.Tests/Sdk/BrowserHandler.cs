@@ -1,4 +1,7 @@
-﻿namespace Ironclad.Tests.Sdk
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
+
+namespace Ironclad.Tests.Sdk
 {
     using System;
     using System.Linq;
@@ -11,31 +14,43 @@
     // https://github.com/damianh/OwinHttpMessageHandler/blob/master/src/OwinHttpMessageHandler/OwinHttpMessageHandler.cs
     public class BrowserHandler : DelegatingHandler
     {
-        private CookieContainer _cookieContainer = new CookieContainer();
+        private readonly CookieContainer cookieContainer = new CookieContainer();
+
+        public BrowserHandler()
+            : base(new HttpClientHandler { AllowAutoRedirect = false })
+        {
+        }
 
         public bool AllowCookies { get; set; } = true;
-        public bool AllowAutoRedirect { get; set; } = true;
-        public int ErrorRedirectLimit { get; set; } = 20;
-        public int StopRedirectingAfter { get; set; } = Int32.MaxValue;
 
-        public BrowserHandler(HttpMessageHandler next)
-            : base(next)
+        public bool AllowAutoRedirect { get; set; } = true;
+
+        public int ErrorRedirectLimit { get; set; } = 20;
+
+        public int StopRedirectingAfter { get; set; } = int.MaxValue;
+
+        internal Cookie GetCookie(string uri, string name) => this.cookieContainer.GetCookies(new Uri(uri)).Cast<Cookie>().Where(x => x.Name == name).FirstOrDefault();
+
+        internal void RemoveCookie(string uri, string name)
         {
+            var cookie = this.GetCookie(uri, name);
+            if (cookie != null)
+            {
+                cookie.Expired = true;
+            }
         }
 
         protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var response = await SendCookiesAsync(request, cancellationToken);
+            var response = await this.SendCookiesAsync(request, cancellationToken).ConfigureAwait(false);
 
             int redirectCount = 0;
 
-            while (AllowAutoRedirect &&
-                (300 <= (int)response.StatusCode && (int)response.StatusCode < 400) &&
-                redirectCount < StopRedirectingAfter)
+            while (this.AllowAutoRedirect && ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400) && redirectCount < this.StopRedirectingAfter)
             {
-                if (redirectCount >= ErrorRedirectLimit)
+                if (redirectCount >= this.ErrorRedirectLimit)
                 {
-                    throw new InvalidOperationException(string.Format("Too many redirects. Error limit = {0}", redirectCount));
+                    throw new InvalidOperationException($"Too many redirects. Error limit = {redirectCount}");
                 }
 
                 var location = response.Headers.Location;
@@ -46,7 +61,7 @@
 
                 request = new HttpRequestMessage(HttpMethod.Get, location);
 
-                response = await SendCookiesAsync(request, cancellationToken).ConfigureAwait(false);
+                response = await this.SendCookiesAsync(request, cancellationToken).ConfigureAwait(false);
 
                 redirectCount++;
             }
@@ -54,37 +69,23 @@
             return response;
         }
 
-        internal Cookie GetCookie(string uri, string name)
-        {
-            return _cookieContainer.GetCookies(new Uri(uri)).Cast<Cookie>().Where(x => x.Name == name).FirstOrDefault();
-        }
-
-        internal void RemoveCookie(string uri, string name)
-        {
-            var cookie = _cookieContainer.GetCookies(new Uri(uri)).Cast<Cookie>().Where(x => x.Name == name).FirstOrDefault();
-            if (cookie != null)
-            {
-                cookie.Expired = true;
-            }
-        }
-
         protected async Task<HttpResponseMessage> SendCookiesAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            if (AllowCookies)
+            if (this.AllowCookies)
             {
-                string cookieHeader = _cookieContainer.GetCookieHeader(request.RequestUri);
+                var cookieHeader = this.cookieContainer.GetCookieHeader(request.RequestUri);
                 if (!string.IsNullOrEmpty(cookieHeader))
                 {
                     request.Headers.Add("Cookie", cookieHeader);
                 }
             }
 
-            var response = await base.SendAsync(request, cancellationToken);
+            var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
-            if (AllowCookies && response.Headers.Contains("Set-Cookie"))
+            if (this.AllowCookies && response.Headers.Contains("Set-Cookie"))
             {
                 var responseCookieHeader = string.Join(",", response.Headers.GetValues("Set-Cookie"));
-                _cookieContainer.SetCookies(request.RequestUri, responseCookieHeader);
+                this.cookieContainer.SetCookies(request.RequestUri, responseCookieHeader);
             }
 
             return response;

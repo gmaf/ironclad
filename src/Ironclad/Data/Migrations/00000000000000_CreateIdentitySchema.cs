@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-namespace IdentityServerWithAspNetIdentity.Data.Migrations
+namespace Ironclad.Data.Migrations
 {
     using System;
     using Microsoft.EntityFrameworkCore.Metadata;

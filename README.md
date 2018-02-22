@@ -38,9 +38,9 @@ eg. (please note: secret values are invalid)
 You need to configure the [user secrets](https://blogs.msdn.microsoft.com/mihansen/2017/09/10/managing-secrets-in-net-core-2-0-apps/) for the project. This can be done via the command line in either Windows or Linux. You can set the secrets using the following command from within the ```src/Ironclad``` folder. You may need to run a ```dotnet restore``` before you try the following commands.
 
     ```cmd
-    dotnet user-secrets set IRONCLAD_CONNECTIONSTRING "Host=localhost;Database=ironclad;Username=username;Password=password;"
-    dotnet user-secrets set GOOGLE_CLIENT_ID "client_id"
-    dotnet user-secrets set GOOGLE_SECRET "secret"
+    dotnet user-secrets set "ConnectionStrings:Ironclad" "Host=localhost;Database=ironclad;Username=username;Password=password;"
+    dotnet user-secrets set Google-ClientId "client_id"
+    dotnet user-secrets set Google-Secret "secret"
     ```
 
 

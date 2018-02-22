@@ -11,11 +11,6 @@
   <ItemGroup>
     <None Include=".env" />
     <None Include="default.env" />
-    <None Include="start.cmd" />
-    <None Include="start.Custom.cmd">
-      <DependentUpon>start.cmd</DependentUpon>
-    </None>
-    <None Include="stop.cmd" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
@@ -24,8 +19,5 @@
     </None>
     <None Include="docker-compose.yml" />
     <None Include="nginx\nginx.conf" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="cmd\" />
   </ItemGroup>
 </Project>

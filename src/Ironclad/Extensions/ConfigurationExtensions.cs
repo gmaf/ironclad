@@ -18,38 +18,47 @@ namespace Ironclad
             - second from an environment variable (typically inside of a docker environment).
             If a value is not supplied and there is no default specified (below) then an exception will be thrown.  */
 
-        private static readonly List<(string, string, string)> EnvironmentSecretConfig = new List<(string, string, string)>
+        private static readonly List<(string, string, string, string)> EnvironmentSecretConfig = new List<(string, string, string, string)>
         {
-            /* secrets.json Key             // Environment Variable         // default value (optional) */
-            ("ConnectionStrings:Ironclad",  "IRONCLAD_CONNECTIONSTRING",    null),
-            ("Google-ClientId",             "GOOGLE_CLIENT_ID",             null),
-            ("Google-Secret",               "GOOGLE_SECRET",                null),
+            /* secrets.json key             // environment variable         // command line argument    //default value (optional) */
+            ("ConnectionStrings:Ironclad",  "IRONCLAD_CONNECTIONSTRING",    "connectionString",         null),
+            ("Introspection-Secret",        "INTROSPECTION_SECRET",         "introspectionSecret",      "secret"),
+            ("Google-ClientId",             "GOOGLE_CLIENT_ID",             "googleClientId",           null),
+            ("Google-Secret",               "GOOGLE_SECRET",                "googleSecret",             null),
         };
 
         private static List<Action<ILogger>> logMessages = new List<Action<ILogger>>();
 
-        public static IConfigurationBuilder AddEnvironmentSecrets(this IConfigurationBuilder builder)
+        public static IConfigurationBuilder AddEnvironmentSecrets(this IConfigurationBuilder builder, string[] args)
         {
             var configuration = new ConfigurationBuilder()
                 .AddUserSecrets<Startup>()
                 .AddEnvironmentVariables()
+                .AddCommandLine(args)
                 .Build();
 
             var secrets = new Dictionary<string, string>();
 
-            foreach (var (key, environmentVariable, defaultValue) in EnvironmentSecretConfig)
+            foreach (var (key, environmentVariable, commandLineArg, defaultValue) in EnvironmentSecretConfig)
             {
-                secrets[key] = configuration[key];
+                secrets[key] = configuration[commandLineArg];
                 if (secrets[key] != null)
                 {
-                    logMessages.Add(log => log.Debug("Value of {secretKey} satisfied by secrets.json", key));
+                    logMessages.Add(log => log.Debug("Value of {secretKey} satisfied by command line argument", commandLineArg));
                     continue;
                 }
 
                 secrets[key] = configuration[environmentVariable];
                 if (secrets[key] != null)
                 {
-                    logMessages.Add(log => log.Debug("Value of {secretKey} satisfied by environment variable", key));
+                    logMessages.Add(log => log.Debug("Value of {secretKey} satisfied by environment variable", environmentVariable));
+                    continue;
+                }
+
+                secrets[key] = configuration[key];
+                if (secrets[key] != null)
+                {
+                    logMessages.Add(log => log.Debug("Value of {secretKey} satisfied by secrets.json", key));
                     continue;
                 }
 
@@ -76,7 +85,7 @@ namespace Ironclad
         {
             logMessages.ForEach(logMessage => logMessage(log));
 
-            foreach (var (key, environmentVariable, defaultValue) in EnvironmentSecretConfig)
+            foreach (var (key, environmentVariable, commandLineArg, defaultValue) in EnvironmentSecretConfig)
             {
                 if (configuration.GetValue<string>(key) == null)
                 {
