@@ -35,7 +35,7 @@ namespace Ironclad.Console.Commands
             app.ExtendedHelpText = $"{Environment.NewLine}Use 'clients add -i' to enter interactive mode{Environment.NewLine}";
 
             // arguments
-            var argumentType = app.Argument("type", "The type of client to add. Allowed values are s[erver], w[ebsite], and c[onsole]", false);
+            var argumentType = app.Argument("type", "The type of client to add (allowed values are s[erver], w[ebsite], and c[onsole])", false);
             var argumentClientId = app.Argument("id", "The client identifier", false);
 
             // options
@@ -63,6 +63,15 @@ namespace Ironclad.Console.Commands
             app.OnExecute(
                 () =>
                 {
+                    var reporter = new ConsoleReporter(console, options.Verbose.HasValue(), false);
+
+                    if (string.IsNullOrEmpty(argumentType.Value))
+                    {
+                        // TODO (Cameron): Prompt for client type.
+                        reporter.Warn("The type of client is required. Allowed values are s[erver], w[ebsite], and c[onsole].");
+                        return;
+                    }
+
                     var helper = default(IClientHelper);
                     switch (argumentType.Value?.ToUpperInvariant())
                     {
@@ -90,8 +99,6 @@ namespace Ironclad.Console.Commands
                             }
                             break;
                     }
-
-                    var reporter = new ConsoleReporter(console, options.Verbose.HasValue(), false);
 
 #pragma warning disable CA1308
                     reporter.Verbose(
