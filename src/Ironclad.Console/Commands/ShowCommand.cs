@@ -20,15 +20,15 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions commandLineOptions, ShowCommandOptions showCommandOptions)
         {
             // description
-            app.Description = $"Lists the {showCommandOptions.Type}s.";
+            app.Description = $"Displays the {showCommandOptions.Type}s";
             app.HelpOption();
 
             // arguments
             var argument = app.Argument(showCommandOptions.ArgumentName, showCommandOptions.ArgumentDescription, false);
 
             // options
-            var optionSkip = app.Option("-s|--skip", $"The number of {showCommandOptions.Type}s to skip.", CommandOptionType.SingleValue);
-            var optionTake = app.Option("-t|--take", $"The number of {showCommandOptions.Type}s to take.", CommandOptionType.SingleValue);
+            var optionSkip = app.Option("-s|--skip", $"The number of {showCommandOptions.Type}s to skip", CommandOptionType.SingleValue);
+            var optionTake = app.Option("-t|--take", $"The number of {showCommandOptions.Type}s to take", CommandOptionType.SingleValue);
 
             // action (for this command)
             app.OnExecute(

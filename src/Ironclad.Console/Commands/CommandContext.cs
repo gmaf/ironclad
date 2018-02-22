@@ -11,6 +11,7 @@ namespace Ironclad.Console.Commands
     {
         public CommandContext(
             IConsole console,
+            IReporter reporter,
             IClientsClient clientsClient,
             IApiResourcesClient apiResourcesClient,
             IIdentityResourcesClient identityResourcesClient,
@@ -19,7 +20,7 @@ namespace Ironclad.Console.Commands
             ICommandDataRepository repository)
         {
             this.Console = console;
-            this.Reporter = new ConsoleReporter(console);
+            this.Reporter = reporter;
             this.ClientsClient = clientsClient;
             this.ApiResourcesClient = apiResourcesClient;
             this.IdentityResourcesClient = identityResourcesClient;

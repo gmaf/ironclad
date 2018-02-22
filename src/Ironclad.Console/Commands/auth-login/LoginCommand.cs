@@ -28,7 +28,7 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
-            app.Description = "Logs in to the specified authorization server";
+            app.Description = "Log in to an authorization server";
 
             // arguments
             var argumentAuthority = app.Argument("authority", "The URL for the authorization server to log in to");
@@ -138,7 +138,7 @@ namespace Ironclad.Console.Commands
             var result = await oidcClient.LoginAsync(new LoginRequest()).ConfigureAwait(false);
             if (result.IsError)
             {
-                context.Console.Error.WriteLine($"Error attempting to log in:\r\n{result.Error}");
+                context.Console.Error.WriteLine($"Error attempting to log in:{Environment.NewLine}{result.Error}");
                 return;
             }
 

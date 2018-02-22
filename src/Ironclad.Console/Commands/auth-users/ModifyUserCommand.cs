@@ -19,7 +19,7 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Modifies the specified user";
+            app.Description = "Modifies a user";
             app.HelpOption();
 
             // arguments
@@ -53,7 +53,6 @@ namespace Ironclad.Console.Commands
             };
 
             await context.UsersClient.ModifyUserAsync(user).ConfigureAwait(false);
-            await context.Console.Out.WriteLineAsync("Done!").ConfigureAwait(false);
         }
     }
 }

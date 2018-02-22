@@ -13,7 +13,7 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
-            app.Description = $"Provides API resources related operations";
+            app.Description = $"Manage APIs";
             app.HelpOption();
 
             // commands
@@ -30,7 +30,7 @@ namespace Ironclad.Console.Commands
             {
                 Type = "API",
                 ArgumentName = "name",
-                ArgumentDescription = "The name of the API to remove.",
+                ArgumentDescription = "The name of the API to remove",
                 RemoveCommand = value => new RemoveCommand(async context => await context.ApiResourcesClient.RemoveApiResourceAsync(value).ConfigureAwait(false)),
             };
 
@@ -39,7 +39,7 @@ namespace Ironclad.Console.Commands
             {
                 Type = "API",
                 ArgumentName = "name",
-                ArgumentDescription = "The API name. You can end the API name with a wildcard to search.",
+                ArgumentDescription = "The API name. You can end the API name with a wildcard to search",
                 DisplayCommand = (string value) =>
                     new ShowCommand.Display<ApiResource>(async context => await context.ApiResourcesClient.GetApiResourceAsync(value).ConfigureAwait(false)),
                 ListCommand = (string startsWith, int skip, int take) =>

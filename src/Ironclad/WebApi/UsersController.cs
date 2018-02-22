@@ -95,11 +95,14 @@ namespace Ironclad.WebApi
             user.Email = model.Email ?? user.Email;
             user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
 
-            foreach (var role in model?.Roles)
+            if (model.Roles != null)
             {
-                if (!await this.roleManager.RoleExistsAsync(role))
+                foreach (var role in model.Roles)
                 {
-                    return this.BadRequest(new { Message = $"Cannot create a user with the role '{role}' when that role does not exist" });
+                    if (!await this.roleManager.RoleExistsAsync(role))
+                    {
+                        return this.BadRequest(new { Message = $"Cannot create a user with the role '{role}' when that role does not exist" });
+                    }
                 }
             }
 
@@ -114,11 +117,13 @@ namespace Ironclad.WebApi
                 return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addUserResult.ToString() });
             }
 
-            // roles
-            var addToRolesResult = await this.userManager.AddToRolesAsync(user, model.Roles);
-            if (!addToRolesResult.Succeeded)
+            if (model.Roles != null)
             {
-                return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addToRolesResult.ToString() });
+                var addToRolesResult = await this.userManager.AddToRolesAsync(user, model.Roles);
+                if (!addToRolesResult.Succeeded)
+                {
+                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addToRolesResult.ToString() });
+                }
             }
 
             return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + model.Username)), null);
@@ -150,7 +155,7 @@ namespace Ironclad.WebApi
 
             var roles = await this.userManager.GetRolesAsync(user);
 
-            var oldRoles = roles.Except(model.Roles);
+            var oldRoles = roles.Except(model.Roles ?? Array.Empty<string>());
             if (oldRoles.Any())
             {
                 var removeResult = await this.userManager.RemoveFromRolesAsync(user, oldRoles);
@@ -160,7 +165,7 @@ namespace Ironclad.WebApi
                 }
             }
 
-            var newRoles = model.Roles.Except(roles);
+            var newRoles = (model.Roles ?? Array.Empty<string>()).Except(roles);
             if (newRoles.Any())
             {
                 var addResult = await this.userManager.AddToRolesAsync(user, newRoles);

@@ -8,7 +8,7 @@ namespace Ironclad.Console.Commands
 
     internal class AddRoleCommand : ICommand
     {
-        private string roleName;
+        private string role;
 
         private AddRoleCommand()
         {
@@ -17,26 +17,27 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Adds the specified role";
-            app.HelpOption();
+            app.Description = "Creates a new role";
 
             // arguments
-            var argumentRoleName = app.Argument("name", "The role name", false);
+            var argumentRole = app.Argument("name", "The role name", false);
+
+            app.HelpOption();
 
             // action (for this command)
             app.OnExecute(
                 () =>
                 {
-                    if (string.IsNullOrEmpty(argumentRoleName.Value))
+                    if (string.IsNullOrEmpty(argumentRole.Value))
                     {
-                        app.ShowHelp();
+                        app.ShowVersionAndHelp();
                         return;
                     }
 
-                    options.Command = new AddRoleCommand { roleName = argumentRoleName.Value };
+                    options.Command = new AddRoleCommand { role = argumentRole.Value };
                 });
         }
 
-        public async Task ExecuteAsync(CommandContext context) => await context.RolesClient.AddRoleAsync(this.roleName).ConfigureAwait(false);
+        public async Task ExecuteAsync(CommandContext context) => await context.RolesClient.AddRoleAsync(this.role).ConfigureAwait(false);
     }
 }
