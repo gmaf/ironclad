@@ -101,7 +101,7 @@ namespace Ironclad.Console.Commands
             public User GetValid(User user)
             {
                 user.Username = Safe(Prompt.GetString("Username:", user.Username), "Cannot create a user without a username.");
-                user.Password = user.Password ?? Prompt.GetString("Password:", user.Password);
+                user.Password = user.Password ?? Prompt.GetPassword("Password:");
                 user.Roles = Prompt.GetString("Assigned roles for the user (space separated) [optional]:", user.Roles == null ? null : string.Join(", ", user.Roles))
                     ?.Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
 
