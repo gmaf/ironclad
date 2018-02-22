@@ -31,11 +31,11 @@ namespace Ironclad.Console.Commands
 
             // options
 #pragma warning disable SA1025
-            var optionDisplayName = app.Option("-d|--description <description>",     "The API description",                                               CommandOptionType.SingleValue);
+            var optionDisplayName = app.Option("-d|--description <description>",     "The API description",                                                CommandOptionType.SingleValue);
             var optionUserClaims =  app.Option("-c|--claim <claim>",                 "A user claim required by the API (you can call this several times)", CommandOptionType.MultipleValue);
             var optionApiScopes =   app.Option("-a|--scope <scope>",                 "A scope associated with this API (you can call this several times)", CommandOptionType.MultipleValue);
-            var optionDisabled =    app.Option("-d|--disabled",                      "Creates the new API in a disabled state",                           CommandOptionType.NoValue);
-            var optionInteractive = app.Option("-i|--interactive",                   "Enters interactive mode",                                           CommandOptionType.NoValue);
+            var optionDisabled =    app.Option("-x|--disabled",                      "Creates the new API in a disabled state",                            CommandOptionType.NoValue);
+            var optionInteractive = app.Option("-i|--interactive",                   "Enters interactive mode",                                            CommandOptionType.NoValue);
 #pragma warning restore SA1025
 
             app.HelpOption();
