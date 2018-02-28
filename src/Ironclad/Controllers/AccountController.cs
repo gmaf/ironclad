@@ -54,7 +54,7 @@ namespace Ironclad.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login(string returnUrl = null)
         {
-            // Clear the existing external cookie to ensure a clean login process
+            // clear the existing external cookie to ensure a clean login process
             await this.HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             var context = await this.interaction.GetAuthorizationContextAsync(returnUrl);
             if (context?.IdP != null && (await this.signInManager.GetExternalAuthenticationSchemesAsync()).Any(p => string.Equals(p.Name, context.IdP, StringComparison.InvariantCultureIgnoreCase)))
@@ -72,51 +72,49 @@ namespace Ironclad.Controllers
         public async Task<IActionResult> Login(LoginModel model, string returnUrl = null)
         {
             this.ViewData["ReturnUrl"] = returnUrl;
-            if (this.ModelState.IsValid)
+
+            if (!this.ModelState.IsValid)
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await this.signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: false);
-                if (result.Succeeded)
-                {
-                    this.logger.LogInformation("User logged in.");
-                    return this.RedirectToLocal(returnUrl);
-                }
-                else if (result.RequiresTwoFactor)
-                {
-                    return this.RedirectToAction(nameof(this.LoginWith2fa), new { returnUrl, model.RememberMe });
-                }
-                else if (result.IsLockedOut)
-                {
-                    this.logger.LogWarning("User account locked out.");
-                    return this.RedirectToAction(nameof(this.Lockout));
-                }
-                else
-                {
-                    this.ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return this.View(model);
-                }
+                return this.View(model);
             }
 
-            // If we got this far, something failed, redisplay form
-            return this.View(model);
+            // this doesn't count login failures towards account lockout to enable password failures to trigger account lockout, set lockoutOnFailure: true
+            var result = await this.signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: false);
+            if (result.Succeeded)
+            {
+                this.logger.LogInformation("User logged in.");
+                return this.RedirectToLocal(returnUrl);
+            }
+            else if (result.RequiresTwoFactor)
+            {
+                return this.RedirectToAction(nameof(this.LoginWith2fa), new { returnUrl, model.RememberMe });
+            }
+            else if (result.IsLockedOut)
+            {
+                this.logger.LogWarning("User account locked out.");
+                return this.RedirectToAction(nameof(this.Lockout));
+            }
+            else
+            {
+                this.ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return this.View(model);
+            }
         }
 
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> LoginWith2fa(bool rememberMe, string returnUrl = null)
         {
-            // Ensure the user has gone through the username & password screen first
+            // ensure the user has gone through the username & password screen first
             var user = await this.signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
                 throw new ApplicationException($"Unable to load two-factor authentication user.");
             }
 
-            var model = new LoginWith2faModel { RememberMe = rememberMe };
             this.ViewData["ReturnUrl"] = returnUrl;
 
-            return this.View(model);
+            return this.View(new LoginWith2faModel { RememberMe = rememberMe });
         }
 
         [HttpPost]
@@ -140,7 +138,6 @@ namespace Ironclad.Controllers
                 .Replace("-", string.Empty, false, CultureInfo.InvariantCulture);
 
             var result = await this.signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, rememberMe, model.RememberMachine);
-
             if (result.Succeeded)
             {
                 this.logger.LogInformation("User with ID {UserId} logged in with 2fa.", user.Id);
@@ -163,7 +160,7 @@ namespace Ironclad.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> LoginWithRecoveryCode(string returnUrl = null)
         {
-            // Ensure the user has gone through the username & password screen first
+            // ensure the user has gone through the username & password screen first
             var user = await this.signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
@@ -196,7 +193,6 @@ namespace Ironclad.Controllers
                 .Replace("-", string.Empty, false, CultureInfo.InvariantCulture);
 
             var result = await this.signInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
-
             if (result.Succeeded)
             {
                 this.logger.LogInformation("User with ID {UserId} logged in with a recovery code.", user.Id);
@@ -217,10 +213,11 @@ namespace Ironclad.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Lockout()
-        {
-            return this.View();
-        }
+        public IActionResult Lockout() => this.View();
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Unsupported() => this.View();
 
         [HttpGet]
         [AllowAnonymous]
@@ -236,9 +233,11 @@ namespace Ironclad.Controllers
         public async Task<IActionResult> Register(RegisterModel model, string returnUrl = null)
         {
             this.ViewData["ReturnUrl"] = returnUrl;
+
             if (this.ModelState.IsValid)
             {
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+
                 var result = await this.userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
@@ -256,7 +255,7 @@ namespace Ironclad.Controllers
                 this.AddErrors(result);
             }
 
-            // If we got this far, something failed, redisplay form
+            // if we got this far, something failed, redisplay form
             return this.View(model);
         }
 
@@ -266,11 +265,9 @@ namespace Ironclad.Controllers
         {
             // build a model so the logout page knows what to display
             var model = await this.BuildLogoutViewModelAsync(logoutId);
-
             if (model.ShowLogoutPrompt == false)
             {
-                // if the request for logout was properly authenticated from IdentityServer, then
-                // we don't need to show the prompt and can just log the user out directly.
+                // if the request for logout was properly authenticated from IdentityServer, then we don't need to show the prompt and can just log the user out directly
                 return await this.Logout(model);
             }
 
@@ -290,9 +287,8 @@ namespace Ironclad.Controllers
             // check if we need to trigger sign-out at an upstream identity provider
             if (model.TriggerExternalSignout)
             {
-                // build a return URL so the upstream provider will redirect back
-                // to us after the user has logged out. this allows us to then
-                // complete our single sign-out processing.
+                // build a return URL so the upstream provider will redirect back to us after the user has logged out
+                // this allows us to then complete our single sign-out processing
                 string url = this.Url.Action("Logout", new { logoutId = model.LogoutId });
 
                 // this triggers a redirect to the external provider for sign-out hack try/catch to handle social providers that throw
@@ -307,7 +303,7 @@ namespace Ironclad.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult ExternalLogin(string provider, string returnUrl = null)
         {
-            // Request a redirect to the external login provider.
+            // request a redirect to the external login provider.
             var redirectUrl = this.Url.Action(nameof(this.ExternalLoginCallback), "Account", new { returnUrl });
             var properties = this.signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return this.Challenge(properties, provider);
@@ -340,13 +336,20 @@ namespace Ironclad.Controllers
             {
                 return this.RedirectToAction(nameof(this.Lockout));
             }
+            else if (info.LoginProvider == "some_external_provider")
+            {
+                // NOTE (Cameron): This external provider is not currently configured (in StartUp.cs).
+                // NOTE (Cameron): We do not auto-provision these accounts, their creation happens via a different workflow.
+                this.logger.LogWarning("User {Sub} failed to log in with {Name} provider (no account).", info.ProviderKey, info.LoginProvider);
+                return this.RedirectToAction(nameof(this.Unsupported));
+            }
             else
             {
-                // If the user does not have an account, then ask the user to create an account.
+                // if the user does not have an account, then ask the user to create an account.
                 this.ViewData["ReturnUrl"] = returnUrl;
                 this.ViewData["LoginProvider"] = info.LoginProvider;
-                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                return this.View("ExternalLogin", new ExternalLoginModel { Email = email });
+
+                return this.View("ExternalLogin", new ExternalLoginModel { Email = info.Principal.FindFirstValue(ClaimTypes.Email) });
             }
         }
 
@@ -357,7 +360,7 @@ namespace Ironclad.Controllers
         {
             if (this.ModelState.IsValid)
             {
-                // Get the information about the user from the external login provider
+                // get the information about the user from the external login provider
                 var info = await this.signInManager.GetExternalLoginInfoAsync();
                 if (info == null)
                 {
@@ -365,6 +368,7 @@ namespace Ironclad.Controllers
                 }
 
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+
                 var result = await this.userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
@@ -381,6 +385,7 @@ namespace Ironclad.Controllers
             }
 
             this.ViewData["ReturnUrl"] = returnUrl;
+
             return this.View(nameof(this.ExternalLogin), model);
         }
 
@@ -405,35 +410,30 @@ namespace Ironclad.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult ForgotPassword()
-        {
-            return this.View();
-        }
+        public IActionResult ForgotPassword() => this.View();
 
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordModel model)
         {
-            if (this.ModelState.IsValid)
+            if (!this.ModelState.IsValid)
             {
-                var user = await this.userManager.FindByEmailAsync(model.Email);
-                if (user == null || !(await this.userManager.IsEmailConfirmedAsync(user)))
-                {
-                    // Don't reveal that the user does not exist or is not confirmed
-                    return this.RedirectToAction(nameof(this.ForgotPasswordConfirmation));
-                }
+                return this.View(model);
+            }
 
-                // For more information on how to enable account confirmation and password reset please
-                // visit https://go.microsoft.com/fwlink/?LinkID=532713
-                var code = await this.userManager.GeneratePasswordResetTokenAsync(user);
-                var callbackUrl = this.Url.ResetPasswordCallbackLink(user.Id, code, this.Request.Scheme);
-                await this.emailSender.SendEmailAsync(model.Email, "Reset Password", $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
+            var user = await this.userManager.FindByEmailAsync(model.Email);
+            if (user == null || !(await this.userManager.IsEmailConfirmedAsync(user)))
+            {
+                // don't reveal that the user does not exist or is not confirmed
                 return this.RedirectToAction(nameof(this.ForgotPasswordConfirmation));
             }
 
-            // If we got this far, something failed, redisplay form
-            return this.View(model);
+            // for more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=532713
+            var code = await this.userManager.GeneratePasswordResetTokenAsync(user);
+            var callbackUrl = this.Url.ResetPasswordCallbackLink(user.Id, code, this.Request.Scheme);
+            await this.emailSender.SendEmailAsync(model.Email, "Reset Password", $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
+            return this.RedirectToAction(nameof(this.ForgotPasswordConfirmation));
         }
 
         [HttpGet]

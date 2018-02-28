@@ -181,9 +181,9 @@ namespace Ironclad.Console.Commands
                 client.AllowedScopes = Safe(
                     Prompt.GetString(
                         "Allowed scopes for the client (space separated):",
-                        client.AllowedScopes == null ? null : string.Join(", ", client.AllowedScopes)),
+                        client.AllowedScopes == null ? null : string.Join(' ', client.AllowedScopes)),
                     "Cannot create a server client without any allowed scopes.")
-                    .Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 client.RequireConsent = Prompt.GetYesNo("Require consent?", true);
 
                 // defaults
@@ -208,10 +208,8 @@ namespace Ironclad.Console.Commands
 
             public bool IsValid(IroncladClient client) =>
                 !string.IsNullOrEmpty(client.Id) &&
-                !string.IsNullOrEmpty(client.Secret) &&
                 client.AllowedCorsOrigins?.Any() == true &&
                 client.RedirectUris?.Any() == true &&
-                client.PostLogoutRedirectUris?.Any() == true &&
                 client.AllowedScopes?.Any() == true &&
                 client.AllowAccessTokensViaBrowser == true &&
                 client.AllowedGrantTypes.Contains("implicit");
@@ -223,26 +221,26 @@ namespace Ironclad.Console.Commands
                 client.AllowedCorsOrigins = Safe(
                     Prompt.GetString(
                         "Allowed CORS origins for the client (space separated):",
-                        client.AllowedCorsOrigins == null ? null : string.Join(", ", client.AllowedCorsOrigins)),
+                        client.AllowedCorsOrigins == null ? null : string.Join(' ', client.AllowedCorsOrigins)),
                     "Cannot create a website client without any allowed CORS origins.")
-                    .Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 client.RedirectUris = Safe(
                     Prompt.GetString(
                         "Redirect URIs for the client (space separated):",
-                        client.RedirectUris == null ? null : string.Join(", ", client.RedirectUris)),
+                        client.RedirectUris == null ? null : string.Join(' ', client.RedirectUris)),
                     "Cannot create a website client without any redirect URIs.")
-                    .Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 client.PostLogoutRedirectUris = Prompt.GetString(
                     "Allowed post-logout redirect URIs for the client (space separated) [optional]:",
-                    client.PostLogoutRedirectUris == null ? null : string.Join(", ", client.PostLogoutRedirectUris))
-                    ?.Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                    client.PostLogoutRedirectUris == null ? null : string.Join(' ', client.PostLogoutRedirectUris))
+                    ?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 client.AllowedScopes = Safe(
                     Prompt.GetString(
                         "Allowed scopes for the client (space separated):",
-                        client.AllowedScopes == null ? null : string.Join(", ", client.AllowedScopes)),
+                        client.AllowedScopes == null ? null : string.Join(' ', client.AllowedScopes)),
                     "Cannot create a website client without any allowed scopes.")
-                    .Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
-                client.RequireConsent = Prompt.GetYesNo("Require consent?", true);
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                client.RequireConsent = Prompt.GetYesNo("Require consent?", client.RequireConsent ?? true);
 
                 // defaults
                 client.Name = string.IsNullOrWhiteSpace(client.Name) ? null : client.Name;
@@ -285,9 +283,9 @@ namespace Ironclad.Console.Commands
                 client.AllowedScopes = Safe(
                     Prompt.GetString(
                         "Allowed scopes for the client (space separated):",
-                        client.AllowedScopes == null ? null : string.Join(", ", client.AllowedScopes)),
+                        client.AllowedScopes == null ? null : string.Join(' ', client.AllowedScopes)),
                     "Cannot create a console client without any allowed scopes.")
-                    .Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 client.AllowOfflineAccess = Prompt.GetYesNo("Allow offline access?", true);
                 client.RequireConsent = Prompt.GetYesNo("Require consent?", true);
 
