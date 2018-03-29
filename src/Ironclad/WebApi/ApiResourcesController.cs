@@ -19,7 +19,7 @@ namespace Ironclad.WebApi
     using IroncladResource = Ironclad.Client.ApiResource;
     using PostgresResource = IdentityServer4.Postgresql.Entities.ApiResource;
 
-    [Authorize("auth_admin")]
+    [Authorize("system_admin")]
     [Route("api/[controller]")]
     public class ApiResourcesController : Controller
     {
