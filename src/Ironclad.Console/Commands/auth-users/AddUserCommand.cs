@@ -29,11 +29,12 @@ namespace Ironclad.Console.Commands
 
             // options
 #pragma warning disable SA1025
-            var optionPassword =    app.Option("-p|--password <password>", "The password",                                                       CommandOptionType.SingleValue);
-            var optionEmail =       app.Option("-e|--email <email>",       "The email address for the user",                                     CommandOptionType.SingleValue);
-            var optionPhoneNumber = app.Option("-n|--phone <phone>",       "The phone number for the user",                                      CommandOptionType.SingleValue);
-            var optionRoles =       app.Option("-r|--role <role>",         "A role to assign the new user to (you can call this several times)", CommandOptionType.MultipleValue);
-            var optionInteractive = app.Option("-i|--interactive",         "Enters interactive mode",                                            CommandOptionType.NoValue);
+            var optionPassword =              app.Option("-p|--password <password>",             "The password",                                                       CommandOptionType.SingleValue);
+            var optionEmail =                 app.Option("-e|--email <email>",                   "The email address for the user",                                     CommandOptionType.SingleValue);
+            var optionPhoneNumber =           app.Option("-n|--phone <phone>",                   "The phone number for the user",                                      CommandOptionType.SingleValue);
+            var optionRoles =                 app.Option("-r|--role <role>",                     "A role to assign the new user to (you can call this several times)", CommandOptionType.MultipleValue);
+            var optionExternalLoginProvider = app.Option("-l|--login_provider <login_provider>", "The external login provider",                                        CommandOptionType.SingleValue);
+            var optionInteractive =           app.Option("-i|--interactive",                     "Enters interactive mode",                                            CommandOptionType.NoValue);
 #pragma warning restore SA1025
 
             // action (for this command)
@@ -56,6 +57,7 @@ namespace Ironclad.Console.Commands
                         Email = optionEmail.Value(),
                         PhoneNumber = optionPhoneNumber.Value(),
                         Roles = optionRoles.HasValue() ? optionRoles.Values.Distinct().ToHashSet() : null,
+                        ExternalLoginProvider = optionExternalLoginProvider.Value()
                     };
 
                     reporter.Verbose("Prototype user (from command line arguments):");
@@ -102,8 +104,8 @@ namespace Ironclad.Console.Commands
             {
                 user.Username = Safe(Prompt.GetString("Username:", user.Username), "Cannot create a user without a username.");
                 user.Password = user.Password ?? Prompt.GetPassword("Password:");
-                user.Roles = Prompt.GetString("Assigned roles for the user (space separated) [optional]:", user.Roles == null ? null : string.Join(", ", user.Roles))
-                    ?.Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                user.Roles = Prompt.GetString("Assigned roles for the user (space separated) [optional]:", user.Roles == null ? null : string.Join(' ', user.Roles))
+                    ?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
                 // defaults
                 user.Password = string.IsNullOrWhiteSpace(user.Password) ? null : user.Password;

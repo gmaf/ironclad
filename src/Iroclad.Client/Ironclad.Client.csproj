@@ -19,6 +19,7 @@
     <Authors>Ironclad Contributers</Authors>
     <PackageId>Ironclad.Client</PackageId>
     <Version>0.0.1-developer</Version>
+    <AssemblyVersion>0.0.3.0</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

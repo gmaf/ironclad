@@ -36,6 +36,11 @@ namespace Ironclad.Client
         public string PhoneNumber { get; set; }
 
         /// <summary>
+        /// Gets or sets the external login provider for the user.
+        /// </summary>
+        public string ExternalLoginProvider { get; set; }
+
+        /// <summary>
         /// Gets or sets the roles.
         /// </summary>
         /// <value>The roles.</value>
