@@ -104,8 +104,8 @@ namespace Ironclad.Console.Commands
                 scope.Name = Prompt.GetString("Scope name:", scope.Name);
                 scope.UserClaims = Prompt.GetString(
                     $"User claims for the '{scope.Name}' API scope (space separated) [optional]:",
-                    scope.UserClaims == null ? null : string.Join(", ", scope.UserClaims))
-                    ?.Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                    scope.UserClaims == null ? null : string.Join(' ', scope.UserClaims))
+                    ?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
                 yield return scope;
             }
@@ -113,7 +113,7 @@ namespace Ironclad.Console.Commands
             var newScope = new ApiResource.Scope { Name = Prompt.GetString("Scope name [optional]:") };
             while (!string.IsNullOrWhiteSpace(newScope.Name))
             {
-                newScope.UserClaims = Prompt.GetString("User claims for the API scope (space separated) [optional]:")?.Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                newScope.UserClaims = Prompt.GetString("User claims for the API scope (space separated) [optional]:")?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 yield return newScope;
 
                 newScope = new ApiResource.Scope { Name = Prompt.GetString("Scope name [optional]:") };
@@ -133,8 +133,8 @@ namespace Ironclad.Console.Commands
                 resource.ApiSecret = resource.ApiSecret ?? Safe(Prompt.GetPassword("API secret:"), "Cannot create an API without an introspection secret.");
                 resource.UserClaims = Prompt.GetString(
                     "User claims for the API (space separated) [optional]:",
-                    resource.UserClaims == null ? null : string.Join(", ", resource.UserClaims))
-                    ?.Split(' ', ',', StringSplitOptions.RemoveEmptyEntries);
+                    resource.UserClaims == null ? null : string.Join(' ', resource.UserClaims))
+                    ?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 resource.ApiScopes = GetScopes(resource.ApiScopes).ToHashSet();
 
                 // defaults

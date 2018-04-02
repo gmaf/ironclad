@@ -7,7 +7,9 @@ namespace Ironclad.WebApi
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Security.Claims;
     using System.Threading.Tasks;
+    using IdentityModel;
     using IdentityServer4.Extensions;
     using Ironclad.Application;
     using Ironclad.Client;
@@ -115,6 +117,20 @@ namespace Ironclad.WebApi
                 }
 
                 return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addUserResult.ToString() });
+            }
+
+            if (!string.IsNullOrEmpty(model.ExternalLoginProvider))
+            {
+                var claims = new[] { new Claim(JwtClaimTypes.Name, model.Username) };
+                var identity = new ClaimsIdentity(claims, model.ExternalLoginProvider, "name", "role");
+                var principal = new ClaimsPrincipal(identity);
+                var info = new ExternalLoginInfo(principal, model.ExternalLoginProvider, model.Username, model.Username);
+
+                var addLoginResult = await this.userManager.AddLoginAsync(user, info);
+                if (!addLoginResult.Succeeded)
+                {
+                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addLoginResult.ToString() });
+                }
             }
 
             if (model.Roles != null)

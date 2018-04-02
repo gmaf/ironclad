@@ -20,6 +20,8 @@
     <CodeAnalysisRuleSet>../Ironclad.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
+    <AssemblyVersion>0.0.3.0</AssemblyVersion>
+    <FileVersion>0.0.3.0</FileVersion>
   </PropertyGroup>
   
   <ItemGroup>

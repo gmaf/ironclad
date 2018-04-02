@@ -55,7 +55,8 @@ namespace Ironclad
                 .AddDefaultTokenProviders();
 
             services.AddTransient<IEmailSender, EmailSender>();
-            services.AddSingleton<IAuthorizationHandler, AdministratorHandler>();
+            services.AddSingleton<IAuthorizationHandler, ScopeHandler>();
+            services.AddSingleton<IAuthorizationHandler, RoleHandler>();
 
             services.AddMvc()
                 .AddJsonOptions(
@@ -93,8 +94,8 @@ namespace Ironclad
             services.AddAuthorization(
                 options =>
                 {
-                    options.AddPolicy("auth_admin", policy => policy.AddAuthenticationSchemes("token").Requirements.Add(new AdministratorRequirement("auth")));
-                    options.AddPolicy("user_admin", policy => policy.AddAuthenticationSchemes("token").Requirements.Add(new AdministratorRequirement("user")));
+                    options.AddPolicy("auth_admin", policy => policy.AddAuthenticationSchemes("token").Requirements.Add(new SystemAdministratorRequirement()));
+                    options.AddPolicy("user_admin", policy => policy.AddAuthenticationSchemes("token").Requirements.Add(new UserAdministratorRequirement()));
                 });
         }
 
