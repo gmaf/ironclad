@@ -19,7 +19,7 @@ namespace Ironclad.WebApi
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
 
-    [Authorize("system_admin")]
+    [Authorize("user_admin")]
     [Route("api/[controller]")]
     public class UsersController : Controller
     {
