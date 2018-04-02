@@ -19,7 +19,7 @@ namespace Ironclad.WebApi
     using IroncladClient = Ironclad.Client.Client;
     using PostgresClient = IdentityServer4.Postgresql.Entities.Client;
 
-    [Authorize("system_admin")]
+    [Authorize("auth_admin")]
     [Route("api/[controller]")]
     public class ClientsController : Controller
     {
