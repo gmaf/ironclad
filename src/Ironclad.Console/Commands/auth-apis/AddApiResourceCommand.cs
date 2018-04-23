@@ -120,7 +120,7 @@ namespace Ironclad.Console.Commands
             }
         }
 
-        private class ApiResourceHelper
+        private class ApiResourceHelper : IHelper<ApiResource>
         {
             public ApiResource GetPrototype(ApiResource resource) => resource;
 

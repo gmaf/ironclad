@@ -19,15 +19,6 @@ namespace Ironclad.Console.Commands
         {
         }
 
-        private interface IClientHelper
-        {
-            IroncladClient GetPrototype(IroncladClient client);
-
-            bool IsValid(IroncladClient client);
-
-            IroncladClient GetValid(IroncladClient client);
-        }
-
         public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
@@ -72,7 +63,7 @@ namespace Ironclad.Console.Commands
                         return;
                     }
 
-                    var helper = default(IClientHelper);
+                    var helper = default(IHelper<IroncladClient>);
                     switch (argumentType.Value?.ToUpperInvariant())
                     {
                         case "S":
@@ -159,7 +150,7 @@ namespace Ironclad.Console.Commands
             return value;
         }
 
-        private class ServerClientHelper : IClientHelper
+        private class ServerClientHelper : IHelper<IroncladClient>
         {
             public IroncladClient GetPrototype(IroncladClient client)
             {
@@ -197,7 +188,7 @@ namespace Ironclad.Console.Commands
             }
         }
 
-        private class WebsiteClientHelper : IClientHelper
+        private class WebsiteClientHelper : IHelper<IroncladClient>
         {
             public IroncladClient GetPrototype(IroncladClient client)
             {
@@ -254,7 +245,7 @@ namespace Ironclad.Console.Commands
             }
         }
 
-        private class ConsoleClientHelper : IClientHelper
+        private class ConsoleClientHelper : IHelper<IroncladClient>
         {
             public IroncladClient GetPrototype(IroncladClient client)
             {

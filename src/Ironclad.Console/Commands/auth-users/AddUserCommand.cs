@@ -94,7 +94,7 @@ namespace Ironclad.Console.Commands
             return value;
         }
 
-        private class UserHelper
+        private class UserHelper : IHelper<User>
         {
             public User GetPrototype(User user) => user;
 
