@@ -54,7 +54,24 @@ namespace Ironclad
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            services.AddTransient<IEmailSender, EmailSender>();
+            // TODO (Cameron): This is a bit messy. I think ultimately this should be configurable inside the application itself.
+            var mailSender = this.configuration.GetValue<string>("Mail:Sender");
+            if (string.IsNullOrEmpty(mailSender))
+            {
+                services.AddSingleton<IEmailSender>(new NullEmailSender());
+            }
+            else
+            {
+                services.AddSingleton<IEmailSender>(
+                    new EmailSender(
+                        mailSender,
+                        this.configuration.GetValue<string>("Mail:Host"),
+                        this.configuration.GetValue<int>("Mail:Port"),
+                        this.configuration.GetValue<bool>("Mail:EnableSSL"),
+                        this.configuration.GetValue<string>("Mail:Username"),
+                        this.configuration.GetValue<string>("Mail:Password")));
+            }
+
             services.AddSingleton<IAuthorizationHandler, ScopeHandler>();
             services.AddSingleton<IAuthorizationHandler, RoleHandler>();
 

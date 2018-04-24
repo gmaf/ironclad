@@ -8,6 +8,7 @@ namespace Ironclad
     using Ironclad.Application;
     using Ironclad.Configuration;
     using Ironclad.Data;
+    using Ironclad.Upgrade;
     using Marten;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Identity;
@@ -41,6 +42,9 @@ namespace Ironclad
                 var adminUser = userManager.FindByIdAsync(Config.DefaultAdminUserId).Result;
                 if (adminUser != null)
                 {
+                    var backwardsCompatiabilityManager = new BackwardsCompatiabilityManager(serviceScope);
+                    backwardsCompatiabilityManager.FixInvalidScopesFollowingIdentityServerUpgrade().Wait();
+
                     return app;
                 }
 
