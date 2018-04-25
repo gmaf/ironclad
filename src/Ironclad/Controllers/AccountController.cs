@@ -469,13 +469,16 @@ namespace Ironclad.Controllers
             var user = await this.userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
-                // Don't reveal that the user does not exist
+                // don't reveal that the user does not exist
                 return this.RedirectToAction(nameof(this.ResetPasswordConfirmation));
             }
 
             var result = await this.userManager.ResetPasswordAsync(user, model.Code, model.Password);
             if (result.Succeeded)
             {
+                // Automatic sign in after password has been reset.
+                await this.signInManager.SignInAsync(user, false, "pwd");
+
                 return this.RedirectToAction(nameof(this.ResetPasswordConfirmation));
             }
 
@@ -485,16 +488,10 @@ namespace Ironclad.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult ResetPasswordConfirmation()
-        {
-            return this.View();
-        }
+        public IActionResult ResetPasswordConfirmation() => this.View();
 
         [HttpGet]
-        public IActionResult AccessDenied()
-        {
-            return this.View();
-        }
+        public IActionResult AccessDenied() => this.View();
 
         private void AddErrors(IdentityResult result)
         {

@@ -14,6 +14,7 @@ namespace Ironclad.WebApi
     using Ironclad.Application;
     using Ironclad.Client;
     using Ironclad.Configuration;
+    using Ironclad.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -25,11 +26,13 @@ namespace Ironclad.WebApi
     {
         private readonly UserManager<ApplicationUser> userManager;
         private readonly RoleManager<IdentityRole> roleManager;
+        private readonly IEmailSender emailSender;
 
-        public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IEmailSender emailSender)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
+            this.emailSender = emailSender;
         }
 
         [HttpGet]
@@ -140,6 +143,13 @@ namespace Ironclad.WebApi
                 {
                     return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addToRolesResult.ToString() });
                 }
+            }
+
+            if (string.IsNullOrEmpty(model.Password) && !string.IsNullOrEmpty(model.Email))
+            {
+                var code = await this.userManager.GeneratePasswordResetTokenAsync(user);
+                var callbackUrl = this.Url.ResetPasswordCallbackLink(user.Id, code, this.Request.Scheme);
+                await this.emailSender.SendActivationEmailAsync(model.Email, callbackUrl);
             }
 
             return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + model.Username)), null);
