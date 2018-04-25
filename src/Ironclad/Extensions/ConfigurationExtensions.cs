@@ -25,8 +25,8 @@ namespace Ironclad
             ("Introspection-Secret",        "INTROSPECTION_SECRET",         "introspectionSecret",      "secret"),
             ("Google-ClientId",             "GOOGLE_CLIENT_ID",             "googleClientId",           null),
             ("Google-Secret",               "GOOGLE_SECRET",                "googleSecret",             null),
-            ("Mail:Username",               "MAIL_USERNAME",                "mailUsername",             null),
-            ("Mail:Password",               "MAIL_PASSWORD",                "mailPassword",             null),
+            ////("Mail:Username",               "MAIL_USERNAME",                "mailUsername",             null),
+            ////("Mail:Password",               "MAIL_PASSWORD",                "mailPassword",             null),
         };
 
         private static List<Action<ILogger>> logMessages = new List<Action<ILogger>>();

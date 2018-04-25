@@ -19,16 +19,19 @@ namespace Ironclad
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Serialization;
 
     public class Startup
     {
+        private readonly ILogger<Startup> logger;
         private readonly IConfiguration configuration;
 
-        public Startup(IConfiguration configuration)
+        public Startup(ILogger<Startup> logger, IConfiguration configuration)
         {
+            this.logger = logger;
             this.configuration = configuration;
         }
 
@@ -55,20 +58,21 @@ namespace Ironclad
                 .AddDefaultTokenProviders();
 
             // TODO (Cameron): This is a bit messy. I think ultimately this should be configurable inside the application itself.
-            var mailSender = this.configuration.GetValue<string>("Mail:Sender");
-            if (string.IsNullOrEmpty(mailSender))
+            var mailUsername = this.configuration.GetValue<string>("Mail:Username");
+            if (string.IsNullOrEmpty(mailUsername))
             {
+                this.logger.LogWarning("No credentials specified for SMTP. Email will be disabled.");
                 services.AddSingleton<IEmailSender>(new NullEmailSender());
             }
             else
             {
                 services.AddSingleton<IEmailSender>(
                     new EmailSender(
-                        mailSender,
+                        this.configuration.GetValue<string>("Mail:Sender"),
                         this.configuration.GetValue<string>("Mail:Host"),
                         this.configuration.GetValue<int>("Mail:Port"),
                         this.configuration.GetValue<bool>("Mail:EnableSSL"),
-                        this.configuration.GetValue<string>("Mail:Username"),
+                        mailUsername,
                         this.configuration.GetValue<string>("Mail:Password")));
             }
 
