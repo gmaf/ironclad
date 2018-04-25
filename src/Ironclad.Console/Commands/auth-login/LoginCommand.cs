@@ -42,7 +42,7 @@ namespace Ironclad.Console.Commands
             app.OnExecute(
                 () =>
                 {
-                    if (!string.IsNullOrEmpty(optionReset.Value()) && string.IsNullOrEmpty(argumentAuthority.Value) && string.IsNullOrEmpty(optionTest.Value()))
+                    if (optionReset.HasValue() && string.IsNullOrEmpty(argumentAuthority.Value) && !optionTest.HasValue())
                     {
                         // only --reset was specified
                         options.Command = new Reset();
@@ -52,9 +52,9 @@ namespace Ironclad.Console.Commands
                     var authority = argumentAuthority.Value;
                     if (string.IsNullOrEmpty(authority))
                     {
-                        authority = string.IsNullOrEmpty(optionTest.Value()) ? DefaultAuthority : "https://auth-test.lykkecloud.com";
+                        authority = optionTest.HasValue() ? "https://auth-test.lykkecloud.com" : DefaultAuthority;
                     }
-                    else if (!string.IsNullOrEmpty(optionTest.Value()))
+                    else if (optionTest.HasValue())
                     {
                         ////console.WriteLine("Ignoring test option as authority was specified.");
                     }

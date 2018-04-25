@@ -108,12 +108,12 @@ namespace Ironclad.Console.Commands
                             PostLogoutRedirectUris = optionPostLogoutRedirectUris.HasValue() ? optionPostLogoutRedirectUris.Values.Distinct().ToHashSet() : null,
                             AllowedScopes = optionAllowedScopes.HasValue() ? optionAllowedScopes.Values.Distinct().ToHashSet() : null,
                             AllowedGrantTypes = optionAllowedGrantTypes.HasValue() ? optionAllowedGrantTypes.Values.Distinct().ToHashSet() : null,
-                            AllowAccessTokensViaBrowser = optionAllowAccessTokensViaBrowser.HasValue() ? (bool?)(optionAllowAccessTokensViaBrowser.Value() == "on") : null,
-                            AllowOfflineAccess = optionAllowOfflineAccess.HasValue() ? (bool?)(optionAllowOfflineAccess.Value() == "on") : null,
-                            RequirePkce = optionRequirePkce.HasValue() ? (bool?)(optionRequirePkce.Value() == "on") : null,
-                            RequireClientSecret = optionDoNotRequireClientSecret.HasValue() ? (bool?)(!(optionDoNotRequireClientSecret.Value() == "on")) : null,
-                            RequireConsent = optionDoNotRequireConsent.HasValue() ? (bool?)(!(optionDoNotRequireConsent.Value() == "on")) : null,
-                            Enabled = optionDisabled.HasValue() ? (bool?)(!(optionDisabled.Value() == "on")) : null,
+                            AllowAccessTokensViaBrowser = optionAllowAccessTokensViaBrowser.HasValue() ? (bool?)true : null,
+                            AllowOfflineAccess = optionAllowOfflineAccess.HasValue() ? (bool?)true : null,
+                            RequirePkce = optionRequirePkce.HasValue() ? (bool?)true : null,
+                            RequireClientSecret = optionDoNotRequireClientSecret.HasValue() ? (bool?)false : null,
+                            RequireConsent = optionDoNotRequireConsent.HasValue() ? (bool?)false : null,
+                            Enabled = optionDisabled.HasValue() ? (bool?)false : null,
                         });
 
                     reporter.Verbose("Prototype client (from command line arguments):");
