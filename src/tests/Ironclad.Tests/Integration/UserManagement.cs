@@ -47,7 +47,7 @@ namespace Ironclad.Tests.Feature
             {
                 Username = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
                 Password = "password",
-                Email = "bob@bob.com",
+                Email = "bit-bucket@test.smtp.org",
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
             };
@@ -68,7 +68,7 @@ namespace Ironclad.Tests.Feature
             var expectedUser = new User
             {
                 Username = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
-                Email = "bob@bob.com",
+                Email = "bit-bucket@test.smtp.org",
             };
 
             var actualUser = await httpClient.AddUserAsync(expectedUser).ConfigureAwait(false);
@@ -113,7 +113,7 @@ namespace Ironclad.Tests.Feature
             {
                 Username = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
                 Password = "password4bob",
-                Email = "bob@bob.com",
+                Email = "bit-bucket@test.smtp.org",
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
             };
