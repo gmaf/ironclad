@@ -148,7 +148,7 @@ namespace Ironclad.WebApi
             if (string.IsNullOrEmpty(model.Password) && !string.IsNullOrEmpty(model.Email))
             {
                 var code = await this.userManager.GeneratePasswordResetTokenAsync(user);
-                var callbackUrl = this.Url.ResetPasswordCallbackLink(user.Id, code, this.Request.Scheme);
+                var callbackUrl = this.Url.CompleteRegistrationLink(user.Id, code, this.Request.Scheme);
                 await this.emailSender.SendActivationEmailAsync(model.Email, callbackUrl);
             }
 

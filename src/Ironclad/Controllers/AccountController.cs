@@ -431,28 +431,25 @@ namespace Ironclad.Controllers
 
             // for more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=532713
             var code = await this.userManager.GeneratePasswordResetTokenAsync(user);
-            var callbackUrl = this.Url.ResetPasswordCallbackLink(user.Id, code, this.Request.Scheme);
+            var callbackUrl = this.Url.ResetPasswordLink(user.Id, code, this.Request.Scheme);
             await this.emailSender.SendEmailAsync(model.Email, "Reset Password", $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
             return this.RedirectToAction(nameof(this.ForgotPasswordConfirmation));
         }
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult ForgotPasswordConfirmation()
-        {
-            return this.View();
-        }
+        public IActionResult ForgotPasswordConfirmation() => this.View();
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult ResetPassword(string code = null)
+        public IActionResult ResetPassword(string userId, string code)
         {
-            if (code == null)
+            if (userId == null || code == null)
             {
-                throw new ApplicationException("A code must be supplied for password reset.");
+                return this.RedirectToAction(nameof(HomeController.Index), "Home");
             }
 
-            var model = new ResetPasswordModel { Code = code };
+            var model = new ResetPasswordModel { UserId = userId, Code = code };
             return this.View(model);
         }
 
@@ -466,7 +463,7 @@ namespace Ironclad.Controllers
                 return this.View(model);
             }
 
-            var user = await this.userManager.FindByEmailAsync(model.Email);
+            var user = await this.userManager.FindByIdAsync(model.UserId);
             if (user == null)
             {
                 // don't reveal that the user does not exist
@@ -476,19 +473,98 @@ namespace Ironclad.Controllers
             var result = await this.userManager.ResetPasswordAsync(user, model.Code, model.Password);
             if (result.Succeeded)
             {
-                // Automatic sign in after password has been reset.
+                // automatic sign in after password has been reset
                 await this.signInManager.SignInAsync(user, false, "pwd");
 
                 return this.RedirectToAction(nameof(this.ResetPasswordConfirmation));
             }
 
             this.AddErrors(result);
-            return this.View();
+            return this.View(model);
         }
 
         [HttpGet]
         [AllowAnonymous]
         public IActionResult ResetPasswordConfirmation() => this.View();
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> CompleteRegistration(string userId, string code)
+        {
+            if (userId == null || code == null)
+            {
+                return this.RedirectToAction(nameof(HomeController.Index), "Home");
+            }
+
+            var user = await this.userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                // don't reveal that the user does not exist
+                return this.RedirectToAction(nameof(HomeController.Index), "Home");
+            }
+
+            var isValidToken = await this.userManager.VerifyUserTokenAsync(user, this.userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", code);
+            if (!isValidToken)
+            {
+                // don't reveal that the user does not exist
+                return this.RedirectToAction(nameof(HomeController.Index), "Home");
+            }
+
+            var model = new CompleteRegistrationModel { UserId = userId, Username = user.UserName, Email = user.Email, Code = code };
+            return this.View(model);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CompleteRegistration(CompleteRegistrationModel model)
+        {
+            if (!this.ModelState.IsValid)
+            {
+                return this.View(model);
+            }
+
+            var user = await this.userManager.FindByIdAsync(model.UserId);
+            if (user == null)
+            {
+                // don't reveal that the user does not exist
+                return this.RedirectToAction(nameof(this.CompleteRegistrationConfirmation));
+            }
+
+            // NOTE (Cameron): For some reason (maybe disabled form) we're not getting this posted in the model.
+            model.Email = user.Email;
+
+            var username = user.UserName;
+            if (model.Username != username)
+            {
+                var setUsernameResult = await this.userManager.SetUserNameAsync(user, model.Username);
+                if (!setUsernameResult.Succeeded)
+                {
+                    this.ModelState.AddModelError("Username", setUsernameResult.Errors.FirstOrDefault()?.Description);
+                    return this.View(model);
+                }
+            }
+
+            var result = await this.userManager.ResetPasswordAsync(user, model.Code, model.Password);
+            if (!result.Succeeded)
+            {
+                this.AddErrors(result);
+                return this.View(model);
+            }
+
+            // confirm email
+            var emailConfirmationToken = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
+            await this.userManager.ConfirmEmailAsync(user, emailConfirmationToken);
+
+            // automatic sign in after registration completed
+            await this.signInManager.SignInAsync(user, false, "pwd");
+
+            return this.RedirectToAction(nameof(this.CompleteRegistrationConfirmation));
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult CompleteRegistrationConfirmation() => this.View();
 
         [HttpGet]
         public IActionResult AccessDenied() => this.View();

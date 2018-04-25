@@ -282,7 +282,7 @@ namespace Ironclad.Console.Commands
 
                 // defaults
                 client.Name = string.IsNullOrWhiteSpace(client.Name) ? null : client.Name;
-                client.RequireClientSecret = true;
+                client.RequireClientSecret = false;
                 client.RequirePkce = true;
                 if (!client.RedirectUris.Contains("http://127.0.0.1"))
                 {
