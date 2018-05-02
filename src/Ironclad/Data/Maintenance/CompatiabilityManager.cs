@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-namespace Ironclad.Upgrade
+namespace Ironclad.Data.Maintenance
 {
     using System;
     using System.Collections.Generic;
@@ -13,17 +13,17 @@ namespace Ironclad.Upgrade
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
 
-    public class BackwardsCompatiabilityManager
+    public class CompatiabilityManager
     {
         private readonly IServiceScope serviceScope;
 
-        public BackwardsCompatiabilityManager(IServiceScope serviceScope)
+        public CompatiabilityManager(IServiceScope serviceScope)
         {
             this.serviceScope = serviceScope;
         }
 
         // NOTE (Cameron): This is very targeted towards an issue that we have with data and will probably break stuff.
-        public async Task FixInvalidScopesFollowingIdentityServerUpgrade()
+        public async Task FixInvalidScopesFollowingIdentityServerPackageUpgrade()
         {
             var resourceStore = this.serviceScope.ServiceProvider.GetService<IResourceStore>();
             var invalidScopes = GetInvalidScopes(resourceStore);
@@ -32,7 +32,7 @@ namespace Ironclad.Upgrade
                 return;
             }
 
-            var logger = this.serviceScope.ServiceProvider.GetService<ILogger<BackwardsCompatiabilityManager>>();
+            var logger = this.serviceScope.ServiceProvider.GetService<ILogger<CompatiabilityManager>>();
             logger.LogWarning($"Attempting to remove duplicate scopes '{string.Join(", ", invalidScopes)}'...");
 
             var store = this.serviceScope.ServiceProvider.GetService<IDocumentStore>();

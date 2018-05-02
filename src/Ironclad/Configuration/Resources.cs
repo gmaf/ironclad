@@ -18,7 +18,7 @@ namespace Ironclad.Configuration
                 new IdentityResource
                 {
                     Name = "role",
-                    UserClaims = new List<string> { "role" },
+                    UserClaims = { "role" },
                 },
             };
 
