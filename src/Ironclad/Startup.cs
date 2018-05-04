@@ -4,7 +4,9 @@
 namespace Ironclad
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using IdentityServer4.AccessTokenValidation;
     using IdentityServer4.Postgresql.Extensions;
     using Ironclad.Application;
@@ -88,7 +90,7 @@ namespace Ironclad
                         options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                     });
 
-            services.AddIdentityServer(options => options.PublicOrigin = this.configuration.GetValue<string>("PUBLIC_ORIGIN"))
+            services.AddIdentityServer()
                 .AddDeveloperSigningCredential()
                 .AddConfigurationStore(this.configuration.GetConnectionString("Ironclad"))
                 .AddOperationalStore()
@@ -106,7 +108,7 @@ namespace Ironclad
                     "token",
                     options =>
                     {
-                        options.Authority = this.TryGetAuthority();
+                        options.Authority = this.configuration.GetValue<string>("authority");
                         options.ApiName = "auth_api";
                         options.ApiSecret = this.configuration.GetValue<string>("Introspection-Secret");
                         options.RequireHttpsMetadata = false;
@@ -125,23 +127,19 @@ namespace Ironclad
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseBrowserLink();
                 app.UseDatabaseErrorPage();
             }
 
-            app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto });
+            if (this.configuration.GetValue<bool>("respectXForwardedForHeaders"))
+            {
+                var options = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedHost | ForwardedHeaders.XForwardedProto };
+                app.UseForwardedHeaders(options);
+            }
+
             app.UseStaticFiles();
             app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();
             app.InitializeDatabase().SeedDatabase(this.configuration);
-        }
-
-        public string TryGetAuthority()
-        {
-            return this.configuration.GetValue<string>("PUBLIC_ORIGIN") ??
-                this.configuration.GetValue<string>("urls").Split(";").FirstOrDefault()?
-                    .Replace("*", "localhost", StringComparison.OrdinalIgnoreCase)
-                    .Replace("+", "localhost", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

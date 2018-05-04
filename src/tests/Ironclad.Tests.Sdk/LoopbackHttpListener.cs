@@ -13,7 +13,7 @@ namespace Ironclad.Tests.Sdk
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
 
-    public sealed class LoopbackHttpListener : IDisposable
+    internal sealed class LoopbackHttpListener : IDisposable
     {
         private const int DefaultTimeout = 30;
 
