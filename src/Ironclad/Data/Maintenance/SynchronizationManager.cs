@@ -45,10 +45,9 @@ namespace Ironclad.Data.Maintenance
 
             this.logger.LogInformation("Configuring system for first use...");
 
-            Task.WaitAll(
-                this.roleManager.CreateAsync(new IdentityRole("admin")),
-                this.roleManager.CreateAsync(new IdentityRole("auth_admin")),
-                this.roleManager.CreateAsync(new IdentityRole("user_admin")));
+            await this.roleManager.CreateAsync(new IdentityRole("admin"));
+            await this.roleManager.CreateAsync(new IdentityRole("auth_admin"));
+            await this.roleManager.CreateAsync(new IdentityRole("user_admin"));
 
             adminUser = Config.GetDefaultAdminUser();
 
