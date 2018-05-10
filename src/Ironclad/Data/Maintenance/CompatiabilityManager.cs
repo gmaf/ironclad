@@ -54,11 +54,6 @@ namespace Ironclad.Data.Maintenance
                             logger.LogWarning($"Removing scope '{apiScope.Name}' from API resource '{apiResource.Name}' as it is duplicated elsewhere.");
                             document.Scopes.Remove(apiScope);
                         }
-
-                        if (apiScope.Name == "auth_api")
-                        {
-                            document.Scopes.Add(new ApiScope { Name = "auth_api:write", DisplayName = "Authorization Server Web API (write)", UserClaims = new List<ApiScopeClaim>() });
-                        }
                     }
 
                     session.Update(document);
