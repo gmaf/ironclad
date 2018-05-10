@@ -18,7 +18,7 @@ namespace Ironclad.Configuration
                 new IdentityResource
                 {
                     Name = "role",
-                    UserClaims = new List<string> { "role" },
+                    UserClaims = { "role" },
                 },
             };
 
@@ -28,18 +28,19 @@ namespace Ironclad.Configuration
             {
                 new ApiResource("sample_api", "Sample Web API")
                 {
-                    ApiSecrets = new List<Secret> { new Secret("secret".Sha256()) },
-                    UserClaims = new[] { "name", "role" },
+                    ApiSecrets = { new Secret("secret".Sha256()) },
+                    UserClaims = { "name", "role" },
                 },
                 new ApiResource("template_api", "Lykke Web API (Template)")
                 {
-                    ApiSecrets = new List<Secret> { new Secret("secret".Sha256()) },
-                    UserClaims = new[] { "name", "role" },
+                    ApiSecrets = { new Secret("secret".Sha256()) },
+                    UserClaims = { "name", "role" },
                 },
                 new ApiResource("auth_api", "Authorization Server Web API")
                 {
-                    ApiSecrets = new List<Secret> { new Secret(configuration.GetValue<string>("Introspection-Secret").Sha256()) },
-                    UserClaims = new[] { "name", "role" },
+                    ApiSecrets = { new Secret(configuration.GetValue<string>("Introspection-Secret").Sha256()) },
+                    UserClaims = { "name", "role" },
+                    Scopes = { new Scope("auth_api:write") },
                 },
             };
     }

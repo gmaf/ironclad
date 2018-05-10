@@ -5,9 +5,18 @@ namespace Ironclad.Models
 {
     using System.ComponentModel.DataAnnotations;
 
-    public class RegisterModel
+    public class CompleteRegistrationModel
     {
         [Required]
+        public string UserId { get; set; }
+
+        [Required]
+        public string Code { get; set; }
+
+        [Required]
+        [Display(Name = "Username")]
+        public string Username { get; set; }
+
         [EmailAddress]
         [Display(Name = "Email")]
         public string Email { get; set; }

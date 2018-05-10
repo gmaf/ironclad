@@ -394,7 +394,7 @@ namespace Ironclad.Controllers
 
             var model = new EnableAuthenticatorModel
             {
-                SharedKey = this.FormatKey(unformattedKey),
+                SharedKey = FormatKey(unformattedKey),
                 AuthenticatorUri = this.GenerateQrCodeUri(user.Email, unformattedKey)
             };
 
@@ -436,10 +436,7 @@ namespace Ironclad.Controllers
         }
 
         [HttpGet]
-        public IActionResult ResetAuthenticatorWarning()
-        {
-            return this.View(nameof(this.ResetAuthenticator));
-        }
+        public IActionResult ResetAuthenticatorWarning() => this.View(nameof(this.ResetAuthenticator));
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -480,15 +477,7 @@ namespace Ironclad.Controllers
             return this.View(model);
         }
 
-        private void AddErrors(IdentityResult result)
-        {
-            foreach (var error in result.Errors)
-            {
-                this.ModelState.AddModelError(string.Empty, error.Description);
-            }
-        }
-
-        private string FormatKey(string unformattedKey)
+        private static string FormatKey(string unformattedKey)
         {
             var result = new StringBuilder();
             int currentPosition = 0;
@@ -506,6 +495,14 @@ namespace Ironclad.Controllers
 #pragma warning disable CA1308
             return result.ToString().ToLowerInvariant();
 #pragma warning restore CA1308
+        }
+
+        private void AddErrors(IdentityResult result)
+        {
+            foreach (var error in result.Errors)
+            {
+                this.ModelState.AddModelError(string.Empty, error.Description);
+            }
         }
 
         private string GenerateQrCodeUri(string email, string unformattedKey) =>

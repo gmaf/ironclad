@@ -12,7 +12,7 @@ namespace Ironclad.Authorization
     {
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, UserAdministratorRequirement requirement)
         {
-            if (context.User.FindAll("scope").Any(scope => string.Equals(scope.Value, "users_api", StringComparison.OrdinalIgnoreCase)))
+            if (context.User.FindAll("scope").Any(scope => string.Equals(scope.Value, "auth_api:write", StringComparison.OrdinalIgnoreCase)))
             {
                 context.Succeed(requirement);
             }

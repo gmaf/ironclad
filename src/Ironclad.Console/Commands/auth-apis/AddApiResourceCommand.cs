@@ -60,7 +60,7 @@ namespace Ironclad.Console.Commands
                         DisplayName = optionDisplayName.Value(),
                         UserClaims = optionUserClaims.HasValue() ? optionUserClaims.Values.Distinct().ToHashSet() : null,
                         ApiScopes = optionApiScopes.HasValue() ? optionApiScopes.Values.Select(name => new ApiResource.Scope { Name = name }).ToHashSet() : null,
-                        Enabled = optionDisabled.HasValue() ? (bool?)(!(optionDisabled.Value() == "on")) : null,
+                        Enabled = optionDisabled.HasValue() ? (bool?)false : null,
                     };
 
                     reporter.Verbose("Prototype API (from command line arguments):");
@@ -120,7 +120,7 @@ namespace Ironclad.Console.Commands
             }
         }
 
-        private class ApiResourceHelper
+        private class ApiResourceHelper : IHelper<ApiResource>
         {
             public ApiResource GetPrototype(ApiResource resource) => resource;
 

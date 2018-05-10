@@ -19,15 +19,6 @@ namespace Ironclad.Console.Commands
         {
         }
 
-        private interface IClientHelper
-        {
-            IroncladClient GetPrototype(IroncladClient client);
-
-            bool IsValid(IroncladClient client);
-
-            IroncladClient GetValid(IroncladClient client);
-        }
-
         public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
@@ -72,7 +63,7 @@ namespace Ironclad.Console.Commands
                         return;
                     }
 
-                    var helper = default(IClientHelper);
+                    var helper = default(IHelper<IroncladClient>);
                     switch (argumentType.Value?.ToUpperInvariant())
                     {
                         case "S":
@@ -117,12 +108,12 @@ namespace Ironclad.Console.Commands
                             PostLogoutRedirectUris = optionPostLogoutRedirectUris.HasValue() ? optionPostLogoutRedirectUris.Values.Distinct().ToHashSet() : null,
                             AllowedScopes = optionAllowedScopes.HasValue() ? optionAllowedScopes.Values.Distinct().ToHashSet() : null,
                             AllowedGrantTypes = optionAllowedGrantTypes.HasValue() ? optionAllowedGrantTypes.Values.Distinct().ToHashSet() : null,
-                            AllowAccessTokensViaBrowser = optionAllowAccessTokensViaBrowser.HasValue() ? (bool?)(optionAllowAccessTokensViaBrowser.Value() == "on") : null,
-                            AllowOfflineAccess = optionAllowOfflineAccess.HasValue() ? (bool?)(optionAllowOfflineAccess.Value() == "on") : null,
-                            RequirePkce = optionRequirePkce.HasValue() ? (bool?)(optionRequirePkce.Value() == "on") : null,
-                            RequireClientSecret = optionDoNotRequireClientSecret.HasValue() ? (bool?)(!(optionDoNotRequireClientSecret.Value() == "on")) : null,
-                            RequireConsent = optionDoNotRequireConsent.HasValue() ? (bool?)(!(optionDoNotRequireConsent.Value() == "on")) : null,
-                            Enabled = optionDisabled.HasValue() ? (bool?)(!(optionDisabled.Value() == "on")) : null,
+                            AllowAccessTokensViaBrowser = optionAllowAccessTokensViaBrowser.HasValue() ? (bool?)true : null,
+                            AllowOfflineAccess = optionAllowOfflineAccess.HasValue() ? (bool?)true : null,
+                            RequirePkce = optionRequirePkce.HasValue() ? (bool?)true : null,
+                            RequireClientSecret = optionDoNotRequireClientSecret.HasValue() ? (bool?)false : null,
+                            RequireConsent = optionDoNotRequireConsent.HasValue() ? (bool?)false : null,
+                            Enabled = optionDisabled.HasValue() ? (bool?)false : null,
                         });
 
                     reporter.Verbose("Prototype client (from command line arguments):");
@@ -159,7 +150,7 @@ namespace Ironclad.Console.Commands
             return value;
         }
 
-        private class ServerClientHelper : IClientHelper
+        private class ServerClientHelper : IHelper<IroncladClient>
         {
             public IroncladClient GetPrototype(IroncladClient client)
             {
@@ -197,7 +188,7 @@ namespace Ironclad.Console.Commands
             }
         }
 
-        private class WebsiteClientHelper : IClientHelper
+        private class WebsiteClientHelper : IHelper<IroncladClient>
         {
             public IroncladClient GetPrototype(IroncladClient client)
             {
@@ -254,7 +245,7 @@ namespace Ironclad.Console.Commands
             }
         }
 
-        private class ConsoleClientHelper : IClientHelper
+        private class ConsoleClientHelper : IHelper<IroncladClient>
         {
             public IroncladClient GetPrototype(IroncladClient client)
             {
@@ -291,7 +282,7 @@ namespace Ironclad.Console.Commands
 
                 // defaults
                 client.Name = string.IsNullOrWhiteSpace(client.Name) ? null : client.Name;
-                client.RequireClientSecret = true;
+                client.RequireClientSecret = false;
                 client.RequirePkce = true;
                 if (!client.RedirectUris.Contains("http://127.0.0.1"))
                 {
