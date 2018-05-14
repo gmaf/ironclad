@@ -510,7 +510,7 @@ namespace Ironclad.Controllers
                 return this.RedirectToAction(nameof(HomeController.Index), "Home");
             }
 
-            var model = new CompleteRegistrationModel { UserId = userId, Username = user.UserName, Email = user.Email, Code = code };
+            var model = new CompleteRegistrationModel { UserId = userId, Username = user.UserName, Code = code };
             return this.View(model);
         }
 
@@ -531,11 +531,9 @@ namespace Ironclad.Controllers
                 return this.RedirectToAction(nameof(this.CompleteRegistrationConfirmation));
             }
 
-            // NOTE (Cameron): For some reason (maybe disabled form) we're not getting this posted in the model.
-            model.Email = user.Email;
+            var code = model.Code;
 
-            var username = user.UserName;
-            if (model.Username != username)
+            if (model.Username != user.UserName)
             {
                 var setUsernameResult = await this.userManager.SetUserNameAsync(user, model.Username);
                 if (!setUsernameResult.Succeeded)
@@ -543,9 +541,11 @@ namespace Ironclad.Controllers
                     this.ModelState.AddModelError("Username", setUsernameResult.Errors.FirstOrDefault()?.Description);
                     return this.View(model);
                 }
+
+                code = await this.userManager.GeneratePasswordResetTokenAsync(user);
             }
 
-            var result = await this.userManager.ResetPasswordAsync(user, model.Code, model.Password);
+            var result = await this.userManager.ResetPasswordAsync(user, code, model.Password);
             if (!result.Succeeded)
             {
                 this.AddErrors(result);
