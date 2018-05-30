@@ -142,6 +142,31 @@ namespace Ironclad.Client
         }
 
         /// <summary>
+        /// Performs an asynchronous HTTP operation.
+        /// </summary>
+        /// <typeparam name="T">The type of data transfer object.</typeparam>
+        /// <param name="method">The method.</param>
+        /// <param name="requestUri">The request URI.</param>
+        /// <param name="resource">The resource.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task object representing the asynchronous operation.</returns>
+        protected async Task<HttpResponseMessage> SendAsyncGetResponse<T>(HttpMethod method, string requestUri, T resource, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using (var content = new StringContent(JsonConvert.SerializeObject(resource, JsonSerializerSettings), Encoding.UTF8, "application/json"))
+                using (var request = new HttpRequestMessage(method, requestUri) { Content = content })
+                {
+                    return await this.Client.SendAsync(request, cancellationToken).EnsureSuccess().ConfigureAwait(false);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpException(method, new Uri(requestUri), ex);
+            }
+        }
+
+        /// <summary>
         /// Performs an asynchronous HTTP DELETE operation.
         /// </summary>
         /// <param name="requestUri">The request URI.</param>

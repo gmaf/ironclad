@@ -33,9 +33,10 @@ namespace Ironclad.Client
         /// Adds the specified user.
         /// </summary>
         /// <param name="user">The user.</param>
+        /// <param name="sendEmail"> (default true) Determines whether to send a confirmation email or not.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The new user.</returns>
-        Task<User> AddUserAsync(User user, CancellationToken cancellationToken = default);
+        Task<NewUser> AddUserAsync(User user, bool sendEmail = true, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Removes the specified user.

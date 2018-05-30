@@ -87,7 +87,7 @@ namespace Ironclad.WebApi
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody]User model)
+        public async Task<IActionResult> Post([FromBody]User model, bool sendEmail = true)
         {
             if (string.IsNullOrEmpty(model.Username))
             {
@@ -145,14 +145,21 @@ namespace Ironclad.WebApi
                 }
             }
 
+            string callbackUrl = null;
+
             if (string.IsNullOrEmpty(model.Password) && !string.IsNullOrEmpty(model.Email))
             {
                 var code = await this.userManager.GeneratePasswordResetTokenAsync(user);
-                var callbackUrl = this.Url.CompleteRegistrationLink(user.Id, code, this.Request.Scheme);
-                await this.emailSender.SendActivationEmailAsync(model.Email, callbackUrl);
+                callbackUrl = this.Url.CompleteRegistrationLink(user.Id, code, this.Request.Scheme);
+                if (sendEmail)
+                {
+                    await this.emailSender.SendActivationEmailAsync(model.Email, callbackUrl);
+                }
             }
 
-            return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + model.Username)), null);
+            return this.Created(
+                new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + model.Username)),
+                callbackUrl != null ? new { registrationLink = callbackUrl } : null);
         }
 
         [HttpPut("{username}")]

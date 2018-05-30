@@ -7,6 +7,7 @@ namespace Ironclad.Client
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// An HTTP client for managing users of the authorization server.
@@ -55,12 +56,28 @@ namespace Ironclad.Client
         /// Adds the specified user.
         /// </summary>
         /// <param name="user">The user.</param>
+        /// <param name="sendEmail"> (default true) Determines whether to send a confirmation email or not.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The new user.</returns>
-        public async Task<User> AddUserAsync(User user, CancellationToken cancellationToken = default)
+        public async Task<NewUser> AddUserAsync(User user, bool sendEmail = true, CancellationToken cancellationToken = default)
         {
-            await this.SendAsync<User>(HttpMethod.Post, this.RelativeUrl(ApiPath), user, cancellationToken).ConfigureAwait(false);
-            return await this.GetUserAsync(user.Username, cancellationToken).ConfigureAwait(false);
+            using (var httpResponse = await this.SendAsyncGetResponse<User>(HttpMethod.Post, this.RelativeUrl($"{ApiPath}?sendEmail={sendEmail}"), user, cancellationToken).ConfigureAwait(false))
+            {
+                string registrationLink = null;
+
+                var response = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                if (!string.IsNullOrEmpty(response))
+                {
+                    var addUserResponse = JsonConvert.DeserializeObject<AddUserResponse>(response);
+                    registrationLink = addUserResponse.RegistrationLink;
+                }
+
+                var userInTheSystem = await this.GetUserAsync(user.Username, cancellationToken).ConfigureAwait(false);
+                var newUser = new NewUser(userInTheSystem, registrationLink);
+
+                return newUser;
+            }
         }
 
         /// <summary>
