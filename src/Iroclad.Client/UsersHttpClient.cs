@@ -3,8 +3,10 @@
 
 namespace Ironclad.Client
 {
+    using System;
     using System.Net;
     using System.Net.Http;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
@@ -56,28 +58,36 @@ namespace Ironclad.Client
         /// Adds the specified user.
         /// </summary>
         /// <param name="user">The user.</param>
-        /// <param name="sendEmail"> (default true) Determines whether to send a confirmation email or not.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The new user.</returns>
-        public async Task<NewUser> AddUserAsync(User user, bool sendEmail = true, CancellationToken cancellationToken = default)
+        public async Task<User> AddUserAsync(User user, CancellationToken cancellationToken = default)
         {
-            using (var httpResponse = await this.SendAsyncGetResponse<User>(HttpMethod.Post, this.RelativeUrl($"{ApiPath}?sendEmail={sendEmail}"), user, cancellationToken).ConfigureAwait(false))
+            var registrationLink = default(string);
+
+            try
             {
-                string registrationLink = null;
-
-                var response = await httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                if (!string.IsNullOrEmpty(response))
+                using (var content = new StringContent(JsonConvert.SerializeObject(user, JsonSerializerSettings), Encoding.UTF8, "application/json"))
+                using (var request = new HttpRequestMessage(HttpMethod.Post, this.RelativeUrl(ApiPath)) { Content = content })
+                using (var response = await this.Client.SendAsync(request, cancellationToken).EnsureSuccess().ConfigureAwait(false))
                 {
-                    var addUserResponse = JsonConvert.DeserializeObject<AddUserResponse>(response);
-                    registrationLink = addUserResponse.RegistrationLink;
+                    if (response.Content != null)
+                    {
+                        var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        registrationLink = JsonConvert.DeserializeObject<UserResponse>(responseContent, JsonSerializerSettings)?.RegistrationLink;
+
+                        response.Content.Dispose();
+                    }
                 }
-
-                var userInTheSystem = await this.GetUserAsync(user.Username, cancellationToken).ConfigureAwait(false);
-                var newUser = new NewUser(userInTheSystem, registrationLink);
-
-                return newUser;
             }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpException(HttpMethod.Post, new Uri(this.RelativeUrl(ApiPath)), ex);
+            }
+
+            user = await this.GetUserAsync(user.Username, cancellationToken).ConfigureAwait(false);
+            user.RegistrationLink = registrationLink;
+
+            return user;
         }
 
         /// <summary>
@@ -101,6 +111,11 @@ namespace Ironclad.Client
             var url = this.RelativeUrl($"{ApiPath}/{WebUtility.UrlEncode(currentUsername ?? NotNull(user?.Username, "user.Username"))}");
             await this.SendAsync<User>(HttpMethod.Put, url, user, cancellationToken).ConfigureAwait(false);
             return await this.GetUserAsync(user.Username, cancellationToken).ConfigureAwait(false);
+        }
+
+        internal class UserResponse
+        {
+            public string RegistrationLink { get; set; }
         }
     }
 }

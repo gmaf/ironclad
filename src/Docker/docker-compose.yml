@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 
 services:
 
@@ -6,11 +6,11 @@ services:
     image: ironclad:${TAG:-dev}
     container_name: ironclad
     environment:
-      - ASPNETCORE_ENVIRONMENT=Docker
-      - IRONCLAD_CONNECTIONSTRING=${IRONCLAD_CONNECTIONSTRING}
-      - INTROSPECTION_SECRET=${INTROSPECTION_SECRET}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_SECRET=${GOOGLE_SECRET}
+      ASPNETCORE_ENVIRONMENT: Docker
+      IRONCLAD_CONNECTIONSTRING: ${IRONCLAD_CONNECTIONSTRING}
+      INTROSPECTION_SECRET: ${INTROSPECTION_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_SECRET: ${GOOGLE_SECRET}
     env_file:
       - ./default.env
     build:
