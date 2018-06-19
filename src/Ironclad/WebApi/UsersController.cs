@@ -66,7 +66,8 @@ namespace Ironclad.WebApi
         [HttpGet("{username}")]
         public async Task<IActionResult> Get(string username)
         {
-            var user = await this.userManager.FindByNameAsync(username);
+            // HACK (Pawel): This is a temporary measure until we have a sensible way to resolve subject identifiers with username etc.
+            var user = await this.userManager.FindByNameAsync(username) ?? await this.userManager.FindByIdAsync(username);
             if (user == null)
             {
                 return this.NotFound(new { Message = $"User '{username}' not found" });
