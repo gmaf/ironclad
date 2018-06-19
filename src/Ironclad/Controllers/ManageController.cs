@@ -394,8 +394,8 @@ namespace Ironclad.Controllers
 
             var model = new EnableAuthenticatorModel
             {
-                SharedKey = this.FormatKey(unformattedKey),
-                AuthenticatorUri = this.GenerateQrCodeUri(user.Email, unformattedKey)
+                SharedKey = FormatKey(unformattedKey),
+                AuthenticatorUri = this.GenerateQrCodeUri(user.UserName, unformattedKey)
             };
 
             return this.View(model);
@@ -421,9 +421,7 @@ namespace Ironclad.Controllers
                 .Replace(" ", string.Empty, false, CultureInfo.InvariantCulture)
                 .Replace("-", string.Empty, false, CultureInfo.InvariantCulture);
 
-            var is2faTokenValid = await this.userManager.VerifyTwoFactorTokenAsync(
-                user, this.userManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
-
+            var is2faTokenValid = await this.userManager.VerifyTwoFactorTokenAsync(user, this.userManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
             if (!is2faTokenValid)
             {
                 this.ModelState.AddModelError("model.Code", "Verification code is invalid.");
@@ -436,10 +434,7 @@ namespace Ironclad.Controllers
         }
 
         [HttpGet]
-        public IActionResult ResetAuthenticatorWarning()
-        {
-            return this.View(nameof(this.ResetAuthenticator));
-        }
+        public IActionResult ResetAuthenticatorWarning() => this.View(nameof(this.ResetAuthenticator));
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -480,15 +475,7 @@ namespace Ironclad.Controllers
             return this.View(model);
         }
 
-        private void AddErrors(IdentityResult result)
-        {
-            foreach (var error in result.Errors)
-            {
-                this.ModelState.AddModelError(string.Empty, error.Description);
-            }
-        }
-
-        private string FormatKey(string unformattedKey)
+        private static string FormatKey(string unformattedKey)
         {
             var result = new StringBuilder();
             int currentPosition = 0;
@@ -508,12 +495,20 @@ namespace Ironclad.Controllers
 #pragma warning restore CA1308
         }
 
-        private string GenerateQrCodeUri(string email, string unformattedKey) =>
+        private void AddErrors(IdentityResult result)
+        {
+            foreach (var error in result.Errors)
+            {
+                this.ModelState.AddModelError(string.Empty, error.Description);
+            }
+        }
+
+        private string GenerateQrCodeUri(string username, string unformattedKey) =>
             string.Format(
                 CultureInfo.InvariantCulture,
                 AuthenicatorUriFormat,
                 this.urlEncoder.Encode("Lykke Cloud"),
-                this.urlEncoder.Encode(email),
+                this.urlEncoder.Encode(username),
                 unformattedKey);
     }
 }

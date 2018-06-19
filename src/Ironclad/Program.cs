@@ -56,7 +56,7 @@ namespace Ironclad
             try
             {
                 Log.Information($"Starting {title} web API");
-                BuildWebHost(args, configuration).Run();
+                CreateWebHostBuilder(args, configuration).Build().Run();
                 Log.Information($"{title} web API stopped");
                 return 0;
             }
@@ -71,11 +71,10 @@ namespace Ironclad
             }
         }
 
-        private static IWebHost BuildWebHost(string[] args, IConfigurationRoot configuration) =>
+        private static IWebHostBuilder CreateWebHostBuilder(string[] args, IConfigurationRoot configuration) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseConfiguration(configuration)
                 .UseStartup<Startup>()
-                .UseSerilog()
-                .Build();
+                .UseSerilog();
     }
 }

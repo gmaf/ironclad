@@ -8,41 +8,28 @@ namespace Ironclad.Tests.Sdk
     using System.Globalization;
     using System.IO;
     using System.Net.Http;
-    using System.Net.Http.Headers;
-    using System.Net.Sockets;
     using System.Threading;
-    using System.Threading.Tasks;
-    using IdentityModel.OidcClient;
     using Microsoft.Extensions.Configuration;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Serialization;
-    using Npgsql;
 
     public sealed class IroncladFixture : IDisposable
     {
-        private const string ConnectionString = "Host=localhost;Database=ironclad;Username=postgres;Password=postgres;";
-
         private static readonly string DockerContainerId = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture).Substring(12);
 
-        private readonly Process postgresProcess;
         private readonly Process ironcladProcess;
 
         public IroncladFixture()
         {
-            var config = new ConfigurationBuilder().AddJsonFile("testsettings.json").Build();
+            var configFile = Path.Combine(Path.GetDirectoryName(typeof(IroncladFixture).Assembly.Location), "testsettings.json");
+            var config = new ConfigurationBuilder().AddJsonFile(configFile).Build();
 
-            this.Authority = config.GetValue<string>("authority");
+            var authority = config.GetValue<string>("authority");
+            var useDockerImage = config.GetValue<bool>("use_docker_image");
 
-            this.postgresProcess = this.StartPostgres();
-            this.ironcladProcess = this.StartIronclad();
-
-            this.Handler = this.CreateTokenHandler().GetAwaiter().GetResult();
+            this.ironcladProcess = useDockerImage ? this.StartIroncladProcessFromDocker(authority) : this.StartIroncladProcessFromSource(authority);
         }
-
-        public string Authority { get; }
-
-        public HttpMessageHandler Handler { get; }
 
         public void Dispose()
         {
@@ -55,20 +42,6 @@ namespace Ironclad.Tests.Sdk
             }
 
             this.ironcladProcess.Dispose();
-
-            try
-            {
-                this.postgresProcess.Kill();
-            }
-            catch (InvalidOperationException)
-            {
-            }
-
-            this.postgresProcess.Dispose();
-
-            // NOTE (Cameron): Remove the docker container.
-            Process.Start(new ProcessStartInfo("docker", $"stop {DockerContainerId}"))
-                .WaitForExit(10000);
         }
 
         private static JsonSerializerSettings GetJsonSerializerSettings()
@@ -84,43 +57,8 @@ namespace Ironclad.Tests.Sdk
             return settings;
         }
 
-        private Process StartPostgres()
-        {
-            var process = Process.Start(
-                new ProcessStartInfo("docker", $"run --rm --name {DockerContainerId} -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ironclad -p 5432:5432 postgres:10.1-alpine")
-                {
-                    UseShellExecute = true,
-                });
-
-            // NOTE (Cameron): Trying to find a sensible value here so as to not throw during a debug session.
-            Thread.Sleep(3500);
-
-            using (var connection = new NpgsqlConnection(ConnectionString))
-            {
-                var attempt = 0;
-                while (true)
-                {
-                    Thread.Sleep(500);
-                    try
-                    {
-                        connection.Open();
-                        break;
-                    }
-                    catch (Exception ex) when (ex is NpgsqlException || ex is SocketException || ex is EndOfStreamException)
-                    {
-                        if (++attempt >= 20)
-                        {
-                            throw;
-                        }
-                    }
-                }
-            }
-
-            return process;
-        }
-
         [DebuggerStepThrough]
-        private Process StartIronclad()
+        private Process StartIroncladProcessFromSource(string authority)
         {
             var path = string.Format(
                 CultureInfo.InvariantCulture,
@@ -128,7 +66,7 @@ namespace Ironclad.Tests.Sdk
                 Path.DirectorySeparatorChar);
 
             Process.Start(
-                new ProcessStartInfo("dotnet", $"run -p {path} --connectionString '{ConnectionString}'")
+                new ProcessStartInfo("dotnet", $"run -p {path} --connectionString '{PostgresFixture.ConnectionString}'")
                 {
                     UseShellExecute = true,
                 });
@@ -142,7 +80,7 @@ namespace Ironclad.Tests.Sdk
                     Thread.Sleep(500);
                     try
                     {
-                        using (var response = client.GetAsync(new Uri(this.Authority + "/api")).GetAwaiter().GetResult())
+                        using (var response = client.GetAsync(new Uri(authority + "/api")).GetAwaiter().GetResult())
                         {
                             var api = JsonConvert.DeserializeObject<IroncladApi>(response.Content.ReadAsStringAsync().GetAwaiter().GetResult(), GetJsonSerializerSettings());
                             processId = int.Parse(api.ProcessId, CultureInfo.InvariantCulture);
@@ -163,41 +101,45 @@ namespace Ironclad.Tests.Sdk
             return Process.GetProcessById(processId);
         }
 
-        private async Task<HttpMessageHandler> CreateTokenHandler()
+        private Process StartIroncladProcessFromDocker(string authority)
         {
-            var automation = new BrowserAutomation("admin", "password");
-            var browser = new Browser(automation);
-            var options = new OidcClientOptions
+            var process = Process.Start(
+                ////new ProcessStartInfo("docker", $"run --rm --name {DockerContainerId} -e IRONCLAD_CONNECTIONSTRING={PostgresFixture.ConnectionString} -p 5005:80 ironclad:dev")
+                new ProcessStartInfo("docker-compose", $"run --rm --name {DockerContainerId} -e IRONCLAD_CONNECTIONSTRING={PostgresFixture.ConnectionString} -p 5005:80 ironclad:dev")
+                {
+                    UseShellExecute = true,
+                });
+
+            Thread.Sleep(1000);
+
+            var processId = default(int);
+            using (var client = new HttpClient())
             {
-                Authority = this.Authority,
-                ClientId = "auth_console",
-                RedirectUri = $"http://127.0.0.1:{browser.Port}",
-                Scope = "openid profile auth_api",
-                FilterClaims = false,
-                Browser = browser,
-            };
+                var attempt = 0;
+                while (true)
+                {
+                    Thread.Sleep(500);
+                    try
+                    {
+                        using (var response = client.GetAsync(new Uri(authority + "/api")).GetAwaiter().GetResult())
+                        {
+                            var api = JsonConvert.DeserializeObject<IroncladApi>(response.Content.ReadAsStringAsync().GetAwaiter().GetResult(), GetJsonSerializerSettings());
+                            processId = int.Parse(api.ProcessId, CultureInfo.InvariantCulture);
+                        }
 
-            var oidcClient = new OidcClient(options);
-            var result = await oidcClient.LoginAsync(new LoginRequest()).ConfigureAwait(false);
-
-            return new TokenHandler(result.AccessToken);
-        }
-
-        private sealed class TokenHandler : DelegatingHandler
-        {
-            private string accessToken;
-
-            public TokenHandler(string accessToken)
-                : base(new HttpClientHandler())
-            {
-                this.accessToken = accessToken;
+                        break;
+                    }
+                    catch (HttpRequestException)
+                    {
+                        if (++attempt >= 20)
+                        {
+                            throw;
+                        }
+                    }
+                }
             }
 
-            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this.accessToken);
-                return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            }
+            return Process.GetProcessById(processId);
         }
 
 #pragma warning disable CA1812

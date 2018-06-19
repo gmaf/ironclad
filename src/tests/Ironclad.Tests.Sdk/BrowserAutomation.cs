@@ -15,7 +15,7 @@ namespace Ironclad.Tests.Sdk
 
     // HACK (Cameron): This entire class is super brittle and depends heavily upon the IdentityServer rendering - which is not ideal.
     // TODO (Cameron): Refactor this so that it's not so brittle.
-    public class BrowserAutomation : HttpClient
+    internal class BrowserAutomation : HttpClient
     {
         private readonly BrowserHandler handler;
         private readonly string username;

@@ -7,17 +7,16 @@ namespace Ironclad.Tests.Sdk
     using Xunit;
 
     [Collection("Ironclad")]
-    public class IntegrationTest
+    public class IntegrationTest : AuthenticationTest
     {
-        private IroncladFixture fixture;
+        private readonly IroncladFixture ironcladFixture;
+        private readonly PostgresFixture postgresFixture;
 
-        public IntegrationTest(IroncladFixture fixture)
+        public IntegrationTest(AuthenticationFixture authenticationFixture, IroncladFixture ironcladFixture, PostgresFixture postgresFixture)
+            : base(authenticationFixture)
         {
-            this.fixture = fixture;
+            this.ironcladFixture = ironcladFixture;
+            this.postgresFixture = postgresFixture;
         }
-
-        protected string Authority => this.fixture.Authority;
-
-        protected HttpMessageHandler Handler => this.fixture.Handler;
     }
 }

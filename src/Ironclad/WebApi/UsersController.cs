@@ -14,6 +14,7 @@ namespace Ironclad.WebApi
     using Ironclad.Application;
     using Ironclad.Client;
     using Ironclad.Configuration;
+    using Ironclad.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -25,11 +26,13 @@ namespace Ironclad.WebApi
     {
         private readonly UserManager<ApplicationUser> userManager;
         private readonly RoleManager<IdentityRole> roleManager;
+        private readonly IEmailSender emailSender;
 
-        public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IEmailSender emailSender)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
+            this.emailSender = emailSender;
         }
 
         [HttpGet]
@@ -63,7 +66,8 @@ namespace Ironclad.WebApi
         [HttpGet("{username}")]
         public async Task<IActionResult> Get(string username)
         {
-            var user = await this.userManager.FindByNameAsync(username);
+            // HACK (Pawel): This is a temporary measure until we have a sensible way to resolve subject identifiers with username etc.
+            var user = await this.userManager.FindByNameAsync(username) ?? await this.userManager.FindByIdAsync(username);
             if (user == null)
             {
                 return this.NotFound(new { Message = $"User '{username}' not found" });
@@ -142,7 +146,22 @@ namespace Ironclad.WebApi
                 }
             }
 
-            return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + model.Username)), null);
+            var callbackUrl = default(string);
+
+            if (string.IsNullOrEmpty(model.Password) && !string.IsNullOrEmpty(model.Email))
+            {
+                var code = await this.userManager.GeneratePasswordResetTokenAsync(user);
+                callbackUrl = this.Url.CompleteRegistrationLink(user.Id, code, this.Request.Scheme);
+
+                if (model.SendConfirmationEmail == true)
+                {
+                    await this.emailSender.SendActivationEmailAsync(model.Email, callbackUrl);
+                }
+            }
+
+            return this.Created(
+                new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + model.Username)),
+                callbackUrl != null ? new { registrationLink = callbackUrl } : null);
         }
 
         [HttpPut("{username}")]

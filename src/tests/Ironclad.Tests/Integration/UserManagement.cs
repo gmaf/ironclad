@@ -15,8 +15,8 @@ namespace Ironclad.Tests.Feature
 
     public class UserManagement : IntegrationTest
     {
-        public UserManagement(IroncladFixture fixture)
-            : base(fixture)
+        public UserManagement(AuthenticationFixture securityFixture, IroncladFixture ironcladFixture, PostgresFixture postgresFixture)
+            : base(securityFixture, ironcladFixture, postgresFixture)
         {
         }
 
@@ -47,7 +47,7 @@ namespace Ironclad.Tests.Feature
             {
                 Username = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
                 Password = "password",
-                Email = "bob@bob.com",
+                Email = "bit-bucket@test.smtp.org",
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
             };
@@ -61,6 +61,36 @@ namespace Ironclad.Tests.Feature
         }
 
         [Fact]
+        public async Task CanAddUserWithConfirmationEmail()
+        {
+            // arrange
+            var httpClient = new UsersHttpClient(this.Authority, this.Handler);
+            var expectedUser = new User
+            {
+                Username = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
+                Email = "bit-bucket@test.smtp.org",
+                SendConfirmationEmail = true,
+                PhoneNumber = "123456789",
+                Roles = { "admin" },
+            };
+
+            // act
+            var actualUser = await httpClient.AddUserAsync(expectedUser).ConfigureAwait(false);
+
+            // assert
+            // TODO (Cameron): Assert email was sent (somehow).
+            actualUser.Should().NotBeNull();
+            actualUser.Should().BeEquivalentTo(
+                expectedUser,
+                options => options
+                    .Excluding(user => user.Id)
+                    .Excluding(user => user.Password)
+                    .Excluding(user => user.SendConfirmationEmail)
+                    .Excluding(user => user.RegistrationLink));
+            actualUser.RegistrationLink.Should().NotBeNull();
+        }
+
+        [Fact]
         public async Task CanGetUserSummaries()
         {
             // arrange
@@ -68,7 +98,7 @@ namespace Ironclad.Tests.Feature
             var expectedUser = new User
             {
                 Username = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
-                Email = "bob@bob.com",
+                Email = "bit-bucket@test.smtp.org",
             };
 
             var actualUser = await httpClient.AddUserAsync(expectedUser).ConfigureAwait(false);
@@ -113,7 +143,7 @@ namespace Ironclad.Tests.Feature
             {
                 Username = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
                 Password = "password4bob",
-                Email = "bob@bob.com",
+                Email = "bit-bucket@test.smtp.org",
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
             };

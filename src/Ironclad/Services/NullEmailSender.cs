@@ -5,8 +5,8 @@ namespace Ironclad.Services
 {
     using System.Threading.Tasks;
 
-    public interface IEmailSender
+    public class NullEmailSender : IEmailSender
     {
-        Task SendEmailAsync(string email, string subject, string body);
+        public Task SendEmailAsync(string email, string subject, string body) => Task.CompletedTask;
     }
 }

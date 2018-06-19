@@ -3,10 +3,13 @@
 
 namespace Ironclad.Client
 {
+    using System;
     using System.Net;
     using System.Net.Http;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// An HTTP client for managing users of the authorization server.
@@ -59,8 +62,32 @@ namespace Ironclad.Client
         /// <returns>The new user.</returns>
         public async Task<User> AddUserAsync(User user, CancellationToken cancellationToken = default)
         {
-            await this.SendAsync<User>(HttpMethod.Post, this.RelativeUrl(ApiPath), user, cancellationToken).ConfigureAwait(false);
-            return await this.GetUserAsync(user.Username, cancellationToken).ConfigureAwait(false);
+            var registrationLink = default(string);
+
+            try
+            {
+                using (var content = new StringContent(JsonConvert.SerializeObject(user, JsonSerializerSettings), Encoding.UTF8, "application/json"))
+                using (var request = new HttpRequestMessage(HttpMethod.Post, this.RelativeUrl(ApiPath)) { Content = content })
+                using (var response = await this.Client.SendAsync(request, cancellationToken).EnsureSuccess().ConfigureAwait(false))
+                {
+                    if (response.Content != null)
+                    {
+                        var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        registrationLink = JsonConvert.DeserializeObject<UserResponse>(responseContent, JsonSerializerSettings)?.RegistrationLink;
+
+                        response.Content.Dispose();
+                    }
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpException(HttpMethod.Post, new Uri(this.RelativeUrl(ApiPath)), ex);
+            }
+
+            user = await this.GetUserAsync(user.Username, cancellationToken).ConfigureAwait(false);
+            user.RegistrationLink = registrationLink;
+
+            return user;
         }
 
         /// <summary>
@@ -84,6 +111,11 @@ namespace Ironclad.Client
             var url = this.RelativeUrl($"{ApiPath}/{WebUtility.UrlEncode(currentUsername ?? NotNull(user?.Username, "user.Username"))}");
             await this.SendAsync<User>(HttpMethod.Put, url, user, cancellationToken).ConfigureAwait(false);
             return await this.GetUserAsync(user.Username, cancellationToken).ConfigureAwait(false);
+        }
+
+        internal class UserResponse
+        {
+            public string RegistrationLink { get; set; }
         }
     }
 }

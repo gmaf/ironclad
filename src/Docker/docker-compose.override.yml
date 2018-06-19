@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 
 services:
 
@@ -13,5 +13,10 @@ services:
       - "5005:80"
 
   ironclad:
+    environment:
+      IRONCLAD_CONNECTIONSTRING: ${IRONCLAD_CONNECTIONSTRING}
+      INTROSPECTION_SECRET: ${INTROSPECTION_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_SECRET: ${GOOGLE_SECRET}
     ports:
       - "5006:80"

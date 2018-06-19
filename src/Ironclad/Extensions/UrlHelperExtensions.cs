@@ -17,10 +17,19 @@ namespace Ironclad
                 protocol: scheme);
         }
 
-        public static string ResetPasswordCallbackLink(this IUrlHelper urlHelper, string userId, string code, string scheme)
+        public static string ResetPasswordLink(this IUrlHelper urlHelper, string userId, string code, string scheme)
         {
             return urlHelper.Action(
                 action: nameof(AccountController.ResetPassword),
+                controller: "Account",
+                values: new { userId, code },
+                protocol: scheme);
+        }
+
+        public static string CompleteRegistrationLink(this IUrlHelper urlHelper, string userId, string code, string scheme)
+        {
+            return urlHelper.Action(
+                action: nameof(AccountController.CompleteRegistration),
                 controller: "Account",
                 values: new { userId, code },
                 protocol: scheme);
