@@ -31,6 +31,11 @@ namespace Ironclad.Client
         public string Email { get; set; }
 
         /// <summary>
+        /// Gets or sets a flag indicating whether to send a confirmation email to the new user.
+        /// </summary>
+        public bool? SendConfirmationEmail { get; set; }
+
+        /// <summary>
         /// Gets or sets a telephone number for the user.
         /// </summary>
         public string PhoneNumber { get; set; }
@@ -39,6 +44,11 @@ namespace Ironclad.Client
         /// Gets or sets the external login provider for the user.
         /// </summary>
         public string ExternalLoginProvider { get; set; }
+
+        /// <summary>
+        /// Gets or sets the registration link for this user.
+        /// </summary>
+        public string RegistrationLink { get; set; }
 
         /// <summary>
         /// Gets or sets the roles.

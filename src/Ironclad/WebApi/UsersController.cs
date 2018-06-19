@@ -145,14 +145,22 @@ namespace Ironclad.WebApi
                 }
             }
 
+            var callbackUrl = default(string);
+
             if (string.IsNullOrEmpty(model.Password) && !string.IsNullOrEmpty(model.Email))
             {
                 var code = await this.userManager.GeneratePasswordResetTokenAsync(user);
-                var callbackUrl = this.Url.CompleteRegistrationLink(user.Id, code, this.Request.Scheme);
-                await this.emailSender.SendActivationEmailAsync(model.Email, callbackUrl);
+                callbackUrl = this.Url.CompleteRegistrationLink(user.Id, code, this.Request.Scheme);
+
+                if (model.SendConfirmationEmail == true)
+                {
+                    await this.emailSender.SendActivationEmailAsync(model.Email, callbackUrl);
+                }
             }
 
-            return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + model.Username)), null);
+            return this.Created(
+                new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + model.Username)),
+                callbackUrl != null ? new { registrationLink = callbackUrl } : null);
         }
 
         [HttpPut("{username}")]
