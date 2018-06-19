@@ -12,7 +12,7 @@ namespace Ironclad.Tests.Sdk
 
     // thanks to Damian Hickey for this awesome sample
     // https://github.com/damianh/OwinHttpMessageHandler/blob/master/src/OwinHttpMessageHandler/OwinHttpMessageHandler.cs
-    public class BrowserHandler : DelegatingHandler
+    internal class BrowserHandler : DelegatingHandler
     {
         private readonly CookieContainer cookieContainer = new CookieContainer();
 

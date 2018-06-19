@@ -11,7 +11,7 @@ namespace Ironclad.Tests.Sdk
     using System.Threading.Tasks;
     using IdentityModel.OidcClient.Browser;
 
-    public class Browser : IBrowser
+    internal class Browser : IBrowser
     {
         private readonly BrowserAutomation automation;
         private readonly string path;

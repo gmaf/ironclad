@@ -14,8 +14,8 @@ namespace Ironclad.Tests.Feature
 
     public class RoleManagement : IntegrationTest
     {
-        public RoleManagement(IroncladFixture fixture)
-            : base(fixture)
+        public RoleManagement(AuthenticationFixture securityFixture, IroncladFixture ironcladFixture, PostgresFixture postgresFixture)
+            : base(securityFixture, ironcladFixture, postgresFixture)
         {
         }
 

@@ -395,7 +395,7 @@ namespace Ironclad.Controllers
             var model = new EnableAuthenticatorModel
             {
                 SharedKey = FormatKey(unformattedKey),
-                AuthenticatorUri = this.GenerateQrCodeUri(user.Email, unformattedKey)
+                AuthenticatorUri = this.GenerateQrCodeUri(user.UserName, unformattedKey)
             };
 
             return this.View(model);
@@ -421,9 +421,7 @@ namespace Ironclad.Controllers
                 .Replace(" ", string.Empty, false, CultureInfo.InvariantCulture)
                 .Replace("-", string.Empty, false, CultureInfo.InvariantCulture);
 
-            var is2faTokenValid = await this.userManager.VerifyTwoFactorTokenAsync(
-                user, this.userManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
-
+            var is2faTokenValid = await this.userManager.VerifyTwoFactorTokenAsync(user, this.userManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
             if (!is2faTokenValid)
             {
                 this.ModelState.AddModelError("model.Code", "Verification code is invalid.");
@@ -505,12 +503,12 @@ namespace Ironclad.Controllers
             }
         }
 
-        private string GenerateQrCodeUri(string email, string unformattedKey) =>
+        private string GenerateQrCodeUri(string username, string unformattedKey) =>
             string.Format(
                 CultureInfo.InvariantCulture,
                 AuthenicatorUriFormat,
                 this.urlEncoder.Encode("Lykke Cloud"),
-                this.urlEncoder.Encode(email),
+                this.urlEncoder.Encode(username),
                 unformattedKey);
     }
 }

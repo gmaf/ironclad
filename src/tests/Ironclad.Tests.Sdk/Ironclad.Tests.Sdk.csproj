@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Ironclad.Tests.Sdk</AssemblyName>
+    <RootNamespace>Ironclad.Tests.Sdk</RootNamespace>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <CodeAnalysisRuleSet>../../Ironclad.ruleset</CodeAnalysisRuleSet>
+    <NoWarn>1701;1702;1705;IDE0039;CA1822</NoWarn>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <TrimUnusedDependencies>true</TrimUnusedDependencies>
+    <LangVersion>latest</LangVersion>
+    <DocumentationFile>bin\Debug\netstandard2.0\Ironclad.Tests.Sdk.xml</DocumentationFile>
+    <Copyright>Copyright (c) Ironclad Contributers. All rights reserved.</Copyright>
+    <Product>Ironclad</Product>
+    <Company>Lykke</Company>
+    <Authors>Ironclad Contributers</Authors>
+    <PackageId>Ironclad.Tests.Sdk</PackageId>
+    <Version>0.0.1-developer</Version>
+    <AssemblyVersion>0.0.3.0</AssemblyVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="5.3.0" />
+    <PackageReference Include="IdentityModel" Version="3.6.1" />
+    <PackageReference Include="IdentityModel.OidcClient" Version="2.6.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.1" />
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="Microsoft.Packaging.Tools.Trimming" Version="1.1.0-preview1-26618-01" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.1" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <AdditionalFiles Include="../../stylecop.json" />
+  </ItemGroup>
+
+</Project>
