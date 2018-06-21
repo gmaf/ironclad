@@ -3,6 +3,7 @@
     using System;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using IdentityModel.Client;
     using IdentityModel.OidcClient;
 
     public class Program
@@ -36,7 +37,8 @@
                 RedirectUri = redirectUri,
                 Scope = "openid profile sample_api offline_access",
                 FilterClaims = false,
-                Browser = browser
+                Browser = browser,
+                Policy = new Policy { Discovery = new DiscoveryPolicy { ValidateIssuerName = false } }
             };
 
             ////var serilog = new LoggerConfiguration()
