@@ -90,7 +90,7 @@ namespace Ironclad.Console
             var data = repository.GetCommandData() ??
                 new CommandData
                 {
-                    Authority = LoginCommand.DefaultAuthority,
+                    Authority = LoginCommand.ProductionAuthority,
                 };
 
             var authority = data.Authority;

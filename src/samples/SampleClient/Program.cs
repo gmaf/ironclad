@@ -15,7 +15,7 @@
         {
             // make a discovery request to the auth server in order to discover the token endpoint
             // this call typically only needs to be done every time the auth server fundamentally changes
-            var discoveryClient = new DiscoveryClient("http://localhost:5005/");
+            var discoveryClient = new DiscoveryClient("http://localhost:5005/") { Policy = new DiscoveryPolicy { ValidateIssuerName = false } };
             var discoveryResponse = await discoveryClient.GetAsync();
 
             // make a token request to the token endpoint (this is the server-to-server auth endpoint eg. no user input required/permitted)

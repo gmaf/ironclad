@@ -3,10 +3,7 @@
 
 namespace Ironclad
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Net;
+    using IdentityModel.Client;
     using IdentityServer4.AccessTokenValidation;
     using IdentityServer4.Postgresql.Extensions;
     using Ironclad.Application;
@@ -90,7 +87,7 @@ namespace Ironclad
                         options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                     });
 
-            services.AddIdentityServer()
+            services.AddIdentityServer(options => options.IssuerUri = this.configuration.GetValue<string>("issuerUri"))
                 .AddDeveloperSigningCredential()
                 .AddConfigurationStore(this.configuration.GetConnectionString("Ironclad"))
                 .AddOperationalStore()
@@ -109,9 +106,15 @@ namespace Ironclad
                     options =>
                     {
                         options.Authority = this.configuration.GetValue<string>("authority");
-                        options.ApiName = "auth_api";
-                        options.ApiSecret = this.configuration.GetValue<string>("Introspection-Secret");
+                        options.Audience = $"{this.configuration.GetValue<string>("issuerUri")}/resources";
                         options.RequireHttpsMetadata = false;
+                    },
+                    options =>
+                    {
+                        options.Authority = this.configuration.GetValue<string>("authority");
+                        options.ClientId = "auth_api";
+                        options.ClientSecret = this.configuration.GetValue<string>("Introspection-Secret");
+                        options.DiscoveryPolicy = new DiscoveryPolicy { ValidateIssuerName = false };
                     });
 
             services.AddAuthorization(
