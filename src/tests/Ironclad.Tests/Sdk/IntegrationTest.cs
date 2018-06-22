@@ -3,7 +3,6 @@
 
 namespace Ironclad.Tests.Sdk
 {
-    using System.Net.Http;
     using Xunit;
 
     [Collection("Ironclad")]

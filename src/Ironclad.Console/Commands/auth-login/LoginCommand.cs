@@ -15,7 +15,8 @@ namespace Ironclad.Console.Commands
 
     internal class LoginCommand : ICommand
     {
-        public const string DefaultAuthority = "https://auth.lykkecloud.com";
+        public const string ProductionAuthority = "https://auth.lykkecloud.com";
+        private const string TestAuthority = "https://auth-test.lykkecloud.com";
 
         private Api api;
 
@@ -52,7 +53,7 @@ namespace Ironclad.Console.Commands
                     var authority = argumentAuthority.Value;
                     if (string.IsNullOrEmpty(authority))
                     {
-                        authority = optionTest.HasValue() ? "https://auth-test.lykkecloud.com" : DefaultAuthority;
+                        authority = optionTest.HasValue() ? TestAuthority : ProductionAuthority;
                     }
                     else if (optionTest.HasValue())
                     {
@@ -102,7 +103,7 @@ namespace Ironclad.Console.Commands
             {
                 // already logged in?
                 var discoveryResponse = default(DiscoveryResponse);
-                using (var discoveryClient = new DiscoveryClient(this.Authority))
+                using (var discoveryClient = new DiscoveryClient(this.Authority) { Policy = new DiscoveryPolicy { ValidateIssuerName = false } })
                 {
                     discoveryResponse = await discoveryClient.GetAsync().ConfigureAwait(false);
                     if (!discoveryResponse.IsError)
