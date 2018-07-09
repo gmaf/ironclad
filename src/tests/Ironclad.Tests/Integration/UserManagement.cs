@@ -8,6 +8,7 @@ namespace Ironclad.Tests.Feature
     using System.Net;
     using System.Threading.Tasks;
     using FluentAssertions;
+    using IdentityModel.Client;
     using IdentityModel.OidcClient;
     using Ironclad.Client;
     using Ironclad.Tests.Sdk;
@@ -213,6 +214,7 @@ namespace Ironclad.Tests.Feature
                 Scope = "openid profile auth_api offline_access",
                 FilterClaims = false,
                 Browser = browser,
+                Policy = new Policy { Discovery = new DiscoveryPolicy { ValidateIssuerName = false } }
             };
 
             var oidcClient = new OidcClient(options);

@@ -10,6 +10,7 @@ namespace Ironclad.Tests.Sdk
     using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
+    using IdentityModel.Client;
     using IdentityModel.OidcClient;
     using Microsoft.Extensions.Configuration;
 
@@ -47,6 +48,7 @@ namespace Ironclad.Tests.Sdk
                 Scope = scope,
                 FilterClaims = false,
                 Browser = browser,
+                Policy = new Policy { Discovery = new DiscoveryPolicy { ValidateIssuerName = false } }
             };
 
             var oidcClient = new OidcClient(options);

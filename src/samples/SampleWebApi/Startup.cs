@@ -1,5 +1,6 @@
 ﻿namespace SampleWebApi
 {
+    using IdentityModel.Client;
     using IdentityServer4.AccessTokenValidation;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Builder;
@@ -24,14 +25,23 @@
             // here we configure the authentication handlers to accept both JWTs and reference tokens as access tokens for the API
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(
+                    IdentityServerAuthenticationDefaults.AuthenticationScheme,
                     options =>
                     {
                         options.Authority = "http://localhost:5005/";   // the IdentityServer root URL (used for discovery)
-                        options.ApiName = "sample_api";                 // the name of the web API (used to scope access)
-                        options.ApiSecret = "secret";                   // the secret associated with the introspection endpoint for reference token validation and claims
+                        options.Audience = "sample_api";                // the name of the web API (used to scope access)
 
                         // not to be set in production!
                         options.RequireHttpsMetadata = false;           // allow non-HTTPS for testing only
+                    },
+                    options =>
+                    {
+                        options.Authority = "http://localhost:5005/";   // the IdentityServer root URL (used for discovery)
+                        options.ClientId = "sample_api";                // the name of the web API (used to scope access)
+                        options.ClientSecret = "secret";                // the secret associated with the introspection endpoint for reference token validation and claims
+
+                        // this option allows setting a fixed (custom) issuer name for the tokens
+                        options.DiscoveryPolicy = new DiscoveryPolicy { ValidateIssuerName = false };
                     });
 
             // here we can take the user and augment the user claims based on information we store in *this* system (not identity related) - only use if this is required
