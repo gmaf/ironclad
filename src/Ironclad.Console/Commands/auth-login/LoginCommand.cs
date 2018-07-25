@@ -132,7 +132,8 @@ namespace Ironclad.Console.Commands
                 RedirectUri = $"http://127.0.0.1:{browser.Port}",
                 Scope = "openid profile email auth_api offline_access",
                 FilterClaims = false,
-                Browser = browser
+                Browser = browser,
+                Policy = new Policy { Discovery = new DiscoveryPolicy { ValidateIssuerName = false } },
             };
 
             var oidcClient = new OidcClient(options);
