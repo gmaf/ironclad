@@ -108,7 +108,7 @@ namespace Ironclad.Console
             }
 
             var discoveryResponse = default(DiscoveryResponse);
-            using (var discoveryClient = new DiscoveryClient(authority))
+            using (var discoveryClient = new DiscoveryClient(authority) { Policy = new DiscoveryPolicy { ValidateIssuerName = false } })
             {
                 discoveryResponse = await discoveryClient.GetAsync().ConfigureAwait(false);
                 if (discoveryResponse.IsError)
