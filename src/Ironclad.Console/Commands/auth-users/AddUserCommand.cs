@@ -22,6 +22,7 @@ namespace Ironclad.Console.Commands
         {
             // description
             app.Description = "Creates a new user";
+            app.HelpOption();
             app.ExtendedHelpText = $"{Environment.NewLine}Use 'users add -i' to enter interactive mode{Environment.NewLine}";
 
             // arguments
