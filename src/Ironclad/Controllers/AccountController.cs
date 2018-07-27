@@ -15,6 +15,7 @@ namespace Ironclad.Controllers
     using IdentityServer4.Services;
     using Ironclad.Application;
     using Ironclad.Models;
+    using Ironclad.Sdk;
     using Ironclad.Services;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
@@ -23,7 +24,7 @@ namespace Ironclad.Controllers
     using Microsoft.Extensions.Logging;
 
     [Authorize]
-    ////[SecurityHeaders]
+    [SecurityHeaders]
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> userManager;

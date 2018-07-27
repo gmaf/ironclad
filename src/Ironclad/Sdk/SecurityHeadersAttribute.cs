@@ -55,6 +55,27 @@ namespace Ironclad.Sdk
             {
                 context.HttpContext.Response.Headers.Add("Referrer-Policy", referrer_policy);
             }
+
+            // https://scotthelme.co.uk/hardening-your-http-response-headers/#x-xss-protection
+            var xss_protection_policy = "1; mode=block";
+            if (!context.HttpContext.Response.Headers.ContainsKey("X-XSS-Protection"))
+            {
+                context.HttpContext.Response.Headers.Add("X-XSS-Protection", xss_protection_policy);
+            }
+
+            // https://scotthelme.co.uk/a-new-security-header-feature-policy/
+            var feature_policy = "geolocation 'none'; midi 'none'; notifications 'self'; push 'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none'; speaker 'none'; vibrate 'none'; payment 'none'";
+            if (!context.HttpContext.Response.Headers.ContainsKey("Feature-Policy"))
+            {
+                context.HttpContext.Response.Headers.Add("Feature-Policy", feature_policy);
+            }
+
+            // https://scotthelme.co.uk/hsts-the-missing-link-in-tls/
+            var hsts = "max-age=31536000";
+            if (!context.HttpContext.Response.Headers.ContainsKey("Strict-Transport-Security"))
+            {
+                context.HttpContext.Response.Headers.Add("Strict-Transport-Security", hsts);
+            }
         }
     }
 }
