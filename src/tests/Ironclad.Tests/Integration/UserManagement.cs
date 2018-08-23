@@ -288,5 +288,51 @@ namespace Ironclad.Tests.Feature
             // assert
             func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
+
+        [Fact]
+        public void CannotAddUserWithNonExistingRole()
+        {
+            // arrange
+            var httpClient = new UsersHttpClient(this.Authority, this.Handler);
+            var model = new User
+            {
+                Username = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
+                Password = "password",
+                Email = "bit-bucket@test.smtp.org",
+                PhoneNumber = "123456789",
+                Roles = { "admin", "lambo_owner" },
+            };
+
+            // act
+            Func<Task> func = async () => await httpClient.AddUserAsync(model).ConfigureAwait(false);
+
+            // assert
+            func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public async Task CannotModifyUserRolesWithNonExistingRole()
+        {
+            // arrange
+            var httpClient = new UsersHttpClient(this.Authority, this.Handler);
+            var model = new User
+            {
+                Username = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
+                Password = "password",
+                Email = "bit-bucket@test.smtp.org",
+                PhoneNumber = "123456789",
+                Roles = { "admin" },
+            };
+
+            var user = await httpClient.AddUserAsync(model).ConfigureAwait(false);
+
+            // act
+            model.Roles.Add("lambo_owner");
+
+            Func<Task> func = async () => await httpClient.ModifyUserAsync(model).ConfigureAwait(false);
+
+            // assert
+            func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
     }
 }

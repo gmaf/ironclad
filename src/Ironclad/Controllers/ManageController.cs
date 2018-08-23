@@ -20,7 +20,7 @@ namespace Ironclad.Controllers
     using Microsoft.Extensions.Logging;
 
     [Authorize]
-    ////[SecurityHeaders]
+    [SecurityHeaders]
     public class ManageController : Controller
     {
         private const string AuthenicatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";

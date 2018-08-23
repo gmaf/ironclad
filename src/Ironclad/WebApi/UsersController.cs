@@ -203,6 +203,15 @@ namespace Ironclad.WebApi
             var newRoles = (model.Roles ?? Array.Empty<string>()).Except(roles);
             if (newRoles.Any())
             {
+                foreach (var role in newRoles)
+                {
+                    var roleExists = await this.roleManager.RoleExistsAsync(role).ConfigureAwait(false);
+                    if (!roleExists)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.BadRequest, new { Message = $"Role {role} does not exist." });
+                    }
+                }
+
                 var addResult = await this.userManager.AddToRolesAsync(user, newRoles);
                 if (!addResult.Succeeded)
                 {
