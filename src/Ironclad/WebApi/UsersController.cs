@@ -205,8 +205,8 @@ namespace Ironclad.WebApi
             {
                 foreach (var role in newRoles)
                 {
-                    var roleExist = await this.roleManager.RoleExistsAsync(role).ConfigureAwait(false);
-                    if (!roleExist)
+                    var roleExists = await this.roleManager.RoleExistsAsync(role).ConfigureAwait(false);
+                    if (!roleExists)
                     {
                         return this.StatusCode((int)HttpStatusCode.BadRequest, new { Message = $"Role {role} does not exist." });
                     }

@@ -324,12 +324,11 @@ namespace Ironclad.Tests.Feature
                 Roles = { "admin" },
             };
 
-            // act
             var user = await httpClient.AddUserAsync(model).ConfigureAwait(false);
 
+            // act
             model.Roles.Add("lambo_owner");
 
-            // act
             Func<Task> func = async () => await httpClient.ModifyUserAsync(model).ConfigureAwait(false);
 
             // assert

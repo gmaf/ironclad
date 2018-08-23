@@ -69,13 +69,6 @@ namespace Ironclad.Sdk
             {
                 context.HttpContext.Response.Headers.Add("Feature-Policy", feature_policy);
             }
-
-            // https://scotthelme.co.uk/hsts-the-missing-link-in-tls/
-            var hsts = "max-age=31536000";
-            if (!context.HttpContext.Response.Headers.ContainsKey("Strict-Transport-Security"))
-            {
-                context.HttpContext.Response.Headers.Add("Strict-Transport-Security", hsts);
-            }
         }
     }
 }
