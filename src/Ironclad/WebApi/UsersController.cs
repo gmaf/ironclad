@@ -153,7 +153,7 @@ namespace Ironclad.WebApi
                 var code = await this.userManager.GeneratePasswordResetTokenAsync(user);
                 callbackUrl = this.Url.CompleteRegistrationLink(user.Id, code, this.Request.Scheme);
 
-                if (model.SendConfirmationEmail == true)
+                if (model.SendConfirmationEmail != false)
                 {
                     await this.emailSender.SendActivationEmailAsync(model.Email, callbackUrl);
                 }

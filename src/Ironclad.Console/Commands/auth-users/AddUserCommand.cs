@@ -36,6 +36,7 @@ namespace Ironclad.Console.Commands
             var optionRoles =                 app.Option("-r|--role <role>",                     "A role to assign the new user to (you can call this several times)", CommandOptionType.MultipleValue);
             var optionExternalLoginProvider = app.Option("-l|--login_provider <login_provider>", "The external login provider",                                        CommandOptionType.SingleValue);
             var optionInteractive =           app.Option("-i|--interactive",                     "Enters interactive mode",                                            CommandOptionType.NoValue);
+            var optionDoNotSendEmail =        app.Option("-s|--no-email",                        "Do not sends a registration email",                                  CommandOptionType.NoValue);
 #pragma warning restore SA1025
 
             // action (for this command)
@@ -58,7 +59,8 @@ namespace Ironclad.Console.Commands
                         Email = optionEmail.Value(),
                         PhoneNumber = optionPhoneNumber.Value(),
                         Roles = optionRoles.HasValue() ? optionRoles.Values.Distinct().ToHashSet() : null,
-                        ExternalLoginProvider = optionExternalLoginProvider.Value()
+                        ExternalLoginProvider = optionExternalLoginProvider.Value(),
+                        SendConfirmationEmail = optionDoNotSendEmail.HasValue() ? (bool?)false : null
                     };
 
                     reporter.Verbose("Prototype user (from command line arguments):");
