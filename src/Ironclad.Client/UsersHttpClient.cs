@@ -113,6 +113,7 @@ namespace Ironclad.Client
             return await this.GetUserAsync(user.Username, cancellationToken).ConfigureAwait(false);
         }
 
+#pragma warning disable CA1812
         internal class UserResponse
         {
             public string RegistrationLink { get; set; }

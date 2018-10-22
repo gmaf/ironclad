@@ -119,7 +119,7 @@ namespace Ironclad.Console
             }
 
             using (var tokenClient = new TokenClient(discoveryResponse.TokenEndpoint, "auth_console"))
-            using (var refreshTokenHandler = new RefreshTokenHandler(tokenClient, data.RefreshToken, data.AccessToken))
+            using (var refreshTokenHandler = new RefreshTokenDelegatingHandler(tokenClient, data.RefreshToken, data.AccessToken))
             using (var clientsClient = new ClientsHttpClient(authority, refreshTokenHandler))
             using (var apiResourcesClient = new ApiResourcesHttpClient(authority, refreshTokenHandler))
             using (var identityResourcesClient = new IdentityResourcesHttpClient(authority, refreshTokenHandler))

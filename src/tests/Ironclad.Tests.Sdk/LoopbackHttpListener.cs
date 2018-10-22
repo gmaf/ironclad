@@ -19,7 +19,6 @@ namespace Ironclad.Tests.Sdk
 
         private readonly IWebHost host;
         private readonly TaskCompletionSource<string> source = new TaskCompletionSource<string>();
-        private readonly string url;
 
         public LoopbackHttpListener(int port, string path = null)
         {
@@ -30,17 +29,17 @@ namespace Ironclad.Tests.Sdk
                 path = path.Substring(1);
             }
 
-            this.url = $"http://127.0.0.1:{port}/{path}";
+            this.Url = $"http://127.0.0.1:{port}/{path}";
             this.host = new WebHostBuilder()
                 .UseKestrel()
-                .UseUrls(this.url)
+                .UseUrls(this.Url)
                 .Configure(this.Configure)
                 .Build();
 
             this.host.Start();
         }
 
-        public string Url => this.url;
+        public string Url { get; }
 
         public Task<string> WaitForCallbackAsync(int timeoutInSeconds = DefaultTimeout)
         {

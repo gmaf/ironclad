@@ -109,7 +109,7 @@ namespace Ironclad.Console.Commands
                     if (!discoveryResponse.IsError)
                     {
                         using (var tokenClient = new TokenClient(discoveryResponse.TokenEndpoint, "auth_console"))
-                        using (var refreshTokenHandler = new RefreshTokenHandler(tokenClient, data.RefreshToken, data.AccessToken))
+                        using (var refreshTokenHandler = new RefreshTokenDelegatingHandler(tokenClient, data.RefreshToken, data.AccessToken))
                         using (var userInfoClient = new UserInfoClient(discoveryResponse.UserInfoEndpoint, refreshTokenHandler))
                         {
                             var response = await userInfoClient.GetAsync(data.AccessToken).ConfigureAwait(false);
