@@ -21,7 +21,7 @@ namespace Ironclad.Console.Commands
 
             // arguments
             var argumentName = app.Argument("name", "The name of the identity resource", false);
-            var argumentUserClaims = app.Argument("user_claims", "The user claim types associated with the identity resource (you can call this several times)", true);
+            var argumentUserClaims = app.Argument("user_claims", "The user claim types associated with the identity resource (you can specify multiple)", true);
 
             // action (for this command)
             app.OnExecute(

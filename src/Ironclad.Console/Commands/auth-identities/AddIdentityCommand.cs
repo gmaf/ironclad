@@ -27,7 +27,7 @@ namespace Ironclad.Console.Commands
 
             // arguments
             var argumentName = app.Argument("name", "The name of the identity resource", false);
-            
+
             // options
 #pragma warning disable SA1025
             var optionDisplayName =                 app.Option("-n|--display_name <name>",         "The display name of the identity resource",                                                    CommandOptionType.SingleValue);
