@@ -83,6 +83,7 @@
     <Compile Include="..\Ironclad.Client\Dto\ResourceSummary.cs" Link="WebApi\Dto\ResourceSummary.cs" />
     <Compile Include="..\Ironclad.Client\Dto\Role.cs" Link="WebApi\Dto\Role.cs" />
     <Compile Include="..\Ironclad.Client\Dto\User.cs" Link="WebApi\Dto\User.cs" />
+    <Compile Include="..\Ironclad.Client\Dto\UserClaim.cs" Link="WebApi\Dto\UserClaim.cs" />
     <Compile Include="..\Ironclad.Client\Dto\UserSummary.cs" Link="WebApi\Dto\UserSummary.cs" />
   </ItemGroup>
 

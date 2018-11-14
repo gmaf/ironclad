@@ -59,5 +59,14 @@ namespace Ironclad.Client
 #if CLIENT
             = new HashSet<string>();
 #endif
+        /// <summary>
+        /// Gets or sets the user's claims.
+        /// </summary>
+        /// <value>The user's claims.</value>
+#pragma warning disable CA2227
+        public ICollection<UserClaim> UserClaims { get; set; }
+#if CLIENT
+            = new HashSet<UserClaim>();
+#endif
     }
 }

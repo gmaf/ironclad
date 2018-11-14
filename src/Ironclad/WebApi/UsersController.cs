@@ -146,6 +146,20 @@ namespace Ironclad.WebApi
                 }
             }
 
+            if (model.UserClaims != null)
+            {
+                var userClaims =
+                    (model.UserClaims ?? Array.Empty<UserClaim>())
+                    .Select(claim => new Claim(claim.Type, claim.Value))
+                    .ToArray();
+                
+                var addToClaimsResult = await this.userManager.AddClaimsAsync(user, userClaims);
+                if (!addToClaimsResult.Succeeded)
+                {
+                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addToClaimsResult.ToString() });
+                }
+            }
+
             var callbackUrl = default(string);
 
             if (string.IsNullOrEmpty(model.Password) && !string.IsNullOrEmpty(model.Email))
@@ -219,6 +233,33 @@ namespace Ironclad.WebApi
                 }
             }
 
+            var userClaims =
+                (model.UserClaims ?? Array.Empty<UserClaim>())
+                    .Select(claim => new Claim(claim.Type, claim.Value))
+                    .ToArray();
+            var comparer = new ClaimEqualityComparer();
+            var claims = await this.userManager.GetClaimsAsync(user);
+
+            var oldClaims = claims.Except(userClaims, comparer);
+            if (oldClaims.Any())
+            {
+                var removeResult = await this.userManager.RemoveClaimsAsync(user, oldClaims);
+                if (!removeResult.Succeeded)
+                {
+                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = removeResult.ToString() });
+                }
+            }
+
+            var newClaims = userClaims.Except(claims, comparer);
+            if (newClaims.Any())
+            {
+                var addResult = await this.userManager.AddClaimsAsync(user, newClaims);
+                if (!addResult.Succeeded)
+                {
+                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addResult.ToString() });
+                }
+            }
+
             return this.Ok();
         }
 
@@ -250,6 +291,23 @@ namespace Ironclad.WebApi
         private class UserSummaryResource : UserSummary
         {
             public string Url { get; set; }
+        }
+        
+        private class ClaimEqualityComparer : IEqualityComparer<Claim>
+        {
+            public bool Equals(Claim left, Claim right)
+            {
+                if (left == null && right == null) return true;
+                if (left == null || right == null) return false;
+                return left.Type.Equals(right.Type) &&
+                    left.Value.Equals(right.Value);
+            }
+
+            public int GetHashCode(Claim obj)
+            {
+                return obj.Type.GetHashCode() ^
+                    obj.Value.GetHashCode();
+            }
         }
     }
 }
