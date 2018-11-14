@@ -51,6 +51,7 @@ namespace Ironclad.Tests.Feature
                 Email = "bit-bucket@test.smtp.org",
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
+                UserClaims = new[] { new UserClaim { Type = "kyc-level", Value = "1" } }
             };
 
             // act
@@ -73,6 +74,7 @@ namespace Ironclad.Tests.Feature
                 SendConfirmationEmail = true,
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
+                UserClaims = new[] { new UserClaim { Type = "kyc-level", Value = "1" } }
             };
 
             // act
@@ -147,6 +149,7 @@ namespace Ironclad.Tests.Feature
                 Email = "bit-bucket@test.smtp.org",
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
+                UserClaims = new[] { new UserClaim { Type = "kyc-level", Value = "1" } }
             };
 
             var expectedUser = new User
@@ -156,6 +159,11 @@ namespace Ironclad.Tests.Feature
                 Email = "superbob@superbob.com",
                 PhoneNumber = "987654321",
                 Roles = { "auth_admin", "user_admin" },
+                UserClaims = new[]
+                {
+                    new UserClaim { Type = "kyc-level", Value = "1" },
+                    new UserClaim { Type = "kyc-limit", Value = "0.001BTC" }
+                }
             };
 
             var initialUser = await httpClient.AddUserAsync(originalUser).ConfigureAwait(false);

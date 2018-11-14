@@ -74,6 +74,7 @@ namespace Ironclad.WebApi
             }
 
             var roles = await this.userManager.GetRolesAsync(user);
+            var userClaims = await this.userManager.GetClaimsAsync(user);
 
             return this.Ok(
                 new UserResource
@@ -84,6 +85,13 @@ namespace Ironclad.WebApi
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
                     Roles = new List<string>(roles),
+                    UserClaims = userClaims.Select(claim => 
+                        new UserClaim
+                        {
+                            Type = claim.Type,
+                            Value = claim.Value
+                        })
+                        .ToArray()
                 });
         }
 
@@ -204,7 +212,7 @@ namespace Ironclad.WebApi
 
             var roles = await this.userManager.GetRolesAsync(user);
 
-            var oldRoles = roles.Except(model.Roles ?? Array.Empty<string>());
+            var oldRoles = roles.Except(model.Roles ?? Array.Empty<string>()).ToArray();
             if (oldRoles.Any())
             {
                 var removeResult = await this.userManager.RemoveFromRolesAsync(user, oldRoles);
@@ -214,7 +222,7 @@ namespace Ironclad.WebApi
                 }
             }
 
-            var newRoles = (model.Roles ?? Array.Empty<string>()).Except(roles);
+            var newRoles = (model.Roles ?? Array.Empty<string>()).Except(roles).ToArray();
             if (newRoles.Any())
             {
                 foreach (var role in newRoles)
@@ -240,7 +248,7 @@ namespace Ironclad.WebApi
             var comparer = new ClaimEqualityComparer();
             var claims = await this.userManager.GetClaimsAsync(user);
 
-            var oldClaims = claims.Except(userClaims, comparer);
+            var oldClaims = claims.Except(userClaims, comparer).ToArray();
             if (oldClaims.Any())
             {
                 var removeResult = await this.userManager.RemoveClaimsAsync(user, oldClaims);
@@ -250,7 +258,7 @@ namespace Ironclad.WebApi
                 }
             }
 
-            var newClaims = userClaims.Except(claims, comparer);
+            var newClaims = userClaims.Except(claims, comparer).ToArray();
             if (newClaims.Any())
             {
                 var addResult = await this.userManager.AddClaimsAsync(user, newClaims);
@@ -297,16 +305,24 @@ namespace Ironclad.WebApi
         {
             public bool Equals(Claim left, Claim right)
             {
-                if (left == null && right == null) return true;
-                if (left == null || right == null) return false;
-                return left.Type.Equals(right.Type) &&
-                    left.Value.Equals(right.Value);
+                if (left == null && right == null)
+                {
+                    return true;
+                }
+
+                if (left == null || right == null)
+                {
+                    return false;
+                }
+
+                return left.Type.Equals(right.Type, StringComparison.InvariantCulture) &&
+                    left.Value.Equals(right.Value, StringComparison.InvariantCulture);
             }
 
             public int GetHashCode(Claim obj)
             {
-                return obj.Type.GetHashCode() ^
-                    obj.Value.GetHashCode();
+                return obj.Type.GetHashCode(StringComparison.InvariantCulture) ^
+                    obj.Value.GetHashCode(StringComparison.InvariantCulture);
             }
         }
     }
