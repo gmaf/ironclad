@@ -116,10 +116,10 @@ namespace Ironclad.WebApi
         [HttpPut("{resourceName}")]
         public async Task<IActionResult> Put(string resourceName, [FromBody]IroncladResource model)
         {
-//            if (model.UserClaims?.Any() == false)
-//            {
-//                return this.BadRequest(new { Message = $"Cannot update an identity resource without any claims" });
-//            }
+           if (model.UserClaims != null && model.UserClaims.Count == 0)
+           {
+               return this.BadRequest(new { Message = $"Cannot update an identity resource without any claims" });
+           }
 
             using (var session = this.store.LightweightSession())
             {
