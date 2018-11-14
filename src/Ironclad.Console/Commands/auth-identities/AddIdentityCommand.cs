@@ -30,7 +30,7 @@ namespace Ironclad.Console.Commands
             
             // options
 #pragma warning disable SA1025
-            var optionDisplayName =                 app.Option("-n|--displayname <name>",          "The display name of the identity resource",                                                    CommandOptionType.SingleValue);
+            var optionDisplayName =                 app.Option("-n|--display_name <name>",         "The display name of the identity resource",                                                    CommandOptionType.SingleValue);
             var optionUserClaims =                  app.Option("-u|--user_claims <user_claim>",    "The user claim types associated with the identity resource (you can call this several times)", CommandOptionType.MultipleValue);
             var optionDisabled =                    app.Option("-d|--disabled",                    "Creates the new identity resource in a disabled state",                                        CommandOptionType.NoValue);
 #pragma warning restore SA1025

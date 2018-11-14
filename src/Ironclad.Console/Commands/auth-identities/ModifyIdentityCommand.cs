@@ -1,16 +1,15 @@
-﻿// Copyright (c) Lykke Corp.
-// See the LICENSE file in the project root for more information.
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 
 namespace Ironclad.Console.Commands
 {
-    using System.Threading.Tasks;
-    using McMaster.Extensions.CommandLineUtils;
-
-    internal class EnableIdentityCommand : ICommand
+    internal class ModifyIdentityCommand : ICommand
     {
         private string name;
+        private ICollection<string> userClaims;
 
-        private EnableIdentityCommand()
+        private ModifyIdentityCommand()
         {
         }
 
@@ -22,6 +21,7 @@ namespace Ironclad.Console.Commands
 
             // arguments
             var argumentName = app.Argument("name", "The name of the identity resource", false);
+            var argumentUserClaims = app.Argument("user_claims", "The user claim types associated with the identity resource (you can call this several times)", true);
 
             // action (for this command)
             app.OnExecute(
@@ -33,9 +33,10 @@ namespace Ironclad.Console.Commands
                         return;
                     }
 
-                    options.Command = new EnableIdentityCommand
+                    options.Command = new ModifyIdentityCommand
                     {
-                        name = argumentName.Value
+                        name = argumentName.Value,
+                        userClaims = argumentUserClaims.Values
                     };
                 });
         }
@@ -45,8 +46,7 @@ namespace Ironclad.Console.Commands
             var identityResource = new Client.IdentityResource
             {
                 Name = this.name,
-                UserClaims = null,
-                Enabled = true
+                UserClaims = this.userClaims
             };
 
             await context.IdentityResourcesClient.ModifyIdentityResourceAsync(identityResource).ConfigureAwait(false);

@@ -21,6 +21,7 @@ namespace Ironclad.Console.Commands
 
             // commands
             app.Command("add", command => AddIdentityCommand.Configure(command, options));
+            app.Command("modify", command => ModifyIdentityCommand.Configure(command, options));
             app.Command("remove", command => RemoveCommand.Configure(command, options, GetRemoveCommandOptions()));
             app.Command("show", command => ShowCommand.Configure(command, options, GetShowCommandOptions()));
             app.Command("enable", command => EnableIdentityCommand.Configure(command, options));
@@ -51,7 +52,7 @@ namespace Ironclad.Console.Commands
                         "identities",
                         async context => await context.IdentityResourcesClient.GetIdentityResourceSummariesAsync(startsWith, skip, take).ConfigureAwait(false),
                         ("name", identity => identity.Name),
-                        ("displayname", identity => identity.DisplayName),
+                        ("display_name", identity => identity.DisplayName),
                         ("enabled", client => client.Enabled.ToString(CultureInfo.InvariantCulture)))
             };
     }

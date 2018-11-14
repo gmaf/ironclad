@@ -45,6 +45,7 @@ namespace Ironclad.Console.Commands
             var identityResource = new Client.IdentityResource
             {
                 Name = this.name,
+                UserClaims = null,
                 Enabled = false
             };
 
