@@ -16,7 +16,7 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Enable an identity resource";
+            app.Description = "Modify an identity resource";
             app.HelpOption();
 
             // arguments

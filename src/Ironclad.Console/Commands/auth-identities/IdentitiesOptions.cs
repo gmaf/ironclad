@@ -36,7 +36,7 @@ namespace Ironclad.Console.Commands
             {
                 Type = "identity",
                 ArgumentName = "identity",
-                ArgumentDescription = "The identity to remove",
+                ArgumentDescription = "The identity resource to remove",
                 RemoveCommand = value => new RemoveCommand(async context => await context.IdentityResourcesClient.RemoveIdentityResourceAsync(value).ConfigureAwait(false))
             };
 
@@ -45,7 +45,7 @@ namespace Ironclad.Console.Commands
             {
                 Type = "identitie",
                 ArgumentName = "identity",
-                ArgumentDescription = "The identity (you can end the identity with a wildcard to search)",
+                ArgumentDescription = "The identity resource (you can end the identity resource with a wildcard to search)",
                 DisplayCommand = (string value) => new ShowCommand.Display<IdentityResource>(async context => await context.IdentityResourcesClient.GetIdentityResourceAsync(value).ConfigureAwait(false)),
                 ListCommand = (string startsWith, int skip, int take) =>
                     new ShowCommand.List<ResourceSummary>(

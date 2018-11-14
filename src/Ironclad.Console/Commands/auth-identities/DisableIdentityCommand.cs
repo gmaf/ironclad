@@ -21,7 +21,7 @@ namespace Ironclad.Console.Commands
             app.HelpOption();
 
             // arguments
-            var argumentName = app.Argument("name", "The name of the identity", false);
+            var argumentName = app.Argument("name", "The name of the identity resource", false);
 
             // action (for this command)
             app.OnExecute(
