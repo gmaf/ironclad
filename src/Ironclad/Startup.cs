@@ -114,7 +114,16 @@ namespace Ironclad
                         options.Authority = this.configuration.GetValue<string>("authority");
                         options.ClientId = "auth_api";
                         options.ClientSecret = this.configuration.GetValue<string>("Introspection-Secret");
-                        options.DiscoveryPolicy = new DiscoveryPolicy { ValidateIssuerName = false };
+                        options.DiscoveryPolicy = new DiscoveryPolicy {ValidateIssuerName = false};
+                    })
+                .AddOpenIdConnect(
+                    "lykke",
+                    options =>
+                    {
+                        options.ClientId = configuration.GetValue<string>("Lykke-ClientId");
+                        options.ClientSecret = configuration.GetValue<string>("Lykke-Secret");
+                        options.CallbackPath = "/signin-lykke";
+                        options.Authority = "https://localhost:5001";
                     });
 
             services.AddAuthorization(
