@@ -6,22 +6,22 @@ namespace Ironclad.Console.Commands
     using System.Threading.Tasks;
     using McMaster.Extensions.CommandLineUtils;
 
-    internal class DisableIdentityCommand : ICommand
+    internal class DisableScopeCommand : ICommand
     {
         private string name;
 
-        private DisableIdentityCommand()
+        private DisableScopeCommand()
         {
         }
 
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Disables an identity resource";
+            app.Description = "Disables an identity-based scope";
             app.HelpOption();
 
             // arguments
-            var argumentName = app.Argument("name", "The name of the identity resource", false);
+            var argumentName = app.Argument("name", "The name of the identity-based scope", false);
 
             // action (for this command)
             app.OnExecute(
@@ -33,7 +33,7 @@ namespace Ironclad.Console.Commands
                         return;
                     }
 
-                    options.Command = new DisableIdentityCommand
+                    options.Command = new DisableScopeCommand
                     {
                         name = argumentName.Value
                     };
