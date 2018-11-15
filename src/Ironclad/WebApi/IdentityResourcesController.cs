@@ -116,10 +116,10 @@ namespace Ironclad.WebApi
         [HttpPut("{resourceName}")]
         public async Task<IActionResult> Put(string resourceName, [FromBody]IroncladResource model)
         {
-            if (model.UserClaims?.Any() == false)
-            {
-                return this.BadRequest(new { Message = $"Cannot update an identity resource without any claims" });
-            }
+           if (model.UserClaims != null && model.UserClaims.Count == 0)
+           {
+               return this.BadRequest(new { Message = $"Cannot update an identity resource without any claims" });
+           }
 
             using (var session = this.store.LightweightSession())
             {
@@ -132,14 +132,16 @@ namespace Ironclad.WebApi
                 // NOTE (Cameron): Because of the mapping/conversion unknowns we rely upon the Postgres integration to perform that operation which is why we do this...
                 var resource = new IdentityServerResource
                 {
-                    UserClaims = model.UserClaims,
+                    UserClaims = model.UserClaims
                 };
 
                 var entity = resource.ToEntity();
 
                 // update properties (everything supported is an optional update eg. if null is passed we will not update)
                 document.DisplayName = model.DisplayName ?? document.DisplayName;
-                document.UserClaims = entity.UserClaims ?? document.UserClaims;
+                document.UserClaims = model.UserClaims != null
+                    ? entity.UserClaims ?? document.UserClaims
+                    : document.UserClaims;
                 document.Enabled = model.Enabled ?? document.Enabled;
 
                 session.Update(document);
