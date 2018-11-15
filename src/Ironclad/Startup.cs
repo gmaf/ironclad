@@ -1,6 +1,13 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Finbuckle.MultiTenant;
+using IdentityServer4.Configuration;
+using IdentityServer4.Services;
+using Microsoft.AspNetCore.Routing;
+
 namespace Ironclad
 {
     using IdentityModel.Client;
@@ -94,7 +101,37 @@ namespace Ironclad
                 .AddAppAuthRedirectUriValidator()
                 .AddAspNetIdentity<ApplicationUser>();
 
+            services.AddMultiTenant()
+                .WithInMemoryStore(configuration.GetSection("Finbuckle:MultiTenant:InMemoryStore"))
+                .WithStaticStrategy("ironclad")
+                .WithRemoteAuthentication()
+                .WithPerTenantOptions<Microsoft.AspNetCore.Authentication.AuthenticationOptions>((options, tenantContext) =>
+                {
+                    // Allow each tenant to have a different default challenge scheme.
+                    if (tenantContext.Items.TryGetValue("ChallengeScheme", out object challengeScheme))
+                    {
+                        options.DefaultChallengeScheme = (string)challengeScheme;
+                    }
+                }).
+                WithPerTenantOptions<Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationOptions>((options, tenantContext) =>
+                {
+                    // Set a unique cookie name for this tenant.
+                    options.Cookie.Name = tenantContext.Id + "-cookie";
+
+                    // Note the paths set take our routing strategy into account.
+                    options.LoginPath = "/" + tenantContext.Identifier + "/Home/Login";
+                    options.Cookie.Path = "/" + tenantContext.Identifier;
+                });
+
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
+                .AddOpenIdConnect(
+                    "OpenIdConnect",
+                    "Ironclad Test Tennant",
+                    options =>
+                    {
+                        options.ClientId = "lykke-oidc";
+                        options.Authority = "https://auth-test.lykkecloud.com";
+                    })
                 .AddGoogle(
                     options =>
                     {
@@ -140,6 +177,9 @@ namespace Ironclad
             }
 
             app.UseStaticFiles();
+
+            app.UseMultiTenant();
+
             app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();
             app.InitializeDatabase().SeedDatabase(this.configuration);
