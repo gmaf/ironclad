@@ -10,15 +10,15 @@ namespace Ironclad.Console.Commands
     // NOTE (Cameron): This command is informational only and cannot be executed (only 'show help' works) so inheriting ICommand is unnecessary.
     internal static class ScopesOptions
     {
-        public static void Configure(CommandLineApplication app, CommandLineOptions options)
+        public static void Configure(CommandLineApplication app, CommandLineOptions options, IConsole console)
         {
             // description
             app.Description = "Manage scopes";
             app.HelpOption();
 
             // commands
-            app.Command("add", command => AddScopeCommand.Configure(command, options));
-            app.Command("modify", command => ModifyIdentityCommand.Configure(command, options));
+            app.Command("add", command => AddScopeCommand.Configure(command, options, console));
+            app.Command("modify", command => ModifyScopeCommand.Configure(command, options, console));
             app.Command("remove", command => RemoveCommand.Configure(command, options, GetRemoveCommandOptions()));
             app.Command("show", command => ShowCommand.Configure(command, options, GetShowCommandOptions()));
             app.Command("enable", command => EnableScopeCommand.Configure(command, options));
