@@ -18,7 +18,7 @@ namespace Ironclad.Console.Commands
         public static void Configure(CommandLineApplication app, CommandLineOptions options)
         {
             // description
-            app.Description = "Assigns roles to a user";
+            app.Description = "Assigns claims to a user";
             app.HelpOption();
 
             // arguments
