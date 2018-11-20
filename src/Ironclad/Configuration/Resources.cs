@@ -15,6 +15,8 @@ namespace Ironclad.Configuration
                 new IdentityResources.OpenId(),
                 new IdentityResources.Profile(),
                 new IdentityResources.Email(),
+                new IdentityResources.Phone(),
+
                 new IdentityResource
                 {
                     Name = "role",

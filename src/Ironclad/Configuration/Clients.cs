@@ -30,14 +30,17 @@ namespace Ironclad.Configuration
                     AllowedGrantTypes = GrantTypes.Implicit,
                     AllowAccessTokensViaBrowser = true,
 
-                    RedirectUris = { "http://localhost:5008/callback.html" },
+                    RedirectUris = { "http://localhost:5008/callback.html", "https://localhost:5001/signin-oidc-ironclad" },
                     PostLogoutRedirectUris = { "http://localhost:5008/index.html" },
-                    AllowedCorsOrigins = { "http://localhost:5008" },
+                    AllowedCorsOrigins = { "http://localhost:5008", "https://localhost:5001" },
 
                     AllowedScopes =
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
+                        IdentityServerConstants.StandardScopes.Email,
+                        IdentityServerConstants.StandardScopes.Phone, 
+
                         "sample_api",
                     },
 
