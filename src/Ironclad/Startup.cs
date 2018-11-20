@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+
 namespace Ironclad
 {
     using IdentityModel.Client;
@@ -121,6 +124,28 @@ namespace Ironclad
                         options.DiscoveryPolicy = new DiscoveryPolicy { ValidateIssuerName = false };
                     })
                 .AddExternalIdentityProviders();
+                        options.DiscoveryPolicy = new DiscoveryPolicy {ValidateIssuerName = false};
+                    })
+                .AddOpenIdConnect(
+                    "lykke",
+                    "Lykke OAuth",
+                    options =>
+                    {
+                        options.ClientId = configuration.GetValue<string>("Lykke-ClientId");
+                        options.ClientSecret = configuration.GetValue<string>("Lykke-Secret");
+                        options.CallbackPath = "/signin-lykke";
+                        options.Authority = "https://localhost:5001";
+                        options.Events.OnRedirectToIdentityProvider = context =>
+                        {
+                            context.ProtocolMessage.AcrValues = JObject.FromObject(new
+                            {
+                                tenant = "ironclad"
+                            })
+                            .ToString();
+
+                            return Task.CompletedTask;
+                        };
+                    });
 
             services.AddAuthorization(
                 options =>
