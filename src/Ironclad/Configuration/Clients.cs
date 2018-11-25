@@ -26,7 +26,7 @@ namespace Ironclad.Configuration
                 new Client
                 {
                     ClientId = "sample_spa",
-                    ClientName = "Single Page Application",
+                    ClientName = "Sample Single Page Application",
                     AllowedGrantTypes = GrantTypes.Implicit,
                     AllowAccessTokensViaBrowser = true,
 
@@ -66,6 +66,29 @@ namespace Ironclad.Configuration
                         IdentityServerConstants.StandardScopes.Email,
                         "sample_api",
                     },
+                },
+
+                // NOTE (Cameron): This is the sample client representing hybrid/client credentials communication.
+                new Client
+                {
+                    ClientId = "sample_mvc",
+                    ClientName = "Sample MVC Application",
+
+                    AllowedGrantTypes = GrantTypes.HybridAndClientCredentials,
+                    ClientSecrets = { new Secret("secret".Sha256()) },
+
+                    RedirectUris = { "http://localhost:5009/signin-oidc" },
+                    PostLogoutRedirectUris = { "http://localhost:5009/signout-callback-oidc" },
+
+                    AllowedScopes =
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
+                        IdentityServerConstants.StandardScopes.Email,
+                        "sample_api",
+                    },
+
+                    AllowOfflineAccess = true
                 },
 
                 new Client
