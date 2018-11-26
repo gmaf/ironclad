@@ -24,6 +24,8 @@ namespace Ironclad.WebApi
     [Route("api/[controller]")]
     public class UsersController : Controller
     {
+        private static readonly IEqualityComparer<Claim> ClaimComparer = new ClaimEqualityComparer();
+
         private readonly UserManager<ApplicationUser> userManager;
         private readonly RoleManager<IdentityRole> roleManager;
         private readonly IEmailSender emailSender;
@@ -85,7 +87,7 @@ namespace Ironclad.WebApi
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
                     Roles = new List<string>(roles),
-                    UserClaims = userClaims.Select(claim => 
+                    Claims = userClaims.Select(claim =>
                         new UserClaim
                         {
                             Type = claim.Type,
@@ -103,12 +105,6 @@ namespace Ironclad.WebApi
                 return this.BadRequest(new { Message = $"Cannot create a user without a username" });
             }
 
-            var user = new ApplicationUser(model.Username);
-
-            // optional properties
-            user.Email = model.Email ?? user.Email;
-            user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
-
             if (model.Roles != null)
             {
                 foreach (var role in model.Roles)
@@ -118,6 +114,17 @@ namespace Ironclad.WebApi
                         return this.BadRequest(new { Message = $"Cannot create a user with the role '{role}' when that role does not exist" });
                     }
                 }
+            }
+
+            var user = new ApplicationUser(model.Username);
+
+            // optional properties
+            user.Email = model.Email ?? user.Email;
+            user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
+
+            if (model.Claims?.Any(claim => string.IsNullOrEmpty(claim.Type) || string.IsNullOrEmpty(claim.Value)) == true)
+            {
+                return this.BadRequest(new { Message = $"Cannot add claims without both a type and a value" });
             }
 
             var addUserResult = string.IsNullOrEmpty(model.Password) ? await this.userManager.CreateAsync(user) : await this.userManager.CreateAsync(user, model.Password);
@@ -154,14 +161,9 @@ namespace Ironclad.WebApi
                 }
             }
 
-            if (model.UserClaims != null)
+            if (model.Claims?.Any() == true)
             {
-                var userClaims =
-                    (model.UserClaims ?? Array.Empty<UserClaim>())
-                    .Select(claim => new Claim(claim.Type, claim.Value))
-                    .ToArray();
-                
-                var addToClaimsResult = await this.userManager.AddClaimsAsync(user, userClaims);
+                var addToClaimsResult = await this.userManager.AddClaimsAsync(user, model.Claims.Select(claim => new Claim(claim.Type, claim.Value)));
                 if (!addToClaimsResult.Succeeded)
                 {
                     return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addToClaimsResult.ToString() });
@@ -200,6 +202,22 @@ namespace Ironclad.WebApi
                 return this.BadRequest(new { Message = $"Cannot remove the role 'admin' from the default admin user" });
             }
 
+            if (model.Roles != null)
+            {
+                foreach (var role in model.Roles)
+                {
+                    if (!await this.roleManager.RoleExistsAsync(role))
+                    {
+                        return this.BadRequest(new { Message = $"Cannot modify a user with the role '{role}' when that role does not exist" });
+                    }
+                }
+            }
+
+            if (model.Claims?.Any(claim => string.IsNullOrEmpty(claim.Type) || string.IsNullOrEmpty(claim.Value)) == true)
+            {
+                return this.BadRequest(new { Message = $"Cannot add claims without both a type and a value" });
+            }
+
             user.UserName = model.Username ?? user.UserName;
             user.Email = model.Email ?? user.Email;
             user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
@@ -210,61 +228,54 @@ namespace Ironclad.WebApi
                 return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = result.ToString() });
             }
 
-            var roles = await this.userManager.GetRolesAsync(user);
-
-            var oldRoles = roles.Except(model.Roles ?? Array.Empty<string>()).ToArray();
-            if (oldRoles.Any())
+            if (model.Roles != null)
             {
-                var removeResult = await this.userManager.RemoveFromRolesAsync(user, oldRoles);
-                if (!removeResult.Succeeded)
-                {
-                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = removeResult.ToString() });
-                }
-            }
+                var roles = await this.userManager.GetRolesAsync(user);
 
-            var newRoles = (model.Roles ?? Array.Empty<string>()).Except(roles).ToArray();
-            if (newRoles.Any())
-            {
-                foreach (var role in newRoles)
+                var oldRoles = roles.Except(model.Roles ?? Array.Empty<string>()).ToArray();
+                if (oldRoles.Any())
                 {
-                    var roleExists = await this.roleManager.RoleExistsAsync(role).ConfigureAwait(false);
-                    if (!roleExists)
+                    var removeResult = await this.userManager.RemoveFromRolesAsync(user, oldRoles);
+                    if (!removeResult.Succeeded)
                     {
-                        return this.StatusCode((int)HttpStatusCode.BadRequest, new { Message = $"Role {role} does not exist." });
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = removeResult.ToString() });
                     }
                 }
 
-                var addResult = await this.userManager.AddToRolesAsync(user, newRoles);
-                if (!addResult.Succeeded)
+                var newRoles = (model.Roles ?? Array.Empty<string>()).Except(roles).ToArray();
+                if (newRoles.Any())
                 {
-                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addResult.ToString() });
+                    var addResult = await this.userManager.AddToRolesAsync(user, newRoles);
+                    if (!addResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addResult.ToString() });
+                    }
                 }
             }
 
-            var userClaims =
-                (model.UserClaims ?? Array.Empty<UserClaim>())
-                    .Select(claim => new Claim(claim.Type, claim.Value))
-                    .ToArray();
-            var comparer = new ClaimEqualityComparer();
-            var claims = await this.userManager.GetClaimsAsync(user);
-
-            var oldClaims = claims.Except(userClaims, comparer).ToArray();
-            if (oldClaims.Any())
+            if (model.Claims != null)
             {
-                var removeResult = await this.userManager.RemoveClaimsAsync(user, oldClaims);
-                if (!removeResult.Succeeded)
+                var claims = await this.userManager.GetClaimsAsync(user);
+                var userClaims = model.Claims.Select(claim => new Claim(claim.Type, claim.Value)).ToArray();
+
+                var oldClaims = claims.Except(userClaims, ClaimComparer).ToArray();
+                if (oldClaims.Any())
                 {
-                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = removeResult.ToString() });
+                    var removeResult = await this.userManager.RemoveClaimsAsync(user, oldClaims);
+                    if (!removeResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = removeResult.ToString() });
+                    }
                 }
-            }
 
-            var newClaims = userClaims.Except(claims, comparer).ToArray();
-            if (newClaims.Any())
-            {
-                var addResult = await this.userManager.AddClaimsAsync(user, newClaims);
-                if (!addResult.Succeeded)
+                var newClaims = userClaims.Except(claims, ClaimComparer).ToArray();
+                if (newClaims.Any())
                 {
-                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addResult.ToString() });
+                    var addResult = await this.userManager.AddClaimsAsync(user, newClaims);
+                    if (!addResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addResult.ToString() });
+                    }
                 }
             }
 
@@ -300,7 +311,7 @@ namespace Ironclad.WebApi
         {
             public string Url { get; set; }
         }
-        
+
         private class ClaimEqualityComparer : IEqualityComparer<Claim>
         {
             public bool Equals(Claim left, Claim right)
@@ -315,14 +326,23 @@ namespace Ironclad.WebApi
                     return false;
                 }
 
-                return left.Type.Equals(right.Type, StringComparison.InvariantCulture) &&
-                    left.Value.Equals(right.Value, StringComparison.InvariantCulture);
+                return string.Equals(left.Type, right.Type, StringComparison.InvariantCulture) && string.Equals(left.Value, right.Value, StringComparison.InvariantCulture);
             }
 
             public int GetHashCode(Claim obj)
             {
-                return obj.Type.GetHashCode(StringComparison.InvariantCulture) ^
-                    obj.Value.GetHashCode(StringComparison.InvariantCulture);
+                if (obj == null)
+                {
+                    return 0;
+                }
+
+                unchecked
+                {
+                    int hash = 17;
+                    hash = (hash * 23) + obj.Type?.GetHashCode(StringComparison.InvariantCulture) ?? 0;
+                    hash = (hash * 23) + obj.Value?.GetHashCode(StringComparison.InvariantCulture) ?? 0;
+                    return hash;
+                }
             }
         }
     }

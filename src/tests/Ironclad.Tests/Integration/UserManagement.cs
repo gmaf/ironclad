@@ -51,7 +51,7 @@ namespace Ironclad.Tests.Feature
                 Email = "bit-bucket@test.smtp.org",
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
-                UserClaims = new[] { new UserClaim { Type = "kyc-level", Value = "1" } }
+                Claims = new[] { new UserClaim { Type = "claim1", Value = "1" } }
             };
 
             // act
@@ -74,7 +74,7 @@ namespace Ironclad.Tests.Feature
                 SendConfirmationEmail = true,
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
-                UserClaims = new[] { new UserClaim { Type = "kyc-level", Value = "1" } }
+                Claims = new[] { new UserClaim { Type = "claim1", Value = "1" } }
             };
 
             // act
@@ -149,7 +149,7 @@ namespace Ironclad.Tests.Feature
                 Email = "bit-bucket@test.smtp.org",
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
-                UserClaims = new[] { new UserClaim { Type = "kyc-level", Value = "1" } }
+                Claims = new[] { new UserClaim { Type = "claim1", Value = "1" }, new UserClaim { Type = "claim2", Value = "A" } },
             };
 
             var expectedUser = new User
@@ -159,11 +159,7 @@ namespace Ironclad.Tests.Feature
                 Email = "superbob@superbob.com",
                 PhoneNumber = "987654321",
                 Roles = { "auth_admin", "user_admin" },
-                UserClaims = new[]
-                {
-                    new UserClaim { Type = "kyc-level", Value = "1" },
-                    new UserClaim { Type = "kyc-limit", Value = "0.001BTC" }
-                }
+                Claims = new[] { new UserClaim { Type = "claim2", Value = "B" }, new UserClaim { Type = "claim3", Value = "3" } },
             };
 
             var initialUser = await httpClient.AddUserAsync(originalUser).ConfigureAwait(false);
@@ -341,6 +337,67 @@ namespace Ironclad.Tests.Feature
 
             // assert
             func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public async Task CannotModifyUserClaimsWithInvalidClaimValues()
+        {
+            // arrange
+            var httpClient = new UsersHttpClient(this.Authority, this.Handler);
+            var model = new User
+            {
+                Username = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
+                Password = "password",
+                Email = "bit-bucket@test.smtp.org",
+                PhoneNumber = "123456789",
+                Roles = { "admin" },
+                Claims = new[] { new UserClaim { Type = "claim1", Value = "1" } },
+            };
+
+            var user = await httpClient.AddUserAsync(model).ConfigureAwait(false);
+
+            // act
+            model.Claims = new[] { new UserClaim() };
+
+            Func<Task> func = async () => await httpClient.ModifyUserAsync(model).ConfigureAwait(false);
+
+            // assert
+            func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public async Task CanRemoveUserClaims()
+        {
+            // arrange
+            var httpClient = new UsersHttpClient(this.Authority, this.Handler);
+            var model = new User
+            {
+                Username = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
+                Password = "password",
+                Email = "bit-bucket@test.smtp.org",
+                PhoneNumber = "123456789",
+                Roles = { "admin" },
+                Claims = new[] { new UserClaim { Type = "claim1", Value = "1" }, new UserClaim { Type = "claim2", Value = "2" } },
+            };
+
+            var originalUser = await httpClient.AddUserAsync(model).ConfigureAwait(false);
+
+            // act
+            model = new User
+            {
+                Username = originalUser.Username,
+                Roles = null, // do *not* update roles
+                Claims = { }, // *do* update claims
+            };
+
+            // act
+            var actualUser = await httpClient.ModifyUserAsync(model, model.Username).ConfigureAwait(false);
+
+            // assert
+            actualUser.Should().NotBeNull();
+            actualUser.Should().BeEquivalentTo(originalUser, options => options.Excluding(user => user.Id).Excluding(user => user.Password).Excluding(user => user.Claims));
+            actualUser.Id.Should().Be(originalUser.Id);
+            actualUser.Claims.Should().BeEmpty();
         }
     }
 }

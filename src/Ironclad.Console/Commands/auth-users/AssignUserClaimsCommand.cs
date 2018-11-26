@@ -1,11 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Ironclad.Client;
-using McMaster.Extensions.CommandLineUtils;
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
 
 namespace Ironclad.Console.Commands
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Ironclad.Client;
+    using McMaster.Extensions.CommandLineUtils;
+
     internal class AssignUserClaimsCommand : ICommand
     {
         private string username;
@@ -39,20 +42,21 @@ namespace Ironclad.Console.Commands
                     {
                         username = argumentUsername.Value,
                         claims = argumentClaims.Values
-                            .ConvertAll(value =>
-                            {
-                                var parts = value.Split('=');
-                                if (parts.Length == 2)
+                            .ConvertAll(
+                                value =>
                                 {
-                                    return new UserClaim
+                                    var parts = value.Split('=');
+                                    if (parts.Length == 2)
                                     {
-                                        Type = parts[0],
-                                        Value = parts[1]
-                                    };
-                                }
+                                        return new UserClaim
+                                        {
+                                            Type = parts[0],
+                                            Value = parts[1]
+                                        };
+                                    }
 
-                                return null;
-                            })
+                                    return null;
+                                })
                             .Where(claim => claim != null)
                             .ToList()
                     };
@@ -64,7 +68,7 @@ namespace Ironclad.Console.Commands
             var user = new User
             {
                 Username = this.username,
-                UserClaims = this.claims
+                Claims = this.claims
             };
 
             await context.UsersClient.ModifyUserAsync(user).ConfigureAwait(false);

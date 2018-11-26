@@ -1,8 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿// Copyright (c) Lykke Corp.
+// See the LICENSE file in the project root for more information.
 
 namespace Ironclad.Data.Migrations
 {
+    using Microsoft.EntityFrameworkCore.Metadata;
+    using Microsoft.EntityFrameworkCore.Migrations;
+
     public partial class PendingChanges : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

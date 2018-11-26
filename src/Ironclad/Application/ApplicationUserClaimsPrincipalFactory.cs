@@ -23,17 +23,8 @@ namespace Ironclad.Application
             var principal = await base.CreateAsync(user);
             var identity = (ClaimsIdentity)principal.Identity;
             var claims = await this.UserManager.GetClaimsAsync(user);
+
             identity.AddClaims(claims);
-
-            ////if (!string.IsNullOrWhiteSpace(user.DisplayName))
-            ////{
-            ////    identity.AddClaims(new[] { new Claim("displayname", user.DisplayName) });
-            ////}
-
-            ////if (!string.IsNullOrWhiteSpace(user.AvatarUrl))
-            ////{
-            ////    ((ClaimsIdentity)principal.Identity).AddClaims(new[] { new Claim("avatar", user.AvatarUrl) });
-            ////}
 
             return principal;
         }
