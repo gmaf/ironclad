@@ -13,16 +13,14 @@ namespace Ironclad.Tests.Sdk
     public class IroncladFixture : IIroncladFixture
     {
         private const string ConnectionString = "Host=localhost;Database=ironclad;Username=postgres;Password=postgres;";
+
         private readonly IAsyncLifetime postgres;
         private readonly IAsyncLifetime ironclad;
 
         public IroncladFixture()
         {
-            var configFile = Path.Combine(
-                Path.GetDirectoryName(typeof(IroncladFixture).Assembly.Location),
-                "testsettings.json");
+            var configFile = Path.Combine(Path.GetDirectoryName(typeof(IroncladFixture).Assembly.Location), "testsettings.json");
             var config = new ConfigurationBuilder().AddJsonFile(configFile).Build();
-
             var authority = config.GetValue<string>("authority");
             var useDockerImage = config.GetValue<bool>("use_docker_image");
 
@@ -32,6 +30,7 @@ namespace Ironclad.Tests.Sdk
                 {
                     throw new NotSupportedException("The POSTGRES_CONNECTIONSTRING environment variable needs to be provided when running in a CI environment");
                 }
+
                 this.postgres = null;
                 this.ironclad = new BuiltFromSourceIronclad(authority, Environment.GetEnvironmentVariable("POSTGRES_CONNECTIONSTRING"));
             }
@@ -48,8 +47,9 @@ namespace Ironclad.Tests.Sdk
         {
             if (this.postgres != null)
             {
-                await this.postgres.InitializeAsync().ConfigureAwait(false);    
+                await this.postgres.InitializeAsync().ConfigureAwait(false);
             }
+
             await this.ironclad.InitializeAsync().ConfigureAwait(false);
         }
 

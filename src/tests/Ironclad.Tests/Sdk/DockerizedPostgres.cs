@@ -48,9 +48,7 @@ namespace Ironclad.Tests.Sdk
 
                         return true;
                     }
-                    catch (Exception exception) when (exception is NpgsqlException
-                                                      || exception is SocketException
-                                                      || exception is EndOfStreamException)
+                    catch (Exception exception) when (exception is NpgsqlException || exception is SocketException || exception is EndOfStreamException)
                     {
                     }
 

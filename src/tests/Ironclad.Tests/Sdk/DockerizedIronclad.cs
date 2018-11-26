@@ -48,9 +48,7 @@ namespace Ironclad.Tests.Sdk
                     {
                         try
                         {
-                            using (var response = await client
-                                .GetAsync(new Uri(authority + "/api"), token)
-                                .ConfigureAwait(false))
+                            using (var response = await client.GetAsync(new Uri(authority + "/api"), token).ConfigureAwait(false))
                             {
                                 if (response.StatusCode == HttpStatusCode.OK)
                                 {

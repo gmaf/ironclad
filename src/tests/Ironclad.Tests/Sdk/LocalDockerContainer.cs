@@ -21,10 +21,7 @@ namespace Ironclad.Tests.Sdk
 
         private readonly DockerClientConfiguration clientConfiguration =
             new DockerClientConfiguration(
-                new Uri(
-                    Environment.GetEnvironmentVariable("DOCKER_HOST") ??
-                    (Environment.OSVersion.Platform.Equals(PlatformID.Unix) ? UnixPipe : WindowsPipe))
-            );
+                new Uri(Environment.GetEnvironmentVariable("DOCKER_HOST") ?? (Environment.OSVersion.Platform.Equals(PlatformID.Unix) ? UnixPipe : WindowsPipe)));
 
         private readonly DockerClient client;
         private LocalDockerContainerConfiguration configuration;
@@ -223,9 +220,7 @@ namespace Ironclad.Tests.Sdk
                 {
                     if (attempt != this.Configuration.MaximumWaitUntilAvailableAttempts - 1)
                     {
-                        await Task
-                            .Delay(this.Configuration.TimeBetweenWaitUntilAvailableAttempts, token)
-                            .ConfigureAwait(false);
+                        await Task.Delay(this.Configuration.TimeBetweenWaitUntilAvailableAttempts, token).ConfigureAwait(false);
                     }
 
                     attempt++;
@@ -233,8 +228,7 @@ namespace Ironclad.Tests.Sdk
 
                 if (attempt == this.Configuration.MaximumWaitUntilAvailableAttempts)
                 {
-                    throw new Exception(
-                        $"The container {this.Configuration.ContainerName} did not become available in a timely fashion.");
+                    throw new TimeoutException($"The container {this.Configuration.ContainerName} did not become available in a timely fashion.");
                 }
             }
         }
@@ -274,12 +268,7 @@ namespace Ironclad.Tests.Sdk
 
         private async Task<bool> ImageExists(CancellationToken token)
         {
-            var images = await this.client.Images.ListImagesAsync(
-                new ImagesListParameters
-            {
-                MatchName = this.Configuration.TagQualifiedImage
-            }, token).ConfigureAwait(false);
-
+            var images = await this.client.Images.ListImagesAsync(new ImagesListParameters { MatchName = this.Configuration.TagQualifiedImage }, token).ConfigureAwait(false);
             return images.Count != 0;
         }
 

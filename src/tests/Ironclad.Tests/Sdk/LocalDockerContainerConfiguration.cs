@@ -1,6 +1,8 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable CA1819
+
 namespace Ironclad.Tests.Sdk
 {
     using System;
@@ -23,13 +25,9 @@ namespace Ironclad.Tests.Sdk
 
         public bool AutoRemoveContainer { get; set; }
 
-        // ReSharper disable once CA1819
-        public LocalDockerContainerPortBinding[] ContainerPortBindings { get; set; } =
-            Array.Empty<LocalDockerContainerPortBinding>();
+        public LocalDockerContainerPortBinding[] ContainerPortBindings { get; set; } = Array.Empty<LocalDockerContainerPortBinding>();
 
-        // ReSharper disable once CA1819
-        public string[] ContainerEnvironmentVariables { get; set; } =
-            Array.Empty<string>();
+        public string[] ContainerEnvironmentVariables { get; set; } = Array.Empty<string>();
 
         // Availability related
         public Func<CancellationToken, Task<bool>> WaitUntilAvailable { get; set; }
