@@ -61,7 +61,7 @@ eg.  (please note: secret values are invalid)
 In addition, you can configure aspects of the application for the machine it is running on.
 
 - If running the project directly (eg. from Visual Studio):  
-You can to configure the ```appSettings.json``` for the project. You can do this by adding a file called ```appSettings.Custom.json``` with machine specific configuration which will override the default ```appSettings.json```.
+You can configure the ```appSettings.json``` for the project. You can do this by adding a file called ```appSettings.Custom.json``` with machine specific configuration which will override the default ```appSettings.json```.
 eg.
     ```json
     {
