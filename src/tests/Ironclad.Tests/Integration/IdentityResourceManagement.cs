@@ -14,8 +14,8 @@ namespace Ironclad.Tests.Feature
 
     public class IdentityResourceManagement : IntegrationTest
     {
-        public IdentityResourceManagement(AuthenticationFixture securityFixture, IroncladFixture ironcladFixture, PostgresFixture postgresFixture)
-            : base(securityFixture, ironcladFixture, postgresFixture)
+        public IdentityResourceManagement(AuthenticationFixture securityFixture, IroncladFixture ironcladFixture)
+            : base(securityFixture, ironcladFixture)
         {
         }
 

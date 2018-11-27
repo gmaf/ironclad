@@ -5,6 +5,7 @@
 
 namespace Ironclad.Tests.Sdk
 {
+    using System;
     using System.Configuration;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -13,48 +14,121 @@ namespace Ironclad.Tests.Sdk
     using IdentityModel.Client;
     using IdentityModel.OidcClient;
     using Microsoft.Extensions.Configuration;
+    using Xunit;
 
-    public sealed class AuthenticationFixture
+    public sealed class AuthenticationFixture : IAsyncLifetime
     {
-        private readonly IConfigurationRoot configuration;
+        private readonly string authority;
+        private readonly string username;
+        private readonly string password;
+        private readonly string clientId;
+        private readonly string scope;
 
         public AuthenticationFixture()
         {
-            this.configuration = new ConfigurationBuilder().AddJsonFile("testsettings.json").Build();
+            var configuration = new ConfigurationBuilder().AddJsonFile("testsettings.json").Build();
 
-            this.Handler = CreateTokenHandler(
-                this.Authority = this.configuration.GetValue<string>("authority") ?? throw new ConfigurationErrorsException("Missing configuration value 'authority'"),
-                this.configuration.GetValue<string>("username") ?? throw new ConfigurationErrorsException("Missing configuration value 'username'"),
-                this.configuration.GetValue<string>("password") ?? throw new ConfigurationErrorsException("Missing configuration value 'password'"),
-                this.configuration.GetValue<string>("client_id") ?? throw new ConfigurationErrorsException("Missing configuration value 'client_id'"),
-                this.configuration.GetValue<string>("scope") ?? throw new ConfigurationErrorsException("Missing configuration value 'scope'"))
-                .GetAwaiter()
-                .GetResult();
+            this.authority = configuration.GetValue<string>("authority") ?? throw new ConfigurationErrorsException("Missing configuration value 'authority'");
+            this.username = configuration.GetValue<string>("username") ?? throw new ConfigurationErrorsException("Missing configuration value 'username'");
+            this.password = configuration.GetValue<string>("password") ?? throw new ConfigurationErrorsException("Missing configuration value 'password'");
+            this.clientId = configuration.GetValue<string>("client_id") ?? throw new ConfigurationErrorsException("Missing configuration value 'client_id'");
+            this.scope = configuration.GetValue<string>("scope") ?? throw new ConfigurationErrorsException("Missing configuration value 'scope'");
         }
 
-        public string Authority { get; }
+        public string Authority => this.authority;
 
-        public HttpMessageHandler Handler { get; }
+        public HttpMessageHandler Handler { get; private set; }
 
-        private static async Task<HttpMessageHandler> CreateTokenHandler(string authority, string username, string password, string clientId, string scope)
+        public async Task InitializeAsync()
         {
-            var automation = new BrowserAutomation(username, password);
+            var automation = new BrowserAutomation(this.username, this.password);
             var browser = new Browser(automation);
             var options = new OidcClientOptions
             {
-                Authority = authority,
-                ClientId = clientId,
+                Authority = this.authority,
+                ClientId = this.clientId,
                 RedirectUri = $"http://127.0.0.1:{browser.Port}",
-                Scope = scope,
+                Scope = this.scope,
                 FilterClaims = false,
                 Browser = browser,
                 Policy = new Policy { Discovery = new DiscoveryPolicy { ValidateIssuerName = false } }
             };
 
             var oidcClient = new OidcClient(options);
-            var result = await oidcClient.LoginAsync(new LoginRequest()).ConfigureAwait(false);
 
-            return new TokenHandler(result.AccessToken);
+            async Task<WaitUntilAvailableResult> WaitUntilAvailable(CancellationToken token)
+            {
+                try
+                {
+                    var response = await oidcClient.LoginAsync(new LoginRequest()).ConfigureAwait(false);
+
+                    return WaitUntilAvailableResult.Available(response.AccessToken);
+                }
+                catch (HttpRequestException)
+                {
+                }
+                catch (InvalidOperationException)
+                {
+                }
+
+                return WaitUntilAvailableResult.NotAvailable;
+            }
+
+            const int maximumWaitUntilAvailableAttempts = 60;
+            var timeBetweenWaitUntilAvailableAttempts = TimeSpan.FromSeconds(2);
+            var attempt = 0;
+            var exit = false;
+            string accessToken = null;
+            while (
+                attempt < maximumWaitUntilAvailableAttempts &&
+                !exit)
+            {
+                var result = await WaitUntilAvailable(default).ConfigureAwait(false);
+                if (!ReferenceEquals(result, WaitUntilAvailableResult.NotAvailable))
+                {
+                    exit = true;
+                    accessToken = result.AccessToken;
+                }
+                else
+                {
+                    if (attempt != maximumWaitUntilAvailableAttempts - 1)
+                    {
+                        await Task
+                            .Delay(timeBetweenWaitUntilAvailableAttempts, default)
+                            .ConfigureAwait(false);
+                    }
+
+                    attempt++;
+                }
+            }
+
+            if (attempt == maximumWaitUntilAvailableAttempts)
+            {
+                throw new Exception(
+                    "The Ironclad instance did not become available in a timely fashion.");
+            }
+
+            this.Handler = new TokenHandler(accessToken);
+        }
+
+        public Task DisposeAsync()
+        {
+            this.Handler?.Dispose();
+            return Task.CompletedTask;
+        }
+
+        private class WaitUntilAvailableResult
+        {
+            public static readonly WaitUntilAvailableResult NotAvailable = new WaitUntilAvailableResult(null);
+
+            private WaitUntilAvailableResult(string accessToken)
+            {
+                this.AccessToken = accessToken;
+            }
+
+            public string AccessToken { get; }
+
+            public static WaitUntilAvailableResult Available(string accessToken) => new WaitUntilAvailableResult(accessToken);
         }
 
         private sealed class TokenHandler : DelegatingHandler

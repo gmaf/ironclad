@@ -9,13 +9,11 @@ namespace Ironclad.Tests.Sdk
     public class IntegrationTest : AuthenticationTest
     {
         private readonly IroncladFixture ironcladFixture;
-        private readonly PostgresFixture postgresFixture;
 
-        public IntegrationTest(AuthenticationFixture authenticationFixture, IroncladFixture ironcladFixture, PostgresFixture postgresFixture)
+        public IntegrationTest(AuthenticationFixture authenticationFixture, IroncladFixture ironcladFixture)
             : base(authenticationFixture)
         {
             this.ironcladFixture = ironcladFixture;
-            this.postgresFixture = postgresFixture;
         }
     }
 }

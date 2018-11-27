@@ -6,8 +6,6 @@
 namespace Ironclad.Tests.Sdk
 {
     using System;
-    using System.Net;
-    using System.Net.Sockets;
     using System.Threading.Tasks;
     using IdentityModel.OidcClient.Browser;
 
@@ -20,7 +18,7 @@ namespace Ironclad.Tests.Sdk
         {
             this.automation = automation;
             this.path = path;
-            this.Port = port ?? GetRandomUnusedPort();
+            this.Port = port ?? PortManager.GetNextPort();
         }
 
         public int Port { get; }
@@ -51,15 +49,6 @@ namespace Ironclad.Tests.Sdk
                     return new BrowserResult { ResultType = BrowserResultType.UnknownError, Error = ex.Message };
                 }
             }
-        }
-
-        private static int GetRandomUnusedPort()
-        {
-            var listener = new TcpListener(IPAddress.Loopback, 0);
-            listener.Start();
-            var port = ((IPEndPoint)listener.LocalEndpoint).Port;
-            listener.Stop();
-            return port;
         }
     }
 }
