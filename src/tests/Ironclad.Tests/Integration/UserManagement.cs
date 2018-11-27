@@ -358,7 +358,7 @@ namespace Ironclad.Tests.Feature
             var user = await httpClient.AddUserAsync(model).ConfigureAwait(false);
 
             // act
-            model.Claims = new Dictionary<string, string> { { "claim1", "1" } };
+            model.Claims = new Dictionary<string, string> { { string.Empty, string.Empty } };
 
             Func<Task> func = async () => await httpClient.ModifyUserAsync(model).ConfigureAwait(false);
 

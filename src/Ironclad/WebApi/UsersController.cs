@@ -155,7 +155,7 @@ namespace Ironclad.WebApi
                 }
             }
 
-            if (model.Claims?.Any() == true)
+            if (model.Claims?.Count > 0)
             {
                 var addToClaimsResult = await this.userManager.AddClaimsAsync(user, model.Claims.Select(claim => new Claim(claim.Key, claim.Value)));
                 if (!addToClaimsResult.Succeeded)
@@ -227,7 +227,7 @@ namespace Ironclad.WebApi
                 var roles = await this.userManager.GetRolesAsync(user);
 
                 var oldRoles = roles.Except(model.Roles ?? Array.Empty<string>()).ToArray();
-                if (oldRoles.Any())
+                if (oldRoles.Length > 0)
                 {
                     var removeResult = await this.userManager.RemoveFromRolesAsync(user, oldRoles);
                     if (!removeResult.Succeeded)
@@ -237,7 +237,7 @@ namespace Ironclad.WebApi
                 }
 
                 var newRoles = (model.Roles ?? Array.Empty<string>()).Except(roles).ToArray();
-                if (newRoles.Any())
+                if (newRoles.Length > 0)
                 {
                     var addResult = await this.userManager.AddToRolesAsync(user, newRoles);
                     if (!addResult.Succeeded)
@@ -253,7 +253,7 @@ namespace Ironclad.WebApi
                 var userClaims = model.Claims.Select(claim => new Claim(claim.Key, claim.Value)).ToArray();
 
                 var oldClaims = claims.Except(userClaims, ClaimComparer).ToArray();
-                if (oldClaims.Any())
+                if (oldClaims.Length > 0)
                 {
                     var removeResult = await this.userManager.RemoveClaimsAsync(user, oldClaims);
                     if (!removeResult.Succeeded)
@@ -263,7 +263,7 @@ namespace Ironclad.WebApi
                 }
 
                 var newClaims = userClaims.Except(claims, ClaimComparer).ToArray();
-                if (newClaims.Any())
+                if (newClaims.Length > 0)
                 {
                     var addResult = await this.userManager.AddClaimsAsync(user, newClaims);
                     if (!addResult.Succeeded)

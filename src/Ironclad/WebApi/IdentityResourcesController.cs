@@ -88,7 +88,7 @@ namespace Ironclad.WebApi
                 return this.BadRequest(new { Message = $"Cannot create an identity resource without a name" });
             }
 
-            if (model.UserClaims?.Any() == false)
+            if (model.UserClaims?.Count == 0)
             {
                 return this.BadRequest(new { Message = $"Cannot create an identity resource without any claims" });
             }
