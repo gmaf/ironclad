@@ -30,8 +30,16 @@ namespace Ironclad.Sdk
                 context.HttpContext.Response.Headers.Add("X-Frame-Options", "SAMEORIGIN");
             }
 
+            // https://scotthelme.co.uk/hsts-the-missing-link-in-tls/
+            var hsts = "Strict-Transport-Security: max-age=31536000; includeSubDomains";
+            if (!context.HttpContext.Response.Headers.ContainsKey("Strict-Transport-Security"))
+            {
+                context.HttpContext.Response.Headers.Add("Strict-Transport-Security", hsts);
+            }
+
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
-            var csp = "default-src 'self'; object-src 'none'; frame-ancestors 'none'; sandbox allow-forms allow-same-origin allow-scripts; base-uri 'self';";
+            var appInsightsScript = "https://az416426.vo.msecnd.net/scripts/a/ai.0.js";
+            var csp = $"script-src 'self' 'sha256-SjXRkVC/0M0+WLq2GU4E8JdbZ/ZNgspoHSzWQaMhG7E=' {appInsightsScript}; img-src 'self'; style-src 'self'; object-src 'none'; frame-ancestors 'none'; sandbox allow-forms allow-same-origin allow-scripts; base-uri 'self';";
             //// also consider adding upgrade-insecure-requests once you have HTTPS in place for production
             ////csp += "upgrade-insecure-requests;";
             //// also an example if you need client images to be displayed from twitter
@@ -57,17 +65,16 @@ namespace Ironclad.Sdk
             }
 
             // https://scotthelme.co.uk/hardening-your-http-response-headers/#x-xss-protection
-            var xss_protection_policy = "1; mode=block";
             if (!context.HttpContext.Response.Headers.ContainsKey("X-XSS-Protection"))
             {
-                context.HttpContext.Response.Headers.Add("X-XSS-Protection", xss_protection_policy);
+                context.HttpContext.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
             }
 
             // https://scotthelme.co.uk/a-new-security-header-feature-policy/
-            var feature_policy = "geolocation 'none'; midi 'none'; notifications 'self'; push 'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none'; speaker 'none'; vibrate 'none'; payment 'none'";
+            var features = "geolocation 'none'; microphone 'none'; camera 'none'";
             if (!context.HttpContext.Response.Headers.ContainsKey("Feature-Policy"))
             {
-                context.HttpContext.Response.Headers.Add("Feature-Policy", feature_policy);
+                context.HttpContext.Response.Headers.Add("Feature-Policy", features);
             }
         }
     }
