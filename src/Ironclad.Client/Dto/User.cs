@@ -65,9 +65,9 @@ namespace Ironclad.Client
         /// Gets or sets the user's claims.
         /// </summary>
         /// <value>The user's claims.</value>
-        public ICollection<UserClaim> Claims { get; set; }
+        public IDictionary<string, string> Claims { get; set; }
 #if CLIENT
-            = new HashSet<UserClaim>();
+            = new Dictionary<string, string>();
 #endif
     }
 }

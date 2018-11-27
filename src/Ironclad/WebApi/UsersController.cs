@@ -87,13 +87,7 @@ namespace Ironclad.WebApi
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
                     Roles = new List<string>(roles),
-                    Claims = userClaims.Select(claim =>
-                        new UserClaim
-                        {
-                            Type = claim.Type,
-                            Value = claim.Value
-                        })
-                        .ToArray()
+                    Claims = userClaims.ToDictionary(claim => claim.Type, claim => claim.Value),
                 });
         }
 
@@ -122,7 +116,7 @@ namespace Ironclad.WebApi
             user.Email = model.Email ?? user.Email;
             user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
 
-            if (model.Claims?.Any(claim => string.IsNullOrEmpty(claim.Type) || string.IsNullOrEmpty(claim.Value)) == true)
+            if (model.Claims?.Any(claim => string.IsNullOrEmpty(claim.Key) || string.IsNullOrEmpty(claim.Value)) == true)
             {
                 return this.BadRequest(new { Message = $"Cannot add claims without both a type and a value" });
             }
@@ -163,7 +157,7 @@ namespace Ironclad.WebApi
 
             if (model.Claims?.Any() == true)
             {
-                var addToClaimsResult = await this.userManager.AddClaimsAsync(user, model.Claims.Select(claim => new Claim(claim.Type, claim.Value)));
+                var addToClaimsResult = await this.userManager.AddClaimsAsync(user, model.Claims.Select(claim => new Claim(claim.Key, claim.Value)));
                 if (!addToClaimsResult.Succeeded)
                 {
                     return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addToClaimsResult.ToString() });
@@ -213,7 +207,7 @@ namespace Ironclad.WebApi
                 }
             }
 
-            if (model.Claims?.Any(claim => string.IsNullOrEmpty(claim.Type) || string.IsNullOrEmpty(claim.Value)) == true)
+            if (model.Claims?.Any(claim => string.IsNullOrEmpty(claim.Key) || string.IsNullOrEmpty(claim.Value)) == true)
             {
                 return this.BadRequest(new { Message = $"Cannot add claims without both a type and a value" });
             }
@@ -256,7 +250,7 @@ namespace Ironclad.WebApi
             if (model.Claims != null)
             {
                 var claims = await this.userManager.GetClaimsAsync(user);
-                var userClaims = model.Claims.Select(claim => new Claim(claim.Type, claim.Value)).ToArray();
+                var userClaims = model.Claims.Select(claim => new Claim(claim.Key, claim.Value)).ToArray();
 
                 var oldClaims = claims.Except(userClaims, ClaimComparer).ToArray();
                 if (oldClaims.Any())

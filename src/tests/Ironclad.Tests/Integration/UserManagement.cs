@@ -4,6 +4,7 @@
 namespace Ironclad.Tests.Feature
 {
     using System;
+    using System.Collections.Generic;
     using System.Globalization;
     using System.Net;
     using System.Threading.Tasks;
@@ -51,7 +52,7 @@ namespace Ironclad.Tests.Feature
                 Email = "bit-bucket@test.smtp.org",
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
-                Claims = new[] { new UserClaim { Type = "claim1", Value = "1" } }
+                Claims = { { "claim1", "1" } }
             };
 
             // act
@@ -74,7 +75,7 @@ namespace Ironclad.Tests.Feature
                 SendConfirmationEmail = true,
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
-                Claims = new[] { new UserClaim { Type = "claim1", Value = "1" } }
+                Claims = { { "claim1", "1" } }
             };
 
             // act
@@ -149,7 +150,7 @@ namespace Ironclad.Tests.Feature
                 Email = "bit-bucket@test.smtp.org",
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
-                Claims = new[] { new UserClaim { Type = "claim1", Value = "1" }, new UserClaim { Type = "claim2", Value = "A" } },
+                Claims = { { "claim1", "1" }, { "claim2", "A" } },
             };
 
             var expectedUser = new User
@@ -159,7 +160,7 @@ namespace Ironclad.Tests.Feature
                 Email = "superbob@superbob.com",
                 PhoneNumber = "987654321",
                 Roles = { "auth_admin", "user_admin" },
-                Claims = new[] { new UserClaim { Type = "claim2", Value = "B" }, new UserClaim { Type = "claim3", Value = "3" } },
+                Claims = { { "claim2", "B" }, { "claim3", "3" } },
             };
 
             var initialUser = await httpClient.AddUserAsync(originalUser).ConfigureAwait(false);
@@ -351,13 +352,13 @@ namespace Ironclad.Tests.Feature
                 Email = "bit-bucket@test.smtp.org",
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
-                Claims = new[] { new UserClaim { Type = "claim1", Value = "1" } },
+                Claims = { { "claim1", "1" } },
             };
 
             var user = await httpClient.AddUserAsync(model).ConfigureAwait(false);
 
             // act
-            model.Claims = new[] { new UserClaim() };
+            model.Claims = new Dictionary<string, string> { { "claim1", "1" } };
 
             Func<Task> func = async () => await httpClient.ModifyUserAsync(model).ConfigureAwait(false);
 
@@ -377,7 +378,7 @@ namespace Ironclad.Tests.Feature
                 Email = "bit-bucket@test.smtp.org",
                 PhoneNumber = "123456789",
                 Roles = { "admin" },
-                Claims = new[] { new UserClaim { Type = "claim1", Value = "1" }, new UserClaim { Type = "claim2", Value = "2" } },
+                Claims = { { "claim1", "1" }, { "claim2", "2" } },
             };
 
             var originalUser = await httpClient.AddUserAsync(model).ConfigureAwait(false);

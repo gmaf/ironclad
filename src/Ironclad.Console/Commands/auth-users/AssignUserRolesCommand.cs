@@ -26,7 +26,7 @@ namespace Ironclad.Console.Commands
 
             // arguments
             var argumentUsername = app.Argument("username", "The username", false);
-            var argumentRoles = app.Argument("roles", "One or more roles to assign to the user", true);
+            var argumentRoles = app.Argument("roles", "One or more roles to assign to the user (you can specify multiple roles)", true);
 
             // action (for this command)
             app.OnExecute(
@@ -48,6 +48,7 @@ namespace Ironclad.Console.Commands
             {
                 Username = this.username,
                 Roles = this.roles,
+                Claims = null,
             };
 
             await context.UsersClient.ModifyUserAsync(user).ConfigureAwait(false);

@@ -39,6 +39,7 @@ namespace Ironclad.Configuration
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
                         "sample_api",
+                        "amazeballs",
                     },
 
                     AccessTokenType = AccessTokenType.Reference,
