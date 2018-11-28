@@ -9,7 +9,9 @@ namespace Ironclad
     using Ironclad.Application;
     using Ironclad.Authorization;
     using Ironclad.Data;
+    using Ironclad.ExternalIdentityProvider.Persistence;
     using Ironclad.Services;
+    using Microsoft.AspNetCore.Authentication.OpenIdConnect;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
@@ -18,7 +20,9 @@ namespace Ironclad
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Serialization;
@@ -94,7 +98,7 @@ namespace Ironclad
                 .AddAppAuthRedirectUriValidator()
                 .AddAspNetIdentity<ApplicationUser>();
 
-            services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
+            var auth = services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddGoogle(
                     options =>
                     {
@@ -115,7 +119,8 @@ namespace Ironclad
                         options.ClientId = "auth_api";
                         options.ClientSecret = this.configuration.GetValue<string>("Introspection-Secret");
                         options.DiscoveryPolicy = new DiscoveryPolicy { ValidateIssuerName = false };
-                    });
+                    })
+                .AddExternalIdentityProviders();
 
             services.AddAuthorization(
                 options =>
