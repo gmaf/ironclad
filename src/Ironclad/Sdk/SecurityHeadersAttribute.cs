@@ -3,9 +3,9 @@
 
 namespace Ironclad.Sdk
 {
+    using System;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Filters;
-    using System;
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class SecurityHeadersAttribute : ActionFilterAttribute
