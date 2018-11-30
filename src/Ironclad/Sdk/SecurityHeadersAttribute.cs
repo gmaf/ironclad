@@ -38,12 +38,29 @@ namespace Ironclad.Sdk
             }
 
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
-            var appInsightsScript = "https://az416426.vo.msecnd.net/scripts/a/ai.0.js";
-            var csp = $"script-src 'self' 'sha256-SjXRkVC/0M0+WLq2GU4E8JdbZ/ZNgspoHSzWQaMhG7E=' {appInsightsScript}; img-src 'self'; style-src 'self'; object-src 'none'; frame-ancestors 'none'; sandbox allow-forms allow-same-origin allow-scripts; base-uri 'self';";
-            //// also consider adding upgrade-insecure-requests once you have HTTPS in place for production
-            ////csp += "upgrade-insecure-requests;";
-            //// also an example if you need client images to be displayed from twitter
-            //// csp += "img-src 'self' https://pbs.twimg.com;";
+            string[] allowedScripts = new[]
+            {
+                "'self'",
+                "'sha256-SjXRkVC/0M0+WLq2GU4E8JdbZ/ZNgspoHSzWQaMhG7E='",
+                "'sha256-nEhC/Gar4FM2L9jcHtSP+DYaxFlJNy7jG8KD46S2SlI='",
+                "'sha256-od6N/tEDLReTkDWYLIQ4wfOY9HAR4vm2mqgP2a8XdTU='",
+                "'sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE='",
+                "'sha256-RBBmlHImRT323C+VE9PFBMXnHbki8sYW3t1e6JhINnU='",
+                /* App Insights */
+                "https://az416426.vo.msecnd.net/scripts/a/ai.0.js",
+                "https://ajax.aspnetcdn.com/ajax/jquery.validate/1.14.0/jquery.validate.min.js",
+                "https://ajax.aspnetcdn.com/ajax/jquery.validation.unobtrusive/3.2.6/jquery.validate.unobtrusive.min.js"
+            };
+
+            string[] allowedStyles = new[]
+            {
+                "'self'",
+                /* Remove this once this GitHub issue will be solved
+                 * https://github.com/aspnet/Mvc/issues/4888 */
+               "'unsafe-inline'"
+            };
+
+            var csp = $"script-src {string.Join(" ", allowedScripts)}; img-src 'self'; style-src {string.Join(" ", allowedStyles)}; object-src 'none'; frame-ancestors 'none'; sandbox allow-forms allow-same-origin allow-scripts; base-uri 'self';";
 
             // once for standards compliant browsers
             if (!context.HttpContext.Response.Headers.ContainsKey("Content-Security-Policy"))
