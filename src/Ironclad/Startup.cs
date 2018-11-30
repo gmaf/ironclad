@@ -97,9 +97,6 @@ namespace Ironclad
                 .AddOperationalStore()
                 .AddAppAuthRedirectUriValidator()
                 .AddAspNetIdentity<ApplicationUser>();
-            
-            services
-                .AddTransient<IUserClaimsPrincipalFactory<ApplicationUser>, ApplicationUserClaimsPrincipalFactory>();
 
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddGoogle(

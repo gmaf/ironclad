@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-namespace Ironclad.Tests.Feature
+namespace Ironclad.Tests.Integration
 {
     using System;
     using System.Collections.Generic;
@@ -60,7 +60,8 @@ namespace Ironclad.Tests.Feature
 
             // assert
             actualUser.Should().NotBeNull();
-            actualUser.Should().BeEquivalentTo(expectedUser, options => options.Excluding(user => user.Id).Excluding(user => user.Password));
+            actualUser.Should().BeEquivalentTo(expectedUser, options => options.Excluding(user => user.Id).Excluding(user => user.Password).Excluding(user => user.Claims));
+            actualUser.Claims.Should().Contain(expectedUser.Claims);
         }
 
         [Fact]
@@ -90,7 +91,8 @@ namespace Ironclad.Tests.Feature
                     .Excluding(user => user.Id)
                     .Excluding(user => user.Password)
                     .Excluding(user => user.SendConfirmationEmail)
-                    .Excluding(user => user.RegistrationLink));
+                    .Excluding(user => user.RegistrationLink)
+                    .Excluding(user => user.Claims));
             actualUser.RegistrationLink.Should().NotBeNull();
         }
 
@@ -170,7 +172,9 @@ namespace Ironclad.Tests.Feature
 
             // assert
             actualUser.Should().NotBeNull();
-            actualUser.Should().BeEquivalentTo(expectedUser, options => options.Excluding(user => user.Id).Excluding(user => user.Password));
+            actualUser.Should().BeEquivalentTo(expectedUser, options => options.Excluding(user => user.Id).Excluding(user => user.Password).Excluding(user => user.Claims));
+            actualUser.Claims.Should().Contain(expectedUser.Claims);
+            actualUser.Claims.Should().NotContain(originalUser.Claims);
             actualUser.Id.Should().Be(initialUser.Id);
         }
 
@@ -358,7 +362,7 @@ namespace Ironclad.Tests.Feature
             var user = await httpClient.AddUserAsync(model).ConfigureAwait(false);
 
             // act
-            model.Claims = new Dictionary<string, string> { { string.Empty, string.Empty } };
+            model.Claims = new Dictionary<string, object> { { string.Empty, null } };
 
             Func<Task> func = async () => await httpClient.ModifyUserAsync(model).ConfigureAwait(false);
 
@@ -384,7 +388,7 @@ namespace Ironclad.Tests.Feature
             var originalUser = await httpClient.AddUserAsync(model).ConfigureAwait(false);
 
             // act
-            model = new User
+            var updateModel = new User
             {
                 Username = originalUser.Username,
                 Roles = null, // do *not* update roles
@@ -392,13 +396,50 @@ namespace Ironclad.Tests.Feature
             };
 
             // act
-            var actualUser = await httpClient.ModifyUserAsync(model, model.Username).ConfigureAwait(false);
+            var actualUser = await httpClient.ModifyUserAsync(updateModel, updateModel.Username).ConfigureAwait(false);
 
             // assert
             actualUser.Should().NotBeNull();
             actualUser.Should().BeEquivalentTo(originalUser, options => options.Excluding(user => user.Id).Excluding(user => user.Password).Excluding(user => user.Claims));
             actualUser.Id.Should().Be(originalUser.Id);
-            actualUser.Claims.Should().BeEmpty();
+            actualUser.Claims.Should().NotContain(model.Claims);
+        }
+
+        [Fact]
+        public async Task CanRemoveUserRoles()
+        {
+            // arrange
+            var httpClient = new UsersHttpClient(this.Authority, this.Handler);
+            var model = new User
+            {
+                Username = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
+                Password = "password",
+                Email = "bit-bucket@test.smtp.org",
+                PhoneNumber = "123456789",
+                Roles = { "admin" },
+                Claims = { { "claim1", "1" }, { "claim2", "2" } },
+            };
+
+            var originalUser = await httpClient.AddUserAsync(model).ConfigureAwait(false);
+
+            // act
+            model = new User
+            {
+                Username = originalUser.Username,
+                Roles = { }, // do *not* update roles
+                Claims = null, // *do* update claims
+            };
+
+            // act
+            var actualUser = await httpClient.ModifyUserAsync(model, model.Username).ConfigureAwait(false);
+
+            // assert
+            actualUser.Should().NotBeNull();
+            actualUser.Should().BeEquivalentTo(
+                originalUser,
+                options => options.Excluding(user => user.Id).Excluding(user => user.Password).Excluding(user => user.Roles).Excluding(user => user.Claims));
+            actualUser.Id.Should().Be(originalUser.Id);
+            actualUser.Roles.Should().BeEmpty();
         }
     }
 }

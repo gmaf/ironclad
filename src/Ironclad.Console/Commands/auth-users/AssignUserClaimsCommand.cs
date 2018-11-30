@@ -13,7 +13,7 @@ namespace Ironclad.Console.Commands
     internal class AssignUserClaimsCommand : ICommand
     {
         private string username;
-        private Dictionary<string, string> claims;
+        private Dictionary<string, object> claims;
 
         private AssignUserClaimsCommand()
         {
@@ -29,12 +29,16 @@ namespace Ironclad.Console.Commands
             var argumentUsername = app.Argument("username", "The username", false);
             var argumentClaims = app.Argument("claims", "One or more claims, formatted as type=value, to assign to the user (you can specify multiple claims)", true);
 
+            var optionRemove = app.Option("-r|--remove", "Removes all the claims", CommandOptionType.NoValue);
+
             // action (for this command)
             app.OnExecute(
                 () =>
                 {
-                    if (string.IsNullOrEmpty(argumentUsername.Value) || !argumentClaims.Values.Any() ||
-                        argumentClaims.Values.Any(value => !value.Contains("=", StringComparison.OrdinalIgnoreCase)))
+                    if (
+                        string.IsNullOrEmpty(argumentUsername.Value) ||
+                        (!optionRemove.HasValue() && (!argumentClaims.Values.Any() || argumentClaims.Values.Any(value => !value.Contains("=", StringComparison.OrdinalIgnoreCase))))
+                    )
                     {
                         app.ShowHelp();
                         return;
@@ -43,7 +47,7 @@ namespace Ironclad.Console.Commands
                     options.Command = new AssignUserClaimsCommand
                     {
                         username = argumentUsername.Value,
-                        claims = argumentClaims.Values.ToDictionary(value => value.Split('=').First(), value => value.Split('=').Last()),
+                        claims = argumentClaims.Values.ToDictionary(key => key.Split('=').First(), value => (object)value.Split('=').Last()),
                     };
                 });
         }

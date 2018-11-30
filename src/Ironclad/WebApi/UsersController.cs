@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable CA1308
+
 namespace Ironclad.WebApi
 {
     using System;
     using System.Collections.Generic;
+    using System.IdentityModel.Tokens.Jwt;
     using System.Linq;
     using System.Net;
     using System.Security.Claims;
@@ -24,16 +27,41 @@ namespace Ironclad.WebApi
     [Route("api/[controller]")]
     public class UsersController : Controller
     {
+        private const string AspNetIdentitySecurityStamp = "AspNet.Identity.SecurityStamp";
+
         private static readonly IEqualityComparer<Claim> ClaimComparer = new ClaimEqualityComparer();
+
+        private static readonly HashSet<string> ReservedClaims = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            JwtClaimTypes.Subject,
+            JwtClaimTypes.Role,
+            JwtClaimTypes.PreferredUserName,
+            JwtClaimTypes.Name,
+            JwtClaimTypes.Email,
+            JwtClaimTypes.PhoneNumber,
+            AspNetIdentitySecurityStamp,
+        };
+
+        private static readonly HashSet<string> SpecialClaims = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            JwtClaimTypes.EmailVerified,
+            JwtClaimTypes.PhoneNumberVerified
+        };
 
         private readonly UserManager<ApplicationUser> userManager;
         private readonly RoleManager<IdentityRole> roleManager;
+        private readonly IUserClaimsPrincipalFactory<ApplicationUser> claimsFactory;
         private readonly IEmailSender emailSender;
 
-        public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IEmailSender emailSender)
+        public UsersController(
+            UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager,
+            IUserClaimsPrincipalFactory<ApplicationUser> claimsFactory,
+            IEmailSender emailSender)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
+            this.claimsFactory = claimsFactory;
             this.emailSender = emailSender;
         }
 
@@ -69,6 +97,7 @@ namespace Ironclad.WebApi
         public async Task<IActionResult> Get(string username)
         {
             // HACK (Pawel): This is a temporary measure until we have a sensible way to resolve subject identifiers with username etc.
+            // TODO (Cameron): "temporary"
             var user = await this.userManager.FindByNameAsync(username) ?? await this.userManager.FindByIdAsync(username);
             if (user == null)
             {
@@ -76,7 +105,10 @@ namespace Ironclad.WebApi
             }
 
             var roles = await this.userManager.GetRolesAsync(user);
-            var userClaims = await this.userManager.GetClaimsAsync(user);
+            var claimsPrincipal = await this.claimsFactory.CreateAsync(user);
+            var claims = new JwtSecurityToken(new JwtHeader(), new JwtPayload(claimsPrincipal.Claims)).Payload;
+
+            claims.Remove(AspNetIdentitySecurityStamp);
 
             return this.Ok(
                 new UserResource
@@ -87,7 +119,7 @@ namespace Ironclad.WebApi
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
                     Roles = new List<string>(roles),
-                    Claims = userClaims.ToDictionary(claim => claim.Type, claim => claim.Value),
+                    Claims = claims,
                 });
         }
 
@@ -110,16 +142,37 @@ namespace Ironclad.WebApi
                 }
             }
 
+            if (model.Claims?.Any(claim => string.IsNullOrEmpty(claim.Key) || claim.Value == null) == true)
+            {
+                return this.BadRequest(new { Message = $"Cannot add claims without both a type and a value" });
+            }
+
+            if (model.Claims?.Any(claim => ReservedClaims.Contains(claim.Key)) == true)
+            {
+                return this.BadRequest(new { Message = $"Cannot change reserved claims values" });
+            }
+
+            var isConfirmEmailRequest = default(bool);
+            if (model.Claims != null &&
+                model.Claims.TryGetValue(JwtClaimTypes.EmailVerified, out var emailVerifiedObject) &&
+                (!bool.TryParse(emailVerifiedObject.ToString(), out isConfirmEmailRequest) || isConfirmEmailRequest != true))
+            {
+                return this.BadRequest(new { Message = $"Invalid value for claim '{JwtClaimTypes.EmailVerified}' (only valid value is 'true')" });
+            }
+
+            var isConfirmPhoneNumberRequest = default(bool);
+            if (model.Claims != null &&
+                model.Claims.TryGetValue(JwtClaimTypes.PhoneNumberVerified, out var phoneNumberVerifiedObject) &&
+                (!bool.TryParse(phoneNumberVerifiedObject.ToString(), out isConfirmPhoneNumberRequest) || isConfirmPhoneNumberRequest != true))
+            {
+                return this.BadRequest(new { Message = $"Invalid value for claim '{JwtClaimTypes.PhoneNumberVerified}' (only valid value is 'true')" });
+            }
+
             var user = new ApplicationUser(model.Username);
 
             // optional properties
             user.Email = model.Email ?? user.Email;
             user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
-
-            if (model.Claims?.Any(claim => string.IsNullOrEmpty(claim.Key) || string.IsNullOrEmpty(claim.Value)) == true)
-            {
-                return this.BadRequest(new { Message = $"Cannot add claims without both a type and a value" });
-            }
 
             var addUserResult = string.IsNullOrEmpty(model.Password) ? await this.userManager.CreateAsync(user) : await this.userManager.CreateAsync(user, model.Password);
             if (!addUserResult.Succeeded)
@@ -157,10 +210,32 @@ namespace Ironclad.WebApi
 
             if (model.Claims?.Count > 0)
             {
-                var addToClaimsResult = await this.userManager.AddClaimsAsync(user, model.Claims.Select(claim => new Claim(claim.Key, claim.Value)));
+                var claims = model.Claims.Where(claim => !SpecialClaims.Contains(claim.Key)).Select(claim => new Claim(claim.Key.ToLowerInvariant(), claim.Value.ToString()));
+
+                var addToClaimsResult = await this.userManager.AddClaimsAsync(user, claims);
                 if (!addToClaimsResult.Succeeded)
                 {
                     return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addToClaimsResult.ToString() });
+                }
+
+                if (isConfirmEmailRequest && !user.EmailConfirmed)
+                {
+                    var token = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var confirmResult = await this.userManager.ConfirmEmailAsync(user, token);
+                    if (!confirmResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = confirmResult.ToString() });
+                    }
+                }
+
+                if (isConfirmPhoneNumberRequest && !user.PhoneNumberConfirmed)
+                {
+                    var token = await this.userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
+                    var confirmResult = await this.userManager.ChangePhoneNumberAsync(user, user.PhoneNumber, token);
+                    if (!confirmResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = confirmResult.ToString() });
+                    }
                 }
             }
 
@@ -207,9 +282,30 @@ namespace Ironclad.WebApi
                 }
             }
 
-            if (model.Claims?.Any(claim => string.IsNullOrEmpty(claim.Key) || string.IsNullOrEmpty(claim.Value)) == true)
+            if (model.Claims?.Any(claim => string.IsNullOrEmpty(claim.Key) || claim.Value == null) == true)
             {
                 return this.BadRequest(new { Message = $"Cannot add claims without both a type and a value" });
+            }
+
+            if (model.Claims?.Any(claim => new[] { "sub", "role", "preferred_username", "name", "email", "phone_number", "AspNet.Identity.SecurityStamp" }.Contains(claim.Key)) == true)
+            {
+                return this.BadRequest(new { Message = $"Cannot change reserved claims values" });
+            }
+
+            var isConfirmEmailRequest = default(bool);
+            if (model.Claims != null &&
+                model.Claims.TryGetValue(JwtClaimTypes.EmailVerified, out var emailVerifiedObject) &&
+                (!bool.TryParse(emailVerifiedObject.ToString(), out isConfirmEmailRequest) || isConfirmEmailRequest != true))
+            {
+                return this.BadRequest(new { Message = $"Invalid value for claim '{JwtClaimTypes.EmailVerified}' (only valid value is 'true')" });
+            }
+
+            var isConfirmPhoneNumberRequest = default(bool);
+            if (model.Claims != null &&
+                model.Claims.TryGetValue(JwtClaimTypes.PhoneNumberVerified, out var phoneNumberVerifiedObject) &&
+                (!bool.TryParse(phoneNumberVerifiedObject.ToString(), out isConfirmPhoneNumberRequest) || isConfirmPhoneNumberRequest != true))
+            {
+                return this.BadRequest(new { Message = $"Invalid value for claim '{JwtClaimTypes.PhoneNumberVerified}' (only valid value is 'true')" });
             }
 
             user.UserName = model.Username ?? user.UserName;
@@ -250,7 +346,9 @@ namespace Ironclad.WebApi
             if (model.Claims != null)
             {
                 var claims = await this.userManager.GetClaimsAsync(user);
-                var userClaims = model.Claims.Select(claim => new Claim(claim.Key, claim.Value)).ToArray();
+                var userClaims = model.Claims
+                    .Where(claim => !new[] { "email_verified", "phone_number_verified" }.Contains(claim.Key))
+                    .Select(claim => new Claim(claim.Key, claim.Value.ToString())).ToArray();
 
                 var oldClaims = claims.Except(userClaims, ClaimComparer).ToArray();
                 if (oldClaims.Length > 0)
@@ -269,6 +367,26 @@ namespace Ironclad.WebApi
                     if (!addResult.Succeeded)
                     {
                         return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addResult.ToString() });
+                    }
+                }
+
+                if (isConfirmEmailRequest && !user.EmailConfirmed)
+                {
+                    var token = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var confirmResult = await this.userManager.ConfirmEmailAsync(user, token);
+                    if (!confirmResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = confirmResult.ToString() });
+                    }
+                }
+
+                if (isConfirmPhoneNumberRequest && !user.PhoneNumberConfirmed)
+                {
+                    var token = await this.userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
+                    var confirmResult = await this.userManager.ChangePhoneNumberAsync(user, user.PhoneNumber, token);
+                    if (!confirmResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = confirmResult.ToString() });
                     }
                 }
             }
@@ -320,7 +438,7 @@ namespace Ironclad.WebApi
                     return false;
                 }
 
-                return string.Equals(left.Type, right.Type, StringComparison.InvariantCulture) && string.Equals(left.Value, right.Value, StringComparison.InvariantCulture);
+                return string.Equals(left.Type, right.Type, StringComparison.OrdinalIgnoreCase) && string.Equals(left.Value, right.Value, StringComparison.OrdinalIgnoreCase);
             }
 
             public int GetHashCode(Claim obj)
@@ -333,8 +451,8 @@ namespace Ironclad.WebApi
                 unchecked
                 {
                     int hash = 17;
-                    hash = (hash * 23) + obj.Type?.GetHashCode(StringComparison.InvariantCulture) ?? 0;
-                    hash = (hash * 23) + obj.Value?.GetHashCode(StringComparison.InvariantCulture) ?? 0;
+                    hash = (hash * 23) + obj.Type?.GetHashCode(StringComparison.OrdinalIgnoreCase) ?? 0;
+                    hash = (hash * 23) + obj.Value?.GetHashCode(StringComparison.OrdinalIgnoreCase) ?? 0;
                     return hash;
                 }
             }
