@@ -26,13 +26,15 @@ namespace Ironclad.Console.Commands
 
             // arguments
             var argumentUsername = app.Argument("username", "The username", false);
-            var argumentRoles = app.Argument("roles", "One or more roles to assign to the user", true);
+            var argumentRoles = app.Argument("roles", "One or more roles to assign to the user (you can specify multiple roles)", true);
+
+            var optionRemove = app.Option("-r|--remove", "Removes all the roles", CommandOptionType.NoValue);
 
             // action (for this command)
             app.OnExecute(
                 () =>
                 {
-                    if (string.IsNullOrEmpty(argumentUsername.Value) || !argumentRoles.Values.Any())
+                    if (string.IsNullOrEmpty(argumentUsername.Value) || !optionRemove.HasValue() && !argumentRoles.Values.Any())
                     {
                         app.ShowHelp();
                         return;
@@ -48,6 +50,7 @@ namespace Ironclad.Console.Commands
             {
                 Username = this.username,
                 Roles = this.roles,
+                Claims = null,
             };
 
             await context.UsersClient.ModifyUserAsync(user).ConfigureAwait(false);

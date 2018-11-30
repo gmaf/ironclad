@@ -4,6 +4,7 @@
 namespace Ironclad.Console.Commands
 {
     using System.Threading.Tasks;
+    using Ironclad.Client;
     using McMaster.Extensions.CommandLineUtils;
 
     internal class ModifyUserCommand : ICommand
@@ -45,7 +46,7 @@ namespace Ironclad.Console.Commands
 
         public async Task ExecuteAsync(CommandContext context)
         {
-            var user = new Ironclad.Client.User
+            var user = new User
             {
                 Id = this.username,
                 Email = this.email,

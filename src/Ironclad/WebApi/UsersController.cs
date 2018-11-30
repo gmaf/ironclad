@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable CA1308
+
 namespace Ironclad.WebApi
 {
     using System;
     using System.Collections.Generic;
+    using System.IdentityModel.Tokens.Jwt;
     using System.Linq;
     using System.Net;
     using System.Security.Claims;
@@ -24,14 +27,41 @@ namespace Ironclad.WebApi
     [Route("api/[controller]")]
     public class UsersController : Controller
     {
+        private const string AspNetIdentitySecurityStamp = "AspNet.Identity.SecurityStamp";
+
+        private static readonly IEqualityComparer<Claim> ClaimComparer = new ClaimEqualityComparer();
+
+        private static readonly HashSet<string> ReservedClaims = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            JwtClaimTypes.Subject,
+            JwtClaimTypes.Role,
+            JwtClaimTypes.PreferredUserName,
+            JwtClaimTypes.Name,
+            JwtClaimTypes.Email,
+            JwtClaimTypes.PhoneNumber,
+            AspNetIdentitySecurityStamp,
+        };
+
+        private static readonly HashSet<string> SpecialClaims = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            JwtClaimTypes.EmailVerified,
+            JwtClaimTypes.PhoneNumberVerified
+        };
+
         private readonly UserManager<ApplicationUser> userManager;
         private readonly RoleManager<IdentityRole> roleManager;
+        private readonly IUserClaimsPrincipalFactory<ApplicationUser> claimsFactory;
         private readonly IEmailSender emailSender;
 
-        public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IEmailSender emailSender)
+        public UsersController(
+            UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager,
+            IUserClaimsPrincipalFactory<ApplicationUser> claimsFactory,
+            IEmailSender emailSender)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
+            this.claimsFactory = claimsFactory;
             this.emailSender = emailSender;
         }
 
@@ -67,6 +97,7 @@ namespace Ironclad.WebApi
         public async Task<IActionResult> Get(string username)
         {
             // HACK (Pawel): This is a temporary measure until we have a sensible way to resolve subject identifiers with username etc.
+            // TODO (Cameron): "temporary"
             var user = await this.userManager.FindByNameAsync(username) ?? await this.userManager.FindByIdAsync(username);
             if (user == null)
             {
@@ -74,6 +105,10 @@ namespace Ironclad.WebApi
             }
 
             var roles = await this.userManager.GetRolesAsync(user);
+            var claimsPrincipal = await this.claimsFactory.CreateAsync(user);
+            var claims = new JwtSecurityToken(new JwtHeader(), new JwtPayload(claimsPrincipal.Claims)).Payload;
+
+            claims.Remove(AspNetIdentitySecurityStamp);
 
             return this.Ok(
                 new UserResource
@@ -84,6 +119,7 @@ namespace Ironclad.WebApi
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
                     Roles = new List<string>(roles),
+                    Claims = claims,
                 });
         }
 
@@ -95,12 +131,6 @@ namespace Ironclad.WebApi
                 return this.BadRequest(new { Message = $"Cannot create a user without a username" });
             }
 
-            var user = new ApplicationUser(model.Username);
-
-            // optional properties
-            user.Email = model.Email ?? user.Email;
-            user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
-
             if (model.Roles != null)
             {
                 foreach (var role in model.Roles)
@@ -111,6 +141,38 @@ namespace Ironclad.WebApi
                     }
                 }
             }
+
+            if (model.Claims?.Any(claim => string.IsNullOrEmpty(claim.Key) || claim.Value == null) == true)
+            {
+                return this.BadRequest(new { Message = $"Cannot add claims without both a type and a value" });
+            }
+
+            if (model.Claims?.Any(claim => ReservedClaims.Contains(claim.Key)) == true)
+            {
+                return this.BadRequest(new { Message = $"Cannot change reserved claims values" });
+            }
+
+            var isConfirmEmailRequest = default(bool);
+            if (model.Claims != null &&
+                model.Claims.TryGetValue(JwtClaimTypes.EmailVerified, out var emailVerifiedObject) &&
+                (!bool.TryParse(emailVerifiedObject.ToString(), out isConfirmEmailRequest) || isConfirmEmailRequest != true))
+            {
+                return this.BadRequest(new { Message = $"Invalid value for claim '{JwtClaimTypes.EmailVerified}' (only valid value is 'true')" });
+            }
+
+            var isConfirmPhoneNumberRequest = default(bool);
+            if (model.Claims != null &&
+                model.Claims.TryGetValue(JwtClaimTypes.PhoneNumberVerified, out var phoneNumberVerifiedObject) &&
+                (!bool.TryParse(phoneNumberVerifiedObject.ToString(), out isConfirmPhoneNumberRequest) || isConfirmPhoneNumberRequest != true))
+            {
+                return this.BadRequest(new { Message = $"Invalid value for claim '{JwtClaimTypes.PhoneNumberVerified}' (only valid value is 'true')" });
+            }
+
+            var user = new ApplicationUser(model.Username);
+
+            // optional properties
+            user.Email = model.Email ?? user.Email;
+            user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
 
             var addUserResult = string.IsNullOrEmpty(model.Password) ? await this.userManager.CreateAsync(user) : await this.userManager.CreateAsync(user, model.Password);
             if (!addUserResult.Succeeded)
@@ -146,6 +208,37 @@ namespace Ironclad.WebApi
                 }
             }
 
+            if (model.Claims?.Count > 0)
+            {
+                var claims = model.Claims.Where(claim => !SpecialClaims.Contains(claim.Key)).Select(claim => new Claim(claim.Key.ToLowerInvariant(), claim.Value.ToString()));
+
+                var addToClaimsResult = await this.userManager.AddClaimsAsync(user, claims);
+                if (!addToClaimsResult.Succeeded)
+                {
+                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addToClaimsResult.ToString() });
+                }
+
+                if (isConfirmEmailRequest && !user.EmailConfirmed)
+                {
+                    var token = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var confirmResult = await this.userManager.ConfirmEmailAsync(user, token);
+                    if (!confirmResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = confirmResult.ToString() });
+                    }
+                }
+
+                if (isConfirmPhoneNumberRequest && !user.PhoneNumberConfirmed)
+                {
+                    var token = await this.userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
+                    var confirmResult = await this.userManager.ChangePhoneNumberAsync(user, user.PhoneNumber, token);
+                    if (!confirmResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = confirmResult.ToString() });
+                    }
+                }
+            }
+
             var callbackUrl = default(string);
 
             if (string.IsNullOrEmpty(model.Password) && !string.IsNullOrEmpty(model.Email))
@@ -178,6 +271,43 @@ namespace Ironclad.WebApi
                 return this.BadRequest(new { Message = $"Cannot remove the role 'admin' from the default admin user" });
             }
 
+            if (model.Roles != null)
+            {
+                foreach (var role in model.Roles)
+                {
+                    if (!await this.roleManager.RoleExistsAsync(role))
+                    {
+                        return this.BadRequest(new { Message = $"Cannot modify a user with the role '{role}' when that role does not exist" });
+                    }
+                }
+            }
+
+            if (model.Claims?.Any(claim => string.IsNullOrEmpty(claim.Key) || claim.Value == null) == true)
+            {
+                return this.BadRequest(new { Message = $"Cannot add claims without both a type and a value" });
+            }
+
+            if (model.Claims?.Any(claim => new[] { "sub", "role", "preferred_username", "name", "email", "phone_number", "AspNet.Identity.SecurityStamp" }.Contains(claim.Key)) == true)
+            {
+                return this.BadRequest(new { Message = $"Cannot change reserved claims values" });
+            }
+
+            var isConfirmEmailRequest = default(bool);
+            if (model.Claims != null &&
+                model.Claims.TryGetValue(JwtClaimTypes.EmailVerified, out var emailVerifiedObject) &&
+                (!bool.TryParse(emailVerifiedObject.ToString(), out isConfirmEmailRequest) || isConfirmEmailRequest != true))
+            {
+                return this.BadRequest(new { Message = $"Invalid value for claim '{JwtClaimTypes.EmailVerified}' (only valid value is 'true')" });
+            }
+
+            var isConfirmPhoneNumberRequest = default(bool);
+            if (model.Claims != null &&
+                model.Claims.TryGetValue(JwtClaimTypes.PhoneNumberVerified, out var phoneNumberVerifiedObject) &&
+                (!bool.TryParse(phoneNumberVerifiedObject.ToString(), out isConfirmPhoneNumberRequest) || isConfirmPhoneNumberRequest != true))
+            {
+                return this.BadRequest(new { Message = $"Invalid value for claim '{JwtClaimTypes.PhoneNumberVerified}' (only valid value is 'true')" });
+            }
+
             user.UserName = model.Username ?? user.UserName;
             user.Email = model.Email ?? user.Email;
             user.PhoneNumber = model.PhoneNumber ?? user.PhoneNumber;
@@ -188,34 +318,76 @@ namespace Ironclad.WebApi
                 return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = result.ToString() });
             }
 
-            var roles = await this.userManager.GetRolesAsync(user);
-
-            var oldRoles = roles.Except(model.Roles ?? Array.Empty<string>());
-            if (oldRoles.Any())
+            if (model.Roles != null)
             {
-                var removeResult = await this.userManager.RemoveFromRolesAsync(user, oldRoles);
-                if (!removeResult.Succeeded)
-                {
-                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = removeResult.ToString() });
-                }
-            }
+                var roles = await this.userManager.GetRolesAsync(user);
 
-            var newRoles = (model.Roles ?? Array.Empty<string>()).Except(roles);
-            if (newRoles.Any())
-            {
-                foreach (var role in newRoles)
+                var oldRoles = roles.Except(model.Roles ?? Array.Empty<string>()).ToArray();
+                if (oldRoles.Length > 0)
                 {
-                    var roleExists = await this.roleManager.RoleExistsAsync(role).ConfigureAwait(false);
-                    if (!roleExists)
+                    var removeResult = await this.userManager.RemoveFromRolesAsync(user, oldRoles);
+                    if (!removeResult.Succeeded)
                     {
-                        return this.StatusCode((int)HttpStatusCode.BadRequest, new { Message = $"Role {role} does not exist." });
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = removeResult.ToString() });
                     }
                 }
 
-                var addResult = await this.userManager.AddToRolesAsync(user, newRoles);
-                if (!addResult.Succeeded)
+                var newRoles = (model.Roles ?? Array.Empty<string>()).Except(roles).ToArray();
+                if (newRoles.Length > 0)
                 {
-                    return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addResult.ToString() });
+                    var addResult = await this.userManager.AddToRolesAsync(user, newRoles);
+                    if (!addResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addResult.ToString() });
+                    }
+                }
+            }
+
+            if (model.Claims != null)
+            {
+                var claims = await this.userManager.GetClaimsAsync(user);
+                var userClaims = model.Claims
+                    .Where(claim => !new[] { "email_verified", "phone_number_verified" }.Contains(claim.Key))
+                    .Select(claim => new Claim(claim.Key, claim.Value.ToString())).ToArray();
+
+                var oldClaims = claims.Except(userClaims, ClaimComparer).ToArray();
+                if (oldClaims.Length > 0)
+                {
+                    var removeResult = await this.userManager.RemoveClaimsAsync(user, oldClaims);
+                    if (!removeResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = removeResult.ToString() });
+                    }
+                }
+
+                var newClaims = userClaims.Except(claims, ClaimComparer).ToArray();
+                if (newClaims.Length > 0)
+                {
+                    var addResult = await this.userManager.AddClaimsAsync(user, newClaims);
+                    if (!addResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addResult.ToString() });
+                    }
+                }
+
+                if (isConfirmEmailRequest && !user.EmailConfirmed)
+                {
+                    var token = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var confirmResult = await this.userManager.ConfirmEmailAsync(user, token);
+                    if (!confirmResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = confirmResult.ToString() });
+                    }
+                }
+
+                if (isConfirmPhoneNumberRequest && !user.PhoneNumberConfirmed)
+                {
+                    var token = await this.userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
+                    var confirmResult = await this.userManager.ChangePhoneNumberAsync(user, user.PhoneNumber, token);
+                    if (!confirmResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = confirmResult.ToString() });
+                    }
                 }
             }
 
@@ -250,6 +422,40 @@ namespace Ironclad.WebApi
         private class UserSummaryResource : UserSummary
         {
             public string Url { get; set; }
+        }
+
+        private class ClaimEqualityComparer : IEqualityComparer<Claim>
+        {
+            public bool Equals(Claim left, Claim right)
+            {
+                if (left == null && right == null)
+                {
+                    return true;
+                }
+
+                if (left == null || right == null)
+                {
+                    return false;
+                }
+
+                return string.Equals(left.Type, right.Type, StringComparison.OrdinalIgnoreCase) && string.Equals(left.Value, right.Value, StringComparison.OrdinalIgnoreCase);
+            }
+
+            public int GetHashCode(Claim obj)
+            {
+                if (obj == null)
+                {
+                    return 0;
+                }
+
+                unchecked
+                {
+                    int hash = 17;
+                    hash = (hash * 23) + obj.Type?.GetHashCode(StringComparison.OrdinalIgnoreCase) ?? 0;
+                    hash = (hash * 23) + obj.Value?.GetHashCode(StringComparison.OrdinalIgnoreCase) ?? 0;
+                    return hash;
+                }
+            }
         }
     }
 }

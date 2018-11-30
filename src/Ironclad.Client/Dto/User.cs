@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable CA2227
+
 namespace Ironclad.Client
 {
     using System.Collections.Generic;
@@ -54,10 +56,18 @@ namespace Ironclad.Client
         /// Gets or sets the roles.
         /// </summary>
         /// <value>The roles.</value>
-#pragma warning disable CA2227
         public ICollection<string> Roles { get; set; }
 #if CLIENT
             = new HashSet<string>();
+#endif
+
+        /// <summary>
+        /// Gets or sets the user's claims.
+        /// </summary>
+        /// <value>The user's claims.</value>
+        public IDictionary<string, object> Claims { get; set; }
+#if CLIENT
+            = new Dictionary<string, object>();
 #endif
     }
 }

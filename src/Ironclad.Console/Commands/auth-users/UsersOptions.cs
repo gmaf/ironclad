@@ -21,6 +21,7 @@ namespace Ironclad.Console.Commands
             app.Command("show", command => ShowCommand.Configure(command, options, GetShowCommandOptions()));
             app.Command("modify", command => ModifyUserCommand.Configure(command, options));
             app.Command("roles", command => AssignUserRolesCommand.Configure(command, options));
+            app.Command("claims", command => AssignUserClaimsCommand.Configure(command, options));
 
             // action (for this command)
             app.OnExecute(() => app.ShowVersionAndHelp());

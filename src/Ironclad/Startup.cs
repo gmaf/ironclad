@@ -98,7 +98,7 @@ namespace Ironclad
                 .AddAppAuthRedirectUriValidator()
                 .AddAspNetIdentity<ApplicationUser>();
 
-            var auth = services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
+            services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddGoogle(
                     options =>
                     {
