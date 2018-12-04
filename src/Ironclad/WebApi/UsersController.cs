@@ -164,6 +164,18 @@ namespace Ironclad.WebApi
                 callbackUrl != null ? new { registrationLink = callbackUrl } : null);
         }
 
+        [HttpPut("/id/{userId}")]
+        public async Task<IActionResult> ModifyById(string userId, [FromBody]User model)
+        {
+            var user = await this.userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return this.NotFound(new { Message = $"User '{userId}' not found" });
+            }
+
+            return await ModifyUser(user, model);
+        }
+
         [HttpPut("{username}")]
         public async Task<IActionResult> Put(string username, [FromBody]User model)
         {
@@ -173,6 +185,11 @@ namespace Ironclad.WebApi
                 return this.NotFound(new { Message = $"User '{username}' not found" });
             }
 
+            return await ModifyUser(user, model);
+        }
+
+        private async Task<IActionResult> ModifyUser(ApplicationUser user ,User model)
+        {
             if (user.Id == Config.DefaultAdminUserId && model.Roles != null && !model.Roles.Contains("admin"))
             {
                 return this.BadRequest(new { Message = $"Cannot remove the role 'admin' from the default admin user" });
