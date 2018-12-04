@@ -22,6 +22,12 @@ namespace Ironclad.Configuration
                     Name = JwtClaimTypes.Role,
                     UserClaims = { JwtClaimTypes.Role },
                 },
+                //TODO:@gafanasiev This should be added through console.
+                new IdentityResource
+                {
+                    Name = "lykke",
+                    UserClaims = { "lsub"},
+                },
             };
 
         // NOTE (Cameron): User claims defined against API resources will result in those claims being in the access token.

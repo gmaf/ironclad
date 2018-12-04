@@ -123,9 +123,7 @@ namespace Ironclad
                         options.ClientSecret = this.configuration.GetValue<string>("Introspection-Secret");
                         options.DiscoveryPolicy = new DiscoveryPolicy { ValidateIssuerName = false };
                     })
-                .AddExternalIdentityProviders();
-                        options.DiscoveryPolicy = new DiscoveryPolicy {ValidateIssuerName = false};
-                    })
+                .AddExternalIdentityProviders()
                 .AddOpenIdConnect(
                     "lykke",
                     "Lykke OAuth",
@@ -137,12 +135,7 @@ namespace Ironclad
                         options.Authority = "https://localhost:5001";
                         options.Events.OnRedirectToIdentityProvider = context =>
                         {
-                            context.ProtocolMessage.AcrValues = JObject.FromObject(new
-                            {
-                                tenant = "ironclad"
-                            })
-                            .ToString();
-
+                            context.ProtocolMessage.AcrValues = "tenant:ironclad";
                             return Task.CompletedTask;
                         };
                     });

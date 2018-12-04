@@ -58,7 +58,8 @@ namespace Ironclad.Controllers
             // clear the existing external cookie to ensure a clean login process
             await this.HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             var context = await this.interaction.GetAuthorizationContextAsync(returnUrl);
-            if (context?.IdP != null && (await this.signInManager.GetExternalAuthenticationSchemesAsync()).Any(p => string.Equals(p.Name, context.IdP, StringComparison.InvariantCultureIgnoreCase)))
+            var external = await this.signInManager.GetExternalAuthenticationSchemesAsync();
+            if (context?.IdP != null && external.Any(p => string.Equals(p.Name, context.IdP, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return this.ExternalLogin(context.IdP, returnUrl);
             }
