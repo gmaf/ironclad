@@ -260,7 +260,7 @@ namespace Ironclad.WebApi
         [HttpPut("{username}")]
         public async Task<IActionResult> Put(string username, [FromBody]User model)
         {
-            var user = await this.userManager.FindByNameAsync(username);
+            var user = await this.userManager.FindByNameAsync(username) ?? await this.userManager.FindByIdAsync(username);
             if (user == null)
             {
                 return this.NotFound(new { Message = $"User '{username}' not found" });
