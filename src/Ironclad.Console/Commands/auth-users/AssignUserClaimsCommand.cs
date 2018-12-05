@@ -37,8 +37,7 @@ namespace Ironclad.Console.Commands
                 {
                     if (
                         string.IsNullOrEmpty(argumentUsername.Value) ||
-                        (!optionRemove.HasValue() && (!argumentClaims.Values.Any() || argumentClaims.Values.Any(value => !value.Contains("=", StringComparison.OrdinalIgnoreCase))))
-                    )
+                        (!optionRemove.HasValue() && (!argumentClaims.Values.Any() || argumentClaims.Values.Any(value => !value.Contains("=", StringComparison.OrdinalIgnoreCase)))))
                     {
                         app.ShowHelp();
                         return;

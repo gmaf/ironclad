@@ -4,5 +4,9 @@
   "password": "password",
   "client_id": "auth_console",
   "scope": "openid profile auth_api",
-  "use_docker_image": false
+
+  "auth_server": {
+    "use_source_code": true
+    //"use_docker_image":  true
+  }
 }

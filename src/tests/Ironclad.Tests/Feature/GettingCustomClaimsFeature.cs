@@ -15,15 +15,15 @@ namespace Ironclad.Tests.Feature
     using Newtonsoft.Json.Linq;
     using Xbehave;
 
-    public class GettingCustomClaimsFeature : IntegrationTest
+    public class GettingCustomClaimsFeature : AuthenticationTest
     {
         private IUsersClient usersClient;
         private IIdentityResourcesClient identityResourcesClient;
         private IApiResourcesClient apiResourcesClient;
         private IClientsClient clientsClient;
 
-        public GettingCustomClaimsFeature(AuthenticationFixture securityFixture, IroncladFixture ironcladFixture)
-            : base(securityFixture, ironcladFixture)
+        public GettingCustomClaimsFeature(AuthenticationFixture fixture)
+            : base(fixture)
         {
         }
 

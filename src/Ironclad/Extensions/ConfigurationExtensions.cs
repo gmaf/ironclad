@@ -11,6 +11,7 @@ namespace Ironclad
     using Microsoft.Extensions.Configuration;
     using Serilog;
 
+    // TODO (Cameron): https://www.paraesthesia.com/archive/2018/06/20/microsoft-extensions-configuration-deep-dive/
     public static class ConfigurationExtensions
     {
         /*  NOTE (Cameron): This is a little messy but basically the idea here is that the secret values come

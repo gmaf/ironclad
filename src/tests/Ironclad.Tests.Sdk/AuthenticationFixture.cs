@@ -15,37 +15,46 @@ namespace Ironclad.Tests.Sdk
     using IdentityModel.OidcClient;
     using Microsoft.Extensions.Configuration;
     using Xunit;
+    using Xunit.Abstractions;
 
     public sealed class AuthenticationFixture : IAsyncLifetime
     {
-        private readonly string authority;
+        private readonly IAsyncLifetime fixture;
+
         private readonly string username;
         private readonly string password;
         private readonly string clientId;
         private readonly string scope;
 
-        public AuthenticationFixture()
+        public AuthenticationFixture(IMessageSink messageSink)
         {
+            // NOTE (Cameron):
+            // The internally scoped Ironclad fixture manages the spinning up and tearing down of Ironclad and it's dependencies (postgres).
+            // The publicly scoped authentication fixture is responsible for its lifetime which is why it is included here.
+            this.fixture = new IroncladFixture(messageSink);
+
             var configuration = new ConfigurationBuilder().AddJsonFile("testsettings.json").Build();
 
-            this.authority = configuration.GetValue<string>("authority") ?? throw new ConfigurationErrorsException("Missing configuration value 'authority'");
+            this.Authority = configuration.GetValue<string>("authority") ?? throw new ConfigurationErrorsException("Missing configuration value 'authority'");
             this.username = configuration.GetValue<string>("username") ?? throw new ConfigurationErrorsException("Missing configuration value 'username'");
             this.password = configuration.GetValue<string>("password") ?? throw new ConfigurationErrorsException("Missing configuration value 'password'");
             this.clientId = configuration.GetValue<string>("client_id") ?? throw new ConfigurationErrorsException("Missing configuration value 'client_id'");
             this.scope = configuration.GetValue<string>("scope") ?? throw new ConfigurationErrorsException("Missing configuration value 'scope'");
         }
 
-        public string Authority => this.authority;
+        public string Authority { get; }
 
         public HttpMessageHandler Handler { get; private set; }
 
         public async Task InitializeAsync()
         {
+            await this.fixture.InitializeAsync().ConfigureAwait(false);
+
             var automation = new BrowserAutomation(this.username, this.password);
             var browser = new Browser(automation);
             var options = new OidcClientOptions
             {
-                Authority = this.authority,
+                Authority = this.Authority,
                 ClientId = this.clientId,
                 RedirectUri = $"http://127.0.0.1:{browser.Port}",
                 Scope = this.scope,
@@ -55,69 +64,23 @@ namespace Ironclad.Tests.Sdk
             };
 
             var oidcClient = new OidcClient(options);
-
-            async Task<WaitUntilAvailableResult> WaitUntilAvailable(CancellationToken token)
+            var result = await oidcClient.LoginAsync(new LoginRequest()).ConfigureAwait(false);
+            if (result.IsError)
             {
-                try
-                {
-                    var response = await oidcClient.LoginAsync(new LoginRequest()).ConfigureAwait(false);
-
-                    return WaitUntilAvailableResult.Available(response.AccessToken);
-                }
-                catch (HttpRequestException)
-                {
-                }
-                catch (InvalidOperationException)
-                {
-                }
-
-                return WaitUntilAvailableResult.NotAvailable;
+                throw new Exception(result.Error);
             }
 
-            const int maximumWaitUntilAvailableAttempts = 60;
-            var timeBetweenWaitUntilAvailableAttempts = TimeSpan.FromSeconds(2);
-            var attempt = 0;
-            var exit = false;
-            string accessToken = null;
-            while (
-                attempt < maximumWaitUntilAvailableAttempts &&
-                !exit)
-            {
-                var result = await WaitUntilAvailable(default).ConfigureAwait(false);
-                if (!ReferenceEquals(result, WaitUntilAvailableResult.NotAvailable))
-                {
-                    exit = true;
-                    accessToken = result.AccessToken;
-                }
-                else
-                {
-                    if (attempt != maximumWaitUntilAvailableAttempts - 1)
-                    {
-                        await Task
-                            .Delay(timeBetweenWaitUntilAvailableAttempts, default)
-                            .ConfigureAwait(false);
-                    }
-
-                    attempt++;
-                }
-            }
-
-            if (attempt == maximumWaitUntilAvailableAttempts)
-            {
-                throw new Exception(
-                    "The Ironclad instance did not become available in a timely fashion.");
-            }
-
-            this.Handler = new TokenHandler(accessToken);
+            this.Handler = new TokenHandler(result.AccessToken);
         }
 
-        public Task DisposeAsync()
+        public async Task DisposeAsync()
         {
             this.Handler?.Dispose();
-            return Task.CompletedTask;
+
+            await this.fixture.DisposeAsync().ConfigureAwait(false);
         }
 
-        private class WaitUntilAvailableResult
+        private sealed class WaitUntilAvailableResult
         {
             public static readonly WaitUntilAvailableResult NotAvailable = new WaitUntilAvailableResult(null);
 
