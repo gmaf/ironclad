@@ -78,22 +78,23 @@ namespace Ironclad.Tests.Sdk
                 throw new InvalidOperationException("Please provide the Configuration before initializing the fixture.");
             }
 
-            if (this.Configuration.IsContainerReusable)
+            var id = await this.TryFindContainer(default).ConfigureAwait(false);
+            if (id == null)
             {
-                var id = await this.TryFindContainer(default).ConfigureAwait(false);
-                if (id == null)
-                {
-                    await this.AutoCreateImage(default).ConfigureAwait(false);
-                    id = await this.CreateContainer(default).ConfigureAwait(false);
-                }
-
-                await this.StartContainer(id, default).ConfigureAwait(false);
+                await this.AutoCreateImage(default).ConfigureAwait(false);
+                id = await this.CreateContainer(default).ConfigureAwait(false);
             }
             else
             {
-                await this.AutoCreateImage(default).ConfigureAwait(false);
-                await this.AutoStartContainer(default).ConfigureAwait(false);
+                await this.StopContainer(id, default).ConfigureAwait(false);
+                if (!this.Configuration.IsContainerReusable)
+                {
+                    await this.RemoveContainer(id, default).ConfigureAwait(false);
+                    id = await this.CreateContainer(default).ConfigureAwait(false);
+                }
             }
+
+            await this.StartContainer(id, default).ConfigureAwait(false);
         }
 
         public virtual async Task DisposeAsync()
@@ -104,10 +105,7 @@ namespace Ironclad.Tests.Sdk
                 if (id != null)
                 {
                     await this.StopContainer(id, default).ConfigureAwait(false);
-                    if (this.configuration.AutoRemoveContainer)
-                    {
-                        await this.RemoveContainer(id, default).ConfigureAwait(false);
-                    }
+                    await this.RemoveContainer(id, default).ConfigureAwait(false);
                 }
             }
 
@@ -130,7 +128,9 @@ namespace Ironclad.Tests.Sdk
                     }
                 }, token).ConfigureAwait(false);
 
-            return containers.FirstOrDefault(container => container.State != "exited")?.ID;
+            return containers.FirstOrDefault(
+                container =>
+                container.Names.Contains("/" + this.configuration.ContainerName, StringComparer.OrdinalIgnoreCase) && container.State != "exited")?.ID;
         }
 
         private async Task<string> CreateContainer(CancellationToken token)
@@ -160,15 +160,6 @@ namespace Ironclad.Tests.Sdk
             var container = await this.client.Containers.CreateContainerAsync(parameters, token).ConfigureAwait(false);
 
             return container.ID;
-        }
-
-        private async Task AutoStartContainer(CancellationToken token)
-        {
-            var id = await this.CreateContainer(token).ConfigureAwait(false);
-            if (id != null)
-            {
-                await this.StartContainer(id, token).ConfigureAwait(false);
-            }
         }
 
         private async Task StartContainer(string id, CancellationToken token) =>

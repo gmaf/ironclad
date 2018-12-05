@@ -9,8 +9,6 @@ namespace Ironclad.Tests.Sdk
 
     internal class IroncladContainer : Container
     {
-        private static long ironcladContainerNameSuffix = DateTime.UtcNow.Ticks;
-
         private readonly IroncladProbe probe;
 
         public IroncladContainer(string authority, string connectionString)
@@ -29,8 +27,8 @@ namespace Ironclad.Tests.Sdk
             {
                 Image = "ironclad",
                 Tag = "dev",
-                ContainerName = "ironclad" + Interlocked.Increment(ref ironcladContainerNameSuffix),
-                AutoRemoveContainer = true,
+                IsContainerReusable = true,
+                ContainerName = "ironclad-integration",
                 ContainerPortBindings = new[]
                 {
                     new ContainerConfiguration.PortBinding

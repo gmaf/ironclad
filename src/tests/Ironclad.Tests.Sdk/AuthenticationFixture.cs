@@ -17,16 +17,11 @@ namespace Ironclad.Tests.Sdk
     using Xunit;
     using Xunit.Abstractions;
 
-    public sealed class AuthenticationFixture : IAsyncLifetime
+    public class AuthenticationFixture : IAsyncLifetime
     {
         private readonly IAsyncLifetime fixture;
 
-        private readonly string username;
-        private readonly string password;
-        private readonly string clientId;
-        private readonly string scope;
-
-        public AuthenticationFixture(IMessageSink messageSink)
+        public AuthenticationFixture(IMessageSink messageSink = default)
         {
             // NOTE (Cameron):
             // The internally scoped Ironclad fixture manages the spinning up and tearing down of Ironclad and it's dependencies (postgres).
@@ -36,10 +31,6 @@ namespace Ironclad.Tests.Sdk
             var configuration = new ConfigurationBuilder().AddJsonFile("testsettings.json").Build();
 
             this.Authority = configuration.GetValue<string>("authority") ?? throw new ConfigurationErrorsException("Missing configuration value 'authority'");
-            this.username = configuration.GetValue<string>("username") ?? throw new ConfigurationErrorsException("Missing configuration value 'username'");
-            this.password = configuration.GetValue<string>("password") ?? throw new ConfigurationErrorsException("Missing configuration value 'password'");
-            this.clientId = configuration.GetValue<string>("client_id") ?? throw new ConfigurationErrorsException("Missing configuration value 'client_id'");
-            this.scope = configuration.GetValue<string>("scope") ?? throw new ConfigurationErrorsException("Missing configuration value 'scope'");
         }
 
         public string Authority { get; }
@@ -50,14 +41,15 @@ namespace Ironclad.Tests.Sdk
         {
             await this.fixture.InitializeAsync().ConfigureAwait(false);
 
-            var automation = new BrowserAutomation(this.username, this.password);
+            // NOTE (Cameron): This automation is designed to use the default admin credentials (which need removing!) to log in to perform admin operations.
+            var automation = new BrowserAutomation("admin", "password");
             var browser = new Browser(automation);
             var options = new OidcClientOptions
             {
                 Authority = this.Authority,
-                ClientId = this.clientId,
+                ClientId = "auth_console",
                 RedirectUri = $"http://127.0.0.1:{browser.Port}",
-                Scope = this.scope,
+                Scope = "openid profile auth_api",
                 FilterClaims = false,
                 Browser = browser,
                 Policy = new Policy { Discovery = new DiscoveryPolicy { ValidateIssuerName = false } }
@@ -71,14 +63,22 @@ namespace Ironclad.Tests.Sdk
             }
 
             this.Handler = new TokenHandler(result.AccessToken);
+
+            await this.OnInitializeAsync().ConfigureAwait(false);
         }
 
         public async Task DisposeAsync()
         {
+            await this.OnDisposeAsync().ConfigureAwait(false);
+
             this.Handler?.Dispose();
 
             await this.fixture.DisposeAsync().ConfigureAwait(false);
         }
+
+        protected virtual Task OnInitializeAsync() => Task.CompletedTask;
+
+        protected virtual Task OnDisposeAsync() => Task.CompletedTask;
 
         private sealed class WaitUntilAvailableResult
         {

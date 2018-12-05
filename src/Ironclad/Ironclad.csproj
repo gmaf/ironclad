@@ -31,16 +31,8 @@
   
   <ItemGroup>
     <Compile Remove="logs\**" />
-    <Compile Remove="Middleware\**" />
-    <Content Remove="Middleware\**" />
     <EmbeddedResource Remove="logs\**" />
-    <EmbeddedResource Remove="Middleware\**" />
     <None Remove="logs\**" />
-    <None Remove="Middleware\**" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <None Remove="tempkey.rsa" />
   </ItemGroup>
   
   <ItemGroup>

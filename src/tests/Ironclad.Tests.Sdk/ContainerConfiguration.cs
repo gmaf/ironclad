@@ -10,18 +10,22 @@ namespace Ironclad.Tests.Sdk
     internal class ContainerConfiguration
     {
         // Image related
+        public string Registry { get; set; }
+
         public string Image { get; set; }
 
         public string Tag { get; set; }
 
         public string TagQualifiedImage => this.Image + ":" + this.Tag;
 
+        public string RegistryQualifiedImage => this.Registry != null ? this.Registry + "/" + this.Image : this.Image;
+
+        public string FullyQualifiedImage => this.Registry != null ? this.Registry + "/" + this.TagQualifiedImage : this.TagQualifiedImage;
+
         // Container related
         public bool IsContainerReusable { get; set; }
 
         public string ContainerName { get; set; }
-
-        public bool AutoRemoveContainer { get; set; }
 
         public PortBinding[] ContainerPortBindings { get; set; } = Array.Empty<PortBinding>();
 

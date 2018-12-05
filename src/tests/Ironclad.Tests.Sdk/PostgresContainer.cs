@@ -10,8 +10,6 @@ namespace Ironclad.Tests.Sdk
 
     internal class PostgresContainer : Container
     {
-        private static long postgresContainerNameSuffix = DateTime.UtcNow.Ticks;
-
         private readonly PostgresProbe probe;
 
         public PostgresContainer(NpgsqlConnectionStringBuilder connectionStringBuilder)
@@ -24,7 +22,8 @@ namespace Ironclad.Tests.Sdk
             this.Configuration = new ContainerConfiguration
             {
                 Image = "postgres", Tag = "10.1-alpine",
-                ContainerName = "ironclad-postgres" + Interlocked.Increment(ref postgresContainerNameSuffix),
+                IsContainerReusable = false,
+                ContainerName = "ironclad-integration-postgres",
                 ContainerPortBindings = new[]
                 {
                     new ContainerConfiguration.PortBinding
@@ -37,7 +36,6 @@ namespace Ironclad.Tests.Sdk
                     "POSTGRES_PASSWORD=" + connectionStringBuilder.Password,
                     "POSTGRES_DB=" + connectionStringBuilder.Database
                 },
-                AutoRemoveContainer = true,
             };
 
             this.probe = new PostgresProbe(connectionStringBuilder.ConnectionString, 4, 20);

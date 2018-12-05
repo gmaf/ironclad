@@ -73,9 +73,9 @@ namespace Ironclad.Tests.Sdk
         /// Logs in to the authorization server and captures the redirect.
         /// </summary>
         /// <returns>A task representing an asynchronous operation.</returns>
-        public Task<AuthorizeResponse> LoginToAuthorizationServerAndCaptureRedirectAsync() => this.Login(true);
+        public Task<AuthorizationResponse> LoginToAuthorizationServerAndCaptureRedirectAsync() => this.Login(true);
 
-        private async Task<AuthorizeResponse> Login(bool capture)
+        private async Task<AuthorizationResponse> Login(bool capture)
         {
             if (this.loginResult == null)
             {
@@ -112,7 +112,14 @@ namespace Ironclad.Tests.Sdk
                 {
                     authorizeResult.StatusCode.Should().Be(HttpStatusCode.Found);
                     this.handler.StopRedirectingAfter = 20;
-                    return new AuthorizeResponse(authorizeResult.Headers.Location.ToString());
+                    var response = new AuthorizeResponse(authorizeResult.Headers.Location.ToString());
+
+                    return new AuthorizationResponse
+                    {
+                        IsError = response.IsError,
+                        Error = response.Error,
+                        AccessToken = response.AccessToken,
+                    };
                 }
 
                 authorizeResult.StatusCode.Should().Be(HttpStatusCode.OK);

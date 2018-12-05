@@ -1,7 +1,6 @@
 ﻿{
   "authority": "http://localhost:5005",
   "auth_server": {
-    "use_source_code": true
-    //"use_docker_image":  true
+    "use_docker_image": true
   }
 }

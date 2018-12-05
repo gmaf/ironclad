@@ -37,7 +37,7 @@ namespace Ironclad.Tests.Feature
         }
 
         [Scenario]
-        public void CanGetCustomClaims(User user, Client client, AuthorizeResponse authorizeResponse)
+        public void CanGetCustomClaims(User user, Client client, AuthorizationResponse response)
         {
             "Given the new scope is added to the authorization server"
                 .x(async () => await this.identityResourcesClient.AddIdentityResourceAsync(
@@ -97,15 +97,15 @@ namespace Ironclad.Tests.Feature
                         .CreateAuthorizeUrl(client.Id, "id_token token", "openid amazeballs_api", client.RedirectUris.First(), "state", "nonce");
                     var automation = new BrowserAutomation(user.Username, user.Password).Using(context);
                     await automation.NavigateToLoginAsync(url).ConfigureAwait(false);
-                    authorizeResponse = await automation.LoginToAuthorizationServerAndCaptureRedirectAsync().ConfigureAwait(false);
+                    response = await automation.LoginToAuthorizationServerAndCaptureRedirectAsync().ConfigureAwait(false);
                 });
 
             "Then that end-user is authorized to call the API"
                 .x(() =>
                 {
-                    authorizeResponse.IsError.Should().BeFalse();
+                    response.IsError.Should().BeFalse();
 
-                    var jwtComponents = authorizeResponse.AccessToken.Split(".", StringSplitOptions.RemoveEmptyEntries);
+                    var jwtComponents = response.AccessToken.Split(".", StringSplitOptions.RemoveEmptyEntries);
                     var bytes = Base64Url.Decode(jwtComponents[1]);
                     var json = Encoding.UTF8.GetString(bytes);
                     var claims = JObject.Parse(json);

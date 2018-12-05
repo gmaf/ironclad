@@ -46,7 +46,7 @@ namespace Ironclad.Tests.Sdk
 
             if (settings.UseSourceCode)
             {
-                messageSink.OnMessage(new DiagnosticMessage(
+                messageSink?.OnMessage(new DiagnosticMessage(
                     "Authentication fixture is running in TESTING mode (attempting to spin up ironclad from source, postgres from a docker container)"));
 
                 this.postgres = new PostgresContainer(new NpgsqlConnectionStringBuilder(connectionString));
@@ -54,7 +54,7 @@ namespace Ironclad.Tests.Sdk
             }
             else if (settings.UseDockerImage)
             {
-                messageSink.OnMessage(new DiagnosticMessage(
+                messageSink?.OnMessage(new DiagnosticMessage(
                     "Authentication fixture is running in INTEGRATING mode (attempting to spin up both ironclad and postgres from docker containers)"));
 
                 this.postgres = new PostgresContainer(new NpgsqlConnectionStringBuilder(connectionString));
@@ -62,7 +62,7 @@ namespace Ironclad.Tests.Sdk
             }
             else
             {
-                messageSink.OnMessage(new DiagnosticMessage("Authentication fixture is running in EXTERNAL mode (attempting to connect to externally running ironclad)"));
+                messageSink?.OnMessage(new DiagnosticMessage("Authentication fixture is running in EXTERNAL mode (attempting to connect to externally running ironclad)"));
 
                 this.postgres = null;
                 this.ironclad = new IroncladProbe(authority, 0, 15);
