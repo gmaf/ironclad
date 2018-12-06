@@ -25,8 +25,7 @@
         {
             await base.OnInitializeAsync();
 
-            var clientsClient = new ClientsHttpClient(this.Authority, this.Handler);
-            await clientsClient.AddClientAsync(this.Client);
+            await this.ClientsClient.AddClientAsync(this.Client);
         }
     }
 }

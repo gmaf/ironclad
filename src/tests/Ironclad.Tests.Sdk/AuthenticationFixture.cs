@@ -13,6 +13,7 @@ namespace Ironclad.Tests.Sdk
     using System.Threading.Tasks;
     using IdentityModel.Client;
     using IdentityModel.OidcClient;
+    using Ironclad.Client;
     using Microsoft.Extensions.Configuration;
     using Xunit;
     using Xunit.Abstractions;
@@ -34,6 +35,18 @@ namespace Ironclad.Tests.Sdk
         }
 
         public string Authority { get; }
+
+        public IApiResourcesClient ApiResourcesClient { get; private set; }
+
+        public IClientsClient ClientsClient { get; private set; }
+
+        public IIdentityProvidersClient IdentityProvidersClient { get; private set; }
+
+        public IIdentityResourcesClient IdentityResourcesClient { get; private set; }
+
+        public IRolesClient RolesClient { get; private set; }
+
+        public IUsersClient UsersClient { get; private set; }
 
         public HttpMessageHandler Handler { get; private set; }
 
@@ -64,12 +77,26 @@ namespace Ironclad.Tests.Sdk
 
             this.Handler = new TokenHandler(result.AccessToken);
 
+            this.ApiResourcesClient = new ApiResourcesHttpClient(this.Authority, this.Handler);
+            this.ClientsClient = new ClientsHttpClient(this.Authority, this.Handler);
+            this.IdentityProvidersClient = new IdentityProvidersHttpClient(this.Authority, this.Handler);
+            this.IdentityResourcesClient = new IdentityResourcesHttpClient(this.Authority, this.Handler);
+            this.RolesClient = new RolesHttpClient(this.Authority, this.Handler);
+            this.UsersClient = new UsersHttpClient(this.Authority, this.Handler);
+
             await this.OnInitializeAsync().ConfigureAwait(false);
         }
 
         public async Task DisposeAsync()
         {
             await this.OnDisposeAsync().ConfigureAwait(false);
+
+            (this.ApiResourcesClient as IDisposable)?.Dispose();
+            (this.ClientsClient as IDisposable)?.Dispose();
+            (this.IdentityProvidersClient as IDisposable)?.Dispose();
+            (this.IdentityResourcesClient as IDisposable)?.Dispose();
+            (this.RolesClient as IDisposable)?.Dispose();
+            (this.UsersClient as IDisposable)?.Dispose();
 
             this.Handler?.Dispose();
 

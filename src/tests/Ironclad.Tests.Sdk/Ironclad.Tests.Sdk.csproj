@@ -45,5 +45,9 @@
   <ItemGroup>
     <AdditionalFiles Include="../../stylecop.json" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\Ironclad.Client\Ironclad.Client.csproj" />
+  </ItemGroup>
 
 </Project>
