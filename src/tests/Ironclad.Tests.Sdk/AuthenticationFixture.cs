@@ -20,7 +20,7 @@ namespace Ironclad.Tests.Sdk
 
     public class AuthenticationFixture : IAsyncLifetime
     {
-        private readonly IAsyncLifetime fixture;
+        private readonly IroncladFixture fixture;
 
         public AuthenticationFixture(IMessageSink messageSink = default)
         {
@@ -28,13 +28,9 @@ namespace Ironclad.Tests.Sdk
             // The internally scoped Ironclad fixture manages the spinning up and tearing down of Ironclad and it's dependencies (postgres).
             // The publicly scoped authentication fixture is responsible for its lifetime which is why it is included here.
             this.fixture = new IroncladFixture(messageSink);
-
-            var configuration = new ConfigurationBuilder().AddJsonFile("testsettings.json").Build();
-
-            this.Authority = configuration.GetValue<string>("authority") ?? throw new ConfigurationErrorsException("Missing configuration value 'authority'");
         }
 
-        public string Authority { get; }
+        public string Authority => this.fixture.Authority;
 
         public IApiResourcesClient ApiResourcesClient { get; private set; }
 

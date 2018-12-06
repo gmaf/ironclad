@@ -9,9 +9,7 @@ namespace Ironclad
     using Ironclad.Application;
     using Ironclad.Authorization;
     using Ironclad.Data;
-    using Ironclad.ExternalIdentityProvider.Persistence;
     using Ironclad.Services;
-    using Microsoft.AspNetCore.Authentication.OpenIdConnect;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
@@ -20,9 +18,7 @@ namespace Ironclad
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Serialization;
@@ -41,8 +37,11 @@ namespace Ironclad
         public void ConfigureServices(IServiceCollection services)
         {
             var migrationsAssembly = typeof(Startup).GetType().Assembly.GetName().Name;
+            var connectionString = this.configuration.GetConnectionString("Ironclad");
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(this.configuration.GetConnectionString("Ironclad")));
+            System.Console.WriteLine(connectionString);
+
+            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(
                 options =>
@@ -93,7 +92,7 @@ namespace Ironclad
 
             services.AddIdentityServer(options => options.IssuerUri = this.configuration.GetValue<string>("issuerUri"))
                 .AddDeveloperSigningCredential()
-                .AddConfigurationStore(this.configuration.GetConnectionString("Ironclad"))
+                .AddConfigurationStore(connectionString)
                 .AddOperationalStore()
                 .AddAppAuthRedirectUriValidator()
                 .AddAspNetIdentity<ApplicationUser>();

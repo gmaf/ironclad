@@ -3,32 +3,30 @@
 
 namespace Ironclad.Tests.Sdk
 {
-    using System;
-    using System.Threading;
+    using System.Globalization;
     using System.Threading.Tasks;
     using Npgsql;
 
     internal class PostgresContainer : Container
     {
+        private const string ConnectionString = "Host={0};Database=ironclad;Username=postgres;Password=postgres;Port={1}";
+
+        private readonly int port = PortManager.GetNextPort();
         private readonly PostgresProbe probe;
 
-        public PostgresContainer(NpgsqlConnectionStringBuilder connectionStringBuilder)
+        public PostgresContainer()
         {
-            if (connectionStringBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(connectionStringBuilder));
-            }
+            var connectionStringBuilder = new NpgsqlConnectionStringBuilder(string.Format(CultureInfo.InvariantCulture, ConnectionString, "localhost", 5432));
 
             this.Configuration = new ContainerConfiguration
             {
                 Image = "postgres", Tag = "10.1-alpine",
-                IsContainerReusable = false,
                 ContainerName = "ironclad-integration-postgres",
                 ContainerPortBindings = new[]
                 {
                     new ContainerConfiguration.PortBinding
                     {
-                        GuestTcpPort = 5432, HostTcpPort = connectionStringBuilder.Port
+                        GuestTcpPort = connectionStringBuilder.Port, HostTcpPort = this.port
                     }
                 },
                 ContainerEnvironmentVariables = new[]
@@ -38,8 +36,12 @@ namespace Ironclad.Tests.Sdk
                 },
             };
 
-            this.probe = new PostgresProbe(connectionStringBuilder.ConnectionString, 4, 20);
+            this.probe = new PostgresProbe(this.GetConnectionStringForHost(), 4, 20);
         }
+
+        public string GetConnectionStringForHost() => string.Format(CultureInfo.InvariantCulture, ConnectionString, "localhost", this.port);
+
+        public string GetConnectionStringForContainer() => string.Format(CultureInfo.InvariantCulture, ConnectionString, "host.docker.internal", this.port);
 
         public override async Task InitializeAsync()
         {

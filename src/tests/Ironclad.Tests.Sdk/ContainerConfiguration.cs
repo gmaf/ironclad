@@ -11,7 +11,6 @@ namespace Ironclad.Tests.Sdk
 
     internal class ContainerConfiguration
     {
-        // Image related
         public string Registry { get; set; }
 
         public NetworkCredential RegistryCredentials { get; set; }
@@ -25,9 +24,6 @@ namespace Ironclad.Tests.Sdk
         public string RegistryQualifiedImage => this.Registry != null ? this.Registry + "/" + this.Image : this.Image;
 
         public string FullyQualifiedImage => this.Registry != null ? this.Registry + "/" + this.TagQualifiedImage : this.TagQualifiedImage;
-
-        // Container related
-        public bool IsContainerReusable { get; set; }
 
         public string ContainerName { get; set; }
 

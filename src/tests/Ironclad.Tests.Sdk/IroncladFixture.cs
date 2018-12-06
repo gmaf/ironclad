@@ -9,7 +9,6 @@ namespace Ironclad.Tests.Sdk
     using System.Configuration;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Configuration;
-    using Npgsql;
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Sdk;
@@ -33,29 +32,26 @@ namespace Ironclad.Tests.Sdk
 
     internal class IroncladFixture : IAsyncLifetime
     {
-        private readonly IAsyncLifetime postgres;
+        private readonly Settings settings;
+        private readonly PostgresContainer postgres;
         private readonly IAsyncLifetime ironclad;
 
         public IroncladFixture(IMessageSink messageSink)
         {
             var configuration = new ConfigurationBuilder().AddJsonFile("testsettings.json").Build();
 
-            var settings = configuration.GetSection("auth_server").Get<Settings>(options => options.BindNonPublicProperties = true);
-            settings.Validate();
+            this.settings = configuration.GetSection("auth_server").Get<Settings>(options => options.BindNonPublicProperties = true);
+            this.settings.Validate();
 
-            // TODO (Cameron): This needs to be moved as we should be able to host dynamically if not running in EXTERNAL mode.
-            var authority = configuration.GetValue<string>("authority") ?? throw new ConfigurationErrorsException("Missing configuration value 'authority'");
-            var connectionString = $"Host=localhost;Database=ironclad;Username=postgres;Password=postgres;Port={PortManager.GetNextPort()}";
-
-            if (settings.UseSourceCode)
+            if (this.settings.UseSourceCode)
             {
                 messageSink?.OnMessage(new DiagnosticMessage(
                     "Authentication fixture is running in TESTING mode (attempting to spin up ironclad from source, postgres from a docker container)"));
 
-                this.postgres = new PostgresContainer(new NpgsqlConnectionStringBuilder(connectionString));
-                this.ironclad = new IroncladBinaries(authority, connectionString);
+                this.postgres = new PostgresContainer();
+                this.ironclad = new IroncladBinaries(this.settings.Authority, this.settings.Port, this.postgres.GetConnectionStringForHost());
             }
-            else if (settings.UseDockerImage)
+            else if (this.settings.UseDockerImage)
             {
                 messageSink?.OnMessage(new DiagnosticMessage(
                     "Authentication fixture is running in INTEGRATING mode (attempting to spin up both ironclad and postgres from docker containers)"));
@@ -64,17 +60,19 @@ namespace Ironclad.Tests.Sdk
                     Environment.GetEnvironmentVariable("DOCKER_USERNAME"),
                     Environment.GetEnvironmentVariable("DOCKER_PASSWORD")
                 );
-                this.postgres = new PostgresContainer(new NpgsqlConnectionStringBuilder(connectionString));
-                this.ironclad = new IroncladContainer(authority, "Host=host.docker.internal;Database=ironclad;Username=postgres;Password=postgres;", registryCredentials);
+                this.postgres = new PostgresContainer();
+                this.ironclad = new IroncladContainer(this.settings.Authority, this.settings.Port, this.postgres.GetConnectionStringForContainer());
             }
             else
             {
                 messageSink?.OnMessage(new DiagnosticMessage("Authentication fixture is running in EXTERNAL mode (attempting to connect to externally running ironclad)"));
 
                 this.postgres = null;
-                this.ironclad = new IroncladProbe(authority, 0, 15);
+                this.ironclad = new IroncladProbe(this.settings.Authority, 0, 15);
             }
         }
+
+        public string Authority => this.settings.Authority;
 
         public async Task InitializeAsync()
         {
@@ -96,16 +94,24 @@ namespace Ironclad.Tests.Sdk
             }
         }
 
-#pragma warning disable IDE1006, SA1300, CA1812
+#pragma warning disable IDE1006, SA1000, SA1300, CA1812
         private class Settings
         {
+            private static readonly int RandomPort = PortManager.GetNextPort();
+
             public bool UseSourceCode => this.use_source_code;
 
             public bool UseDockerImage => this.use_docker_image;
 
+            public int Port => this.port == default ? RandomPort : this.port;
+
+            public string Authority => $"http://localhost:{this.Port}";
+
             private bool use_source_code { get; set; }
 
             private bool use_docker_image { get; set; }
+
+            private int port { get; set; }
 
             public void Validate()
             {

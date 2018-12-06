@@ -14,16 +14,18 @@ namespace Ironclad.Tests.Sdk
     internal class IroncladBinaries : IAsyncLifetime
     {
         private readonly string authority;
+        private readonly int port;
         private readonly string connectionString;
         private readonly IroncladProbe probe;
 
         private Process process;
 
-        public IroncladBinaries(string authority, string connectionString)
+        public IroncladBinaries(string authority, int port, string connectionString)
         {
             this.authority = authority ?? throw new ArgumentNullException(nameof(authority));
+            this.port = port;
             this.connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
-            this.probe = new IroncladProbe(authority, 4, 20);
+            this.probe = new IroncladProbe(this.authority, 4, 20);
         }
 
         public async Task InitializeAsync()
@@ -31,8 +33,8 @@ namespace Ironclad.Tests.Sdk
             var path = string.Format(CultureInfo.InvariantCulture, "..{0}..{0}..{0}..{0}..{0}Ironclad{0}Ironclad.csproj", Path.DirectorySeparatorChar);
 
             var arguments = Environment.OSVersion.Platform.Equals(PlatformID.Unix)
-                ? $"run -p {path} -- --ConnectionStrings:IronClad={this.connectionString}"
-                : $"run -p {path} --ConnectionStrings:IronClad={this.connectionString}";
+                ? $"run -p {path} -- --connectionstrings:ironclad '{this.connectionString}' --urls http://*:{this.port} --authority {this.authority}"
+                : $"run -p {path} -- --connectionstrings:ironclad=\"{this.connectionString}\" --urls=http://*:{this.port} --authority={this.authority}";
 
             this.process = Process.Start(
                 new ProcessStartInfo("dotnet", arguments)

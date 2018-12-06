@@ -87,11 +87,8 @@ namespace Ironclad.Tests.Sdk
             else
             {
                 await this.StopContainer(id, default).ConfigureAwait(false);
-                if (!this.Configuration.IsContainerReusable)
-                {
-                    await this.RemoveContainer(id, default).ConfigureAwait(false);
-                    id = await this.CreateContainer(default).ConfigureAwait(false);
-                }
+                await this.RemoveContainer(id, default).ConfigureAwait(false);
+                id = await this.CreateContainer(default).ConfigureAwait(false);
             }
 
             await this.StartContainer(id, default).ConfigureAwait(false);
@@ -130,7 +127,7 @@ namespace Ironclad.Tests.Sdk
 
             return containers.FirstOrDefault(
                 container =>
-                container.Names.Contains("/" + this.configuration.ContainerName, StringComparer.OrdinalIgnoreCase) && container.State != "exited")?.ID;
+                container.Names.Contains("/" + this.configuration.ContainerName, StringComparer.OrdinalIgnoreCase))?.ID;
         }
 
         private async Task<string> CreateContainer(CancellationToken token)
