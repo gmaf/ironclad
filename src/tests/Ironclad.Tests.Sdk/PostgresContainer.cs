@@ -28,7 +28,7 @@ namespace Ironclad.Tests.Sdk
                 {
                     new ContainerConfiguration.PortBinding
                     {
-                        GuestTcpPort = connectionStringBuilder.Port, HostTcpPort = 5432
+                        GuestTcpPort = 5432, HostTcpPort = connectionStringBuilder.Port
                     }
                 },
                 ContainerEnvironmentVariables = new[]

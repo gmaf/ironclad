@@ -45,7 +45,7 @@ namespace Ironclad.Tests.Sdk
 
             // TODO (Cameron): This needs to be moved as we should be able to host dynamically if not running in EXTERNAL mode.
             var authority = configuration.GetValue<string>("authority") ?? throw new ConfigurationErrorsException("Missing configuration value 'authority'");
-            var connectionString = "Host=localhost;Database=ironclad;Username=postgres;Password=postgres;";
+            var connectionString = $"Host=localhost;Database=ironclad;Username=postgres;Password=postgres;Port={PortManager.GetNextPort()}";
 
             if (settings.UseSourceCode)
             {
