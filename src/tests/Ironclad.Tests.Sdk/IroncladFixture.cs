@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Net;
+
 namespace Ironclad.Tests.Sdk
 {
     using System.Configuration;
@@ -57,8 +60,12 @@ namespace Ironclad.Tests.Sdk
                 messageSink?.OnMessage(new DiagnosticMessage(
                     "Authentication fixture is running in INTEGRATING mode (attempting to spin up both ironclad and postgres from docker containers)"));
 
+                var registryCredentials = new NetworkCredential(
+                    Environment.GetEnvironmentVariable("DOCKER_USERNAME"),
+                    Environment.GetEnvironmentVariable("DOCKER_PASSWORD")
+                );
                 this.postgres = new PostgresContainer(new NpgsqlConnectionStringBuilder(connectionString));
-                this.ironclad = new IroncladContainer(authority, "Host=host.docker.internal;Database=ironclad;Username=postgres;Password=postgres;");
+                this.ironclad = new IroncladContainer(authority, "Host=host.docker.internal;Database=ironclad;Username=postgres;Password=postgres;", registryCredentials);
             }
             else
             {

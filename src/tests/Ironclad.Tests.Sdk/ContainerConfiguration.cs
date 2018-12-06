@@ -1,6 +1,8 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+using System.Net;
+
 #pragma warning disable CA1819
 
 namespace Ironclad.Tests.Sdk
@@ -11,6 +13,8 @@ namespace Ironclad.Tests.Sdk
     {
         // Image related
         public string Registry { get; set; }
+
+        public NetworkCredential RegistryCredentials { get; set; }
 
         public string Image { get; set; }
 

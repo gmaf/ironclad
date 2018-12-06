@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+using System.Net;
+
 namespace Ironclad.Tests.Sdk
 {
     using System;
@@ -11,7 +13,7 @@ namespace Ironclad.Tests.Sdk
     {
         private readonly IroncladProbe probe;
 
-        public IroncladContainer(string authority, string connectionString)
+        public IroncladContainer(string authority, string connectionString, NetworkCredential registryCredentials)
         {
             if (authority == null)
             {
@@ -22,9 +24,16 @@ namespace Ironclad.Tests.Sdk
             {
                 throw new ArgumentNullException(nameof(connectionString));
             }
+            
+            if (registryCredentials == null)
+            {
+                throw new ArgumentNullException(nameof(registryCredentials));
+            }
 
             this.Configuration = new ContainerConfiguration
             {
+                Registry = "lykkecloud.azurecr.io",
+                RegistryCredentials = registryCredentials,
                 Image = "ironclad",
                 Tag = "dev",
                 IsContainerReusable = true,

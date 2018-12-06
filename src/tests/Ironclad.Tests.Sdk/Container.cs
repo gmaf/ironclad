@@ -183,7 +183,16 @@ namespace Ironclad.Tests.Sdk
             }
 
             await this.client.Images
-                .CreateImageAsync(new ImagesCreateParameters { FromImage = this.Configuration.Image, Tag = this.Configuration.Tag }, null, Progress.IsBeingIgnored, token)
+                .CreateImageAsync(new ImagesCreateParameters
+                {
+                    FromImage = this.Configuration.Image,
+                    Tag = this.Configuration.Tag
+                }, this.configuration.RegistryCredentials != null ?
+                    new AuthConfig
+                    {
+                        Username = this.configuration.RegistryCredentials.UserName,
+                        Password = this.configuration.RegistryCredentials.Password
+                    } : null, Progress.IsBeingIgnored, token)
                 .ConfigureAwait(false);
         }
 
