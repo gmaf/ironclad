@@ -39,8 +39,6 @@ namespace Ironclad
             var migrationsAssembly = typeof(Startup).GetType().Assembly.GetName().Name;
             var connectionString = this.configuration.GetConnectionString("Ironclad");
 
-            System.Console.WriteLine(connectionString);
-
             services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(

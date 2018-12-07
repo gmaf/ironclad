@@ -17,10 +17,4 @@
     <ProjectReference Include="..\..\tests\Ironclad.Tests.Sdk\Ironclad.Tests.Sdk.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="testsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

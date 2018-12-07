@@ -19,7 +19,7 @@ namespace SampleTests
 
         // TODO (Cameron): Uncomment the attribute below to execute this test. This should not be executed as part of any normal build Ironclad - or discovered.
         ////[Fact]
-        public async Task UserCanGetAccessToken()
+        public async Task SampleAuthenticationTest()
         {
             // arrange
             var user = new User

@@ -1,6 +1,0 @@
-﻿{
-  "authority": "http://localhost:5005",
-  "auth_server": {
-    "use_docker_image": true
-  }
-}
