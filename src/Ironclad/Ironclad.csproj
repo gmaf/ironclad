@@ -1,28 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
+    <Description>The Ironclad identity server.</Description>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <LangVersion>latest</LangVersion>
+    <!--<PackageTags></PackageTags>-->
+    <!--<CodeAnalysisRuleSet>../Ironclad.ruleset</CodeAnalysisRuleSet>-->
+    <DefineConstants>$(DefineConstants)</DefineConstants>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Ironclad</AssemblyName>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
     <UserSecretsId>bbc9d7a3-f19b-4bec-baf1-68d158cca1a9</UserSecretsId>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <AssemblyName>Ironclad</AssemblyName>
-    <Version>0.0.1-developer</Version>
-    <Authors>Ironclad Contributers</Authors>
-    <Company>Lykke</Company>
-    <Copyright>Copyright (c) Lykke Corp. All rights reserved.</Copyright>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <NoWarn>1701;1702;1705;CA2007</NoWarn>
-    <CodeAnalysisRuleSet>../Ironclad.ruleset</CodeAnalysisRuleSet>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <TrimUnusedDependencies>true</TrimUnusedDependencies>
-    <AssemblyVersion>0.0.1.0</AssemblyVersion>
+    <NoWarn>$(NoWarn);1701;1702;1705;CA2007</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -40,17 +32,10 @@
     <PackageReference Include="IdentityServer4.AspNetIdentity" Version="2.1.0" />
     <PackageReference Include="IdentityServer4.Postgresql" Version="2.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.5" />
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.2" PrivateAssets="all" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.1.4" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.1.4">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.1.4" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Packaging.Tools.Trimming" Version="1.1.0-preview1-26619-01" />
-    <PackageReference Include="MinVer" Version="1.0.0-beta.1" PrivateAssets="all" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.0.2" />
     <PackageReference Include="Serilog.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="2.1.2" />

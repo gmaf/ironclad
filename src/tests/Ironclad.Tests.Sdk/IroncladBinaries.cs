@@ -25,7 +25,7 @@ namespace Ironclad.Tests.Sdk
             this.authority = authority ?? throw new ArgumentNullException(nameof(authority));
             this.port = port;
             this.connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
-            this.probe = new IroncladProbe(this.authority, 4, 20);
+            this.probe = new IroncladProbe(this.authority, 2, 20);
         }
 
         public async Task InitializeAsync()

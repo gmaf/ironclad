@@ -44,7 +44,7 @@ namespace Ironclad.Tests.Sdk
                 },
             };
 
-            this.probe = new IroncladProbe(authority, 0, 20);
+            this.probe = new IroncladProbe(authority, 2, 20);
         }
 
         public override async Task InitializeAsync()

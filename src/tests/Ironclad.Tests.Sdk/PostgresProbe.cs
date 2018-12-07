@@ -4,7 +4,6 @@
 namespace Ironclad.Tests.Sdk
 {
     using System;
-    using System.Diagnostics;
     using System.IO;
     using System.Net.Sockets;
     using System.Threading;
@@ -29,10 +28,9 @@ namespace Ironclad.Tests.Sdk
 
         public Task DisposeAsync() => Task.CompletedTask;
 
-        [DebuggerStepThrough]
         public async Task<bool> WaitUntilAvailable(bool throwOnFalse, CancellationToken token)
         {
-            await Task.Delay(this.initialWaitTimeInSeconds, token).ConfigureAwait(false);
+            await Task.Delay((int)TimeSpan.FromSeconds(this.initialWaitTimeInSeconds).TotalMilliseconds, token).ConfigureAwait(false);
 
             using (var connection = new NpgsqlConnection(this.connectionString))
             {

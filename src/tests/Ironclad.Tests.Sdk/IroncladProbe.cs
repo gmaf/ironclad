@@ -31,7 +31,7 @@ namespace Ironclad.Tests.Sdk
         [DebuggerStepThrough]
         public async Task<bool> WaitUntilAvailable(bool throwOnFalse, CancellationToken token)
         {
-            await Task.Delay(this.initialWaitTimeInSeconds, token).ConfigureAwait(false);
+            await Task.Delay((int)TimeSpan.FromSeconds(this.initialWaitTimeInSeconds).TotalMilliseconds, token).ConfigureAwait(false);
 
             using (var client = new HttpClient())
             {

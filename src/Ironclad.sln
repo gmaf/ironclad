@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\.gitignore = ..\.gitignore
 		..\.mailmap = ..\.mailmap
 		..\.travis.yml = ..\.travis.yml
+		Directory.Build.props = Directory.Build.props
 		Ironclad.ruleset = Ironclad.ruleset
 		..\README.md = ..\README.md
 	EndProjectSection
@@ -44,7 +45,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ironclad.ExternalIdentityPr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleMvcApp", "samples\SampleMvcApp\SampleMvcApp.csproj", "{13E56496-75DD-4EDE-8526-7C978EE72637}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleTests", "samples\SampleTests\SampleTests.csproj", "{17A91EA2-44AC-4314-8961-606EF06FD07A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleTests", "samples\SampleTests\SampleTests.csproj", "{17A91EA2-44AC-4314-8961-606EF06FD07A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -109,7 +110,6 @@ Global
 		{8DA2AC69-6399-4EBC-BF52-4A8C67CCD1D2} = {008344D0-EA64-4D6B-8EAA-F03592B863BF}
 		{27AC5BE9-C964-4236-863A-D3E808AE55C0} = {5C5E2419-C45C-4F86-940D-34B22735BF52}
 		{9C6C5D6F-8812-4180-8E19-673217AA6F95} = {008344D0-EA64-4D6B-8EAA-F03592B863BF}
-		{5B2D2786-10FD-4603-AF5D-15FB0840D78B} = {5C5E2419-C45C-4F86-940D-34B22735BF52}
 		{13E56496-75DD-4EDE-8526-7C978EE72637} = {008344D0-EA64-4D6B-8EAA-F03592B863BF}
 		{17A91EA2-44AC-4314-8961-606EF06FD07A} = {008344D0-EA64-4D6B-8EAA-F03592B863BF}
 	EndGlobalSection
