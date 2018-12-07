@@ -11,10 +11,10 @@ namespace Ironclad.Tests.Feature
     using Ironclad.Tests.Sdk;
     using Xunit;
 
-    public class IdentityProviderManagement : IntegrationTest
+    public class IdentityProviderManagement : AuthenticationTest
     {
-        public IdentityProviderManagement(AuthenticationFixture securityFixture, IroncladFixture ironcladFixture)
-            : base(securityFixture, ironcladFixture)
+        public IdentityProviderManagement(AuthenticationFixture fixture)
+            : base(fixture)
         {
         }
 

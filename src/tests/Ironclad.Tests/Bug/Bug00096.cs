@@ -10,10 +10,10 @@ namespace Ironclad.Tests.Bug
     using Ironclad.Tests.Sdk;
     using Xunit;
 
-    public class Bug00096 : IntegrationTest
+    public class Bug00096 : AuthenticationTest
     {
-        public Bug00096(AuthenticationFixture securityFixture, IroncladFixture ironcladFixture)
-            : base(securityFixture, ironcladFixture)
+        public Bug00096(AuthenticationFixture fixture)
+            : base(fixture)
         {
         }
 

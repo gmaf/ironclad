@@ -11,10 +11,10 @@ namespace Ironclad.Tests.Feature
     // In order to access system data that is specific to me
     // I want to be able to sign-in to the system
     [TestCaseOrderer("Ironclad.Tests.Sdk.OrderStrategy", "Ironclad.Tests")]
-    public class InteractiveEndUserFeature : IntegrationTest
+    public class InteractiveEndUserFeature : AuthenticationTest
     {
-        public InteractiveEndUserFeature(AuthenticationFixture securityFixture, IroncladFixture ironcladFixture)
-            : base(securityFixture, ironcladFixture)
+        public InteractiveEndUserFeature(AuthenticationFixture fixture)
+            : base(fixture)
         {
         }
 

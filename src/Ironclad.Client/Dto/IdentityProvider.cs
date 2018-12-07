@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-#if LIBRARY
+#if PERSISTENCE
 namespace Ironclad.ExternalIdentityProvider.Persistence
 {
     using Marten.Schema;
@@ -19,9 +19,9 @@ namespace Ironclad.Client
         /// Gets or sets the name of the identity provider.
         /// </summary>
         /// <value>The name.</value>
-        #if LIBRARY
+#if PERSISTENCE
         [Identity]
-        #endif
+#endif
         public string Name { get; set; }
 
         /// <summary>

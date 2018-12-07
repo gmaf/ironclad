@@ -9,7 +9,7 @@ namespace Ironclad.Tests.Sdk
     /// <summary>
     /// Represents the base class for an authentication test.
     /// </summary>
-    [Collection("Ironclad")]
+    [Collection(nameof(AuthenticationTest))]
     public class AuthenticationTest
     {
         private readonly AuthenticationFixture fixture;

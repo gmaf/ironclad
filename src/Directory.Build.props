@@ -1,0 +1,24 @@
+<Project>
+
+  <PropertyGroup>
+    <Product>Ironclad</Product>
+    <Company>Lykke Corp</Company>
+    <Authors>Lykke Corp, Ironclad Contributors</Authors>
+    <Copyright>Copyright (c) Lykke Corp. All rights reserved.</Copyright>
+    <PackageIconUrl>https://raw.githubusercontent.com/lykkecorp/ironclad/master/assets/ironclad.png</PackageIconUrl>
+    <!--<PackageLicenseUrl>https://github.com/lykkecorp/ironclad/blob/master/LICENSE</PackageLicenseUrl>-->
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/lykkecorp/ironclad</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/lykkecorp/ironclad/milestones?state=closed</PackageReleaseNotes>
+    <LangVersion>latest</LangVersion>
+    <MinVerMajorMinor>0.6</MinVerMajorMinor>
+    <NoWarn>$(NoWarn);NU5105</NoWarn>
+    <CodeAnalysisRuleSet>../Ironclad.ruleset</CodeAnalysisRuleSet>
+    <TrimUnusedDependencies>true</TrimUnusedDependencies>
+  </PropertyGroup>
+
+  <ItemGroup>
+      <PackageReference Include="MinVer" Version="1.0.0-beta.1" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

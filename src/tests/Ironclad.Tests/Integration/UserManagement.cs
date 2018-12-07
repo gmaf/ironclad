@@ -15,10 +15,10 @@ namespace Ironclad.Tests.Integration
     using Ironclad.Tests.Sdk;
     using Xunit;
 
-    public class UserManagement : IntegrationTest
+    public class UserManagement : AuthenticationTest
     {
-        public UserManagement(AuthenticationFixture securityFixture, IroncladFixture ironcladFixture)
-            : base(securityFixture, ironcladFixture)
+        public UserManagement(AuthenticationFixture fixture)
+            : base(fixture)
         {
         }
 

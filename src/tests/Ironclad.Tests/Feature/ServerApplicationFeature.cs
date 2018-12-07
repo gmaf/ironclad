@@ -7,10 +7,10 @@ namespace Ironclad.Tests.Feature
     using Ironclad.Tests.Sdk;
     using Xbehave;
 
-    public class ServerApplicationFeature : IntegrationTest
+    public class ServerApplicationFeature : AuthenticationTest
     {
-        public ServerApplicationFeature(AuthenticationFixture securityFixture, IroncladFixture ironcladFixture)
-            : base(securityFixture, ironcladFixture)
+        public ServerApplicationFeature(AuthenticationFixture fixture)
+            : base(fixture)
         {
         }
 

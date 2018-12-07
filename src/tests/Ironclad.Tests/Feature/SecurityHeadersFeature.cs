@@ -9,10 +9,10 @@ namespace Ironclad.Tests.Feature
     using Ironclad.Tests.Sdk;
     using Xunit;
 
-    public class SecurityHeadersFeature : IntegrationTest
+    public class SecurityHeadersFeature : AuthenticationTest
     {
-        public SecurityHeadersFeature(AuthenticationFixture securityFixture, IroncladFixture ironcladFixture)
-            : base(securityFixture, ironcladFixture)
+        public SecurityHeadersFeature(AuthenticationFixture fixture)
+            : base(fixture)
         {
         }
 

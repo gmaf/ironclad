@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable CA2234, CA1054
+#pragma warning disable CA1054
 
 namespace Ironclad.Tests.Sdk
 {
@@ -13,9 +13,13 @@ namespace Ironclad.Tests.Sdk
     using FluentAssertions;
     using IdentityModel.Client;
 
+    /// <summary>
+    /// Represents a browser automation.
+    /// </summary>
+    /// <seealso cref="System.Net.Http.HttpClient" />
     // HACK (Cameron): This entire class is super brittle and depends heavily upon the IdentityServer rendering - which is not ideal.
     // TODO (Cameron): Refactor this so that it's not so brittle.
-    internal class BrowserAutomation : HttpClient
+    public class BrowserAutomation : HttpClient
     {
         private readonly BrowserHandler handler;
         private readonly string username;
@@ -23,11 +27,22 @@ namespace Ironclad.Tests.Sdk
 
         private HttpResponseMessage loginResult;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BrowserAutomation"/> class.
+        /// </summary>
+        /// <param name="username">The username.</param>
+        /// <param name="password">The password.</param>
         public BrowserAutomation(string username, string password)
             : this(new BrowserHandler(), username, password)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BrowserAutomation"/> class.
+        /// </summary>
+        /// <param name="handler">The handler.</param>
+        /// <param name="username">The username.</param>
+        /// <param name="password">The password.</param>
         private BrowserAutomation(BrowserHandler handler, string username, string password)
             : base(handler)
         {
@@ -36,6 +51,11 @@ namespace Ironclad.Tests.Sdk
             this.password = password;
         }
 
+        /// <summary>
+        /// Navigates to the login page.
+        /// </summary>
+        /// <param name="url">The URL.</param>
+        /// <returns>A task representing an asynchronous operation.</returns>
         public async Task NavigateToLoginAsync(string url)
         {
             this.loginResult = await this.GetAsync(url).ConfigureAwait(false);
@@ -43,11 +63,19 @@ namespace Ironclad.Tests.Sdk
             this.loginResult.RequestMessage.RequestUri.PathAndQuery.Should().NotStartWith("/home/error");
         }
 
+        /// <summary>
+        /// Logs in to the authorization server.
+        /// </summary>
+        /// <returns>A task representing an asynchronous operation.</returns>
         public Task LoginToAuthorizationServerAsync() => this.Login(false);
 
-        public Task<AuthorizeResponse> LoginToAuthorizationServerAndCaptureRedirectAsync() => this.Login(true);
+        /// <summary>
+        /// Logs in to the authorization server and captures the redirect.
+        /// </summary>
+        /// <returns>A task representing an asynchronous operation.</returns>
+        public Task<AuthorizationResponse> LoginToAuthorizationServerAndCaptureRedirectAsync() => this.Login(true);
 
-        private async Task<AuthorizeResponse> Login(bool capture)
+        private async Task<AuthorizationResponse> Login(bool capture)
         {
             if (this.loginResult == null)
             {
@@ -84,7 +112,14 @@ namespace Ironclad.Tests.Sdk
                 {
                     authorizeResult.StatusCode.Should().Be(HttpStatusCode.Found);
                     this.handler.StopRedirectingAfter = 20;
-                    return new AuthorizeResponse(authorizeResult.Headers.Location.ToString());
+                    var response = new AuthorizeResponse(authorizeResult.Headers.Location.ToString());
+
+                    return new AuthorizationResponse
+                    {
+                        IsError = response.IsError,
+                        Error = response.Error,
+                        AccessToken = response.AccessToken,
+                    };
                 }
 
                 authorizeResult.StatusCode.Should().Be(HttpStatusCode.OK);

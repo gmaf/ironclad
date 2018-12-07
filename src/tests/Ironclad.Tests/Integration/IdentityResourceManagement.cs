@@ -12,10 +12,10 @@ namespace Ironclad.Tests.Integration
     using Ironclad.Tests.Sdk;
     using Xunit;
 
-    public class IdentityResourceManagement : IntegrationTest
+    public class IdentityResourceManagement : AuthenticationTest
     {
-        public IdentityResourceManagement(AuthenticationFixture securityFixture, IroncladFixture ironcladFixture)
-            : base(securityFixture, ironcladFixture)
+        public IdentityResourceManagement(AuthenticationFixture fixture)
+            : base(fixture)
         {
         }
 

@@ -34,7 +34,7 @@ namespace Ironclad.Console.Commands
             app.OnExecute(
                 () =>
                 {
-                    if (string.IsNullOrEmpty(argumentUsername.Value) || !optionRemove.HasValue() && !argumentRoles.Values.Any())
+                    if (string.IsNullOrEmpty(argumentUsername.Value) || (!optionRemove.HasValue() && !argumentRoles.Values.Any()))
                     {
                         app.ShowHelp();
                         return;

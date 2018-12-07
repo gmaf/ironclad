@@ -38,7 +38,7 @@ namespace Ironclad.Client
             // TODO (Cameron): Make sure we're working with application/json.
             var handler = innerHandler ?? new HttpClientHandler();
 
-            this.Client = new HttpClient(handler);
+            this.Client = new HttpClient(handler, innerHandler == null);
             this.authority = authority;
         }
 

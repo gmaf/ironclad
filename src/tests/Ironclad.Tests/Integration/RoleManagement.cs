@@ -12,10 +12,10 @@ namespace Ironclad.Tests.Integration
     using Ironclad.Tests.Sdk;
     using Xunit;
 
-    public class RoleManagement : IntegrationTest
+    public class RoleManagement : AuthenticationTest
     {
-        public RoleManagement(AuthenticationFixture securityFixture, IroncladFixture ironcladFixture)
-            : base(securityFixture, ironcladFixture)
+        public RoleManagement(AuthenticationFixture fixture)
+            : base(fixture)
         {
         }
 

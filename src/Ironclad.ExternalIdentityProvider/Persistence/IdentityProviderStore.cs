@@ -85,7 +85,7 @@ namespace Ironclad.ExternalIdentityProvider.Persistence
 
                 await session.SaveChangesAsync().ConfigureAwait(false);
             }
-                    }
+        }
 
         public async Task<bool> TryRemoveAsync(string key)
         {
