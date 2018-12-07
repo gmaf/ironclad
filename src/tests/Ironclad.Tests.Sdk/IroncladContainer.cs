@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System.Net;
-
 namespace Ironclad.Tests.Sdk
 {
     using System;
+    using System.Net;
     using System.Threading.Tasks;
 
     internal class IroncladContainer : Container

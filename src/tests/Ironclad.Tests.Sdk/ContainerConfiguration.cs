@@ -1,13 +1,12 @@
 // Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System.Net;
-
 #pragma warning disable CA1819
 
 namespace Ironclad.Tests.Sdk
 {
     using System;
+    using System.Net;
 
     internal class ContainerConfiguration
     {

@@ -179,17 +179,20 @@ namespace Ironclad.Tests.Sdk
                 return;
             }
 
+            var authConfig = this.configuration.RegistryCredentials == null
+                ? null
+                : new AuthConfig { Username = this.configuration.RegistryCredentials.UserName, Password = this.configuration.RegistryCredentials.Password };
+
             await this.client.Images
-                .CreateImageAsync(new ImagesCreateParameters
-                {
-                    FromImage = this.Configuration.Image,
-                    Tag = this.Configuration.Tag
-                }, this.configuration.RegistryCredentials != null ?
-                    new AuthConfig
+                .CreateImageAsync(
+                    new ImagesCreateParameters
                     {
-                        Username = this.configuration.RegistryCredentials.UserName,
-                        Password = this.configuration.RegistryCredentials.Password
-                    } : null, Progress.IsBeingIgnored, token)
+                        FromImage = this.Configuration.RegistryQualifiedImage,
+                        Tag = this.Configuration.Tag
+                    },
+                    authConfig,
+                    Progress.IsBeingIgnored,
+                    token)
                 .ConfigureAwait(false);
         }
 

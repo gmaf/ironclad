@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Net;
-
 namespace Ironclad.Tests.Sdk
 {
     using System.Configuration;
+    using System.Net;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Configuration;
     using Xunit;
@@ -56,12 +54,12 @@ namespace Ironclad.Tests.Sdk
                 messageSink?.OnMessage(new DiagnosticMessage(
                     "Authentication fixture is running in INTEGRATING mode (attempting to spin up both ironclad and postgres from docker containers)"));
 
-                var registryCredentials = new NetworkCredential(
-                    Environment.GetEnvironmentVariable("DOCKER_USERNAME"),
-                    Environment.GetEnvironmentVariable("DOCKER_PASSWORD")
-                );
                 this.postgres = new PostgresContainer();
-                this.ironclad = new IroncladContainer(this.settings.Authority, this.settings.Port, this.postgres.GetConnectionStringForContainer());
+                this.ironclad = new IroncladContainer(
+                    this.settings.Authority,
+                    this.settings.Port,
+                    this.postgres.GetConnectionStringForContainer(),
+                    this.settings.DockerCredentials);
             }
             else
             {
@@ -107,9 +105,17 @@ namespace Ironclad.Tests.Sdk
 
             public string Authority => $"http://localhost:{this.Port}";
 
+            public NetworkCredential DockerCredentials => string.IsNullOrEmpty(this.docker_username) || string.IsNullOrEmpty(this.docker_password)
+                ? null
+                : new NetworkCredential(this.docker_username, this.docker_password);
+
             private bool use_source_code { get; set; }
 
             private bool use_docker_image { get; set; }
+
+            private string docker_username { get; set; }
+
+            private string docker_password { get; set; }
 
             private int port { get; set; }
 
