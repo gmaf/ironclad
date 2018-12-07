@@ -144,7 +144,7 @@ namespace Ironclad.Tests.Sdk
 
             var parameters = new CreateContainerParameters
             {
-                Image = this.Configuration.RegistryQualifiedImage,
+                Image = this.Configuration.FullyQualifiedImage,
                 Name = this.Configuration.ContainerName,
                 Tty = true,
                 Env = this.Configuration.ContainerEnvironmentVariables,

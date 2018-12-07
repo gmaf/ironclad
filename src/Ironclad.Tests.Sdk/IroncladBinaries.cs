@@ -31,10 +31,7 @@ namespace Ironclad.Tests.Sdk
         public async Task InitializeAsync()
         {
             var path = string.Format(CultureInfo.InvariantCulture, "..{0}..{0}..{0}..{0}..{0}Ironclad{0}Ironclad.csproj", Path.DirectorySeparatorChar);
-
-            var arguments = Environment.OSVersion.Platform.Equals(PlatformID.Unix)
-                ? $"run -p {path} -- --connectionstrings:ironclad '{this.connectionString}' --urls http://*:{this.port} --authority {this.authority}"
-                : $"run -p {path} -- --connectionstrings:ironclad=\"{this.connectionString}\" --urls=http://*:{this.port} --authority={this.authority}";
+            var arguments = $"run -p {path} -- --connectionstrings:ironclad=\"{this.connectionString}\" --urls=http://*:{this.port} --authority={this.authority}";
 
             this.process = Process.Start(
                 new ProcessStartInfo("dotnet", arguments)
