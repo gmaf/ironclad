@@ -31,4 +31,8 @@
     <ProjectReference Include="..\Ironclad.Client\Ironclad.Client.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="$(PackageLicenseFile)"/>
+  </ItemGroup>
+
 </Project>

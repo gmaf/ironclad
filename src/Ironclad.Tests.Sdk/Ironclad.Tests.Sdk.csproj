@@ -7,8 +7,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <!--<PackageTags></PackageTags>-->
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <CodeAnalysisRuleSet>../../Ironclad.ruleset</CodeAnalysisRuleSet>
     <NoWarn>$(NoWarn);1701;1702;1705;IDE0039;CA1822</NoWarn>
+    <OutputType>Library</OutputType>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,11 +29,15 @@
   </ItemGroup>
   
   <ItemGroup>
-    <AdditionalFiles Include="../../stylecop.json" />
+    <AdditionalFiles Include="../stylecop.json" />
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\Ironclad.Client\Ironclad.Client.csproj" />
+    <ProjectReference Include="..\Ironclad.Client\Ironclad.Client.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="$(PackageLicenseFile)"/>
   </ItemGroup>
 
 </Project>

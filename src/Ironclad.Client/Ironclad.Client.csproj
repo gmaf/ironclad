@@ -22,4 +22,8 @@
     <AdditionalFiles Include="../stylecop.json" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="$(PackageLicenseFile)"/>
+  </ItemGroup>
+
 </Project>

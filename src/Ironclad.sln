@@ -39,7 +39,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleConsoleApp", "samples
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ironclad.Client", "Ironclad.Client\Ironclad.Client.csproj", "{5AD3EA89-EBD0-47B0-85C4-54783510E8A1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ironclad.Tests.Sdk", "tests\Ironclad.Tests.Sdk\Ironclad.Tests.Sdk.csproj", "{5B2D2786-10FD-4603-AF5D-15FB0840D78B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ironclad.Tests.Sdk", "Ironclad.Tests.Sdk\Ironclad.Tests.Sdk.csproj", "{5B2D2786-10FD-4603-AF5D-15FB0840D78B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ironclad.ExternalIdentityProvider", "Ironclad.ExternalIdentityProvider\Ironclad.ExternalIdentityProvider.csproj", "{3E753030-A9EE-440C-8896-1449AEA94ACF}"
 EndProject

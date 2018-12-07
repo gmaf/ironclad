@@ -13,8 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Ironclad.Client\Ironclad.Client.csproj" />
-    <ProjectReference Include="..\..\tests\Ironclad.Tests.Sdk\Ironclad.Tests.Sdk.csproj" />
+    <ProjectReference Include="..\..\Ironclad.Tests.Sdk\Ironclad.Tests.Sdk.csproj" />
   </ItemGroup>
 
 </Project>
