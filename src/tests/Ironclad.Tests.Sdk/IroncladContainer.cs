@@ -11,18 +11,17 @@ namespace Ironclad.Tests.Sdk
     {
         private readonly IroncladProbe probe;
 
-        public IroncladContainer(string authority, int port, string connectionString, NetworkCredential registryCredentials)
+        public IroncladContainer(string authority, int port, string connectionString, string dockerRegistry, NetworkCredential dockerCredentials, string dockerTag)
         {
             authority = authority ?? throw new ArgumentNullException(nameof(authority));
             connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
-            registryCredentials = registryCredentials ?? throw new ArgumentNullException(nameof(registryCredentials));
 
             this.Configuration = new ContainerConfiguration
             {
-                Registry = "lykkecloud.azurecr.io",
-                RegistryCredentials = registryCredentials,
+                Registry = dockerRegistry,
+                RegistryCredentials = dockerCredentials,
                 Image = "ironclad",
-                Tag = "dev",
+                Tag = dockerTag,
                 ContainerName = "ironclad-integration",
                 ContainerPortBindings = new[]
                 {

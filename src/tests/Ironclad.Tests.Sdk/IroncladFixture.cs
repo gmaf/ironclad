@@ -3,7 +3,6 @@
 
 namespace Ironclad.Tests.Sdk
 {
-    using System.Configuration;
     using System.Net;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Configuration;
@@ -26,7 +25,9 @@ namespace Ironclad.Tests.Sdk
         In the above cases, we can default to EXTERNAL mode eg. with no config options specified.
         We can force TESTING through using the 'use_source_code' boolean config value.
         We can force INTEGRATING through using the 'use_docker_image' boolean config value.
-        These config values are mutually exclusive, otherwise an configuration exception will be thrown.  */
+        These config values are mutually exclusive, otherwise an configuration exception will be thrown.
+
+        See https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063ba56 (test.settings) for more information on configuration.  */
 
     internal class IroncladFixture : IAsyncLifetime
     {
@@ -36,10 +37,9 @@ namespace Ironclad.Tests.Sdk
 
         public IroncladFixture(IMessageSink messageSink)
         {
-            var configuration = new ConfigurationBuilder().AddJsonFile("testsettings.json").Build();
+            var configuration = new ConfigurationBuilder().AddJsonFile("testsettings.json").AddEnvironmentVariables().Build();
 
-            this.settings = configuration.GetSection("auth_server").Get<Settings>(options => options.BindNonPublicProperties = true);
-            this.settings.Validate();
+            this.settings = configuration.GetSection("auth_server").Get<Settings>(options => options.BindNonPublicProperties = true) ?? new Settings();
 
             if (this.settings.UseSourceCode)
             {
@@ -59,7 +59,9 @@ namespace Ironclad.Tests.Sdk
                     this.settings.Authority,
                     this.settings.Port,
                     this.postgres.GetConnectionStringForContainer(),
-                    this.settings.DockerCredentials);
+                    this.settings.DockerRegistry,
+                    this.settings.DockerCredentials,
+                    this.settings.DockerTag);
             }
             else
             {
@@ -97,35 +99,39 @@ namespace Ironclad.Tests.Sdk
         {
             private static readonly int RandomPort = PortManager.GetNextPort();
 
-            public bool UseSourceCode => this.use_source_code;
-
-            public bool UseDockerImage => this.use_docker_image;
-
             public int Port => this.port == default ? RandomPort : this.port;
+
+            public bool UseDockerImage => this.use_source_code == true ? false : this.use_docker_image ?? true;
+
+            public string DockerRegistry => this.docker?.registry;
+
+            public NetworkCredential DockerCredentials => string.IsNullOrEmpty(this.docker?.username) || string.IsNullOrEmpty(this.docker?.password)
+                ? null
+                : new NetworkCredential(this.docker.username, this.docker.password);
+
+            public string DockerTag => this.docker?.tag ?? "latest";
+
+            public bool UseSourceCode => this.use_source_code == true;
 
             public string Authority => $"http://localhost:{this.Port}";
 
-            public NetworkCredential DockerCredentials => string.IsNullOrEmpty(this.docker_username) || string.IsNullOrEmpty(this.docker_password)
-                ? null
-                : new NetworkCredential(this.docker_username, this.docker_password);
-
-            private bool use_source_code { get; set; }
-
-            private bool use_docker_image { get; set; }
-
-            private string docker_username { get; set; }
-
-            private string docker_password { get; set; }
-
             private int port { get; set; }
 
-            public void Validate()
+            private bool? use_docker_image { get; set; }
+
+            private Docker docker { get; set; }
+
+            private bool? use_source_code { get; set; }
+
+            private class Docker
             {
-                if (this.use_docker_image && this.use_source_code)
-                {
-                    throw new ConfigurationErrorsException(
-                        $"Cannot set values of both auth_server:{nameof(this.use_source_code)} and auth_server:{nameof(this.use_docker_image)} to true.");
-                }
+                public string registry { get; set; }
+
+                public string username { get; set; }
+
+                public string password { get; set; }
+
+                public string tag { get; set; }
             }
         }
     }
