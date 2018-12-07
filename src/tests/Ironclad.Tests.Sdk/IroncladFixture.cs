@@ -46,7 +46,7 @@ namespace Ironclad.Tests.Sdk
                 messageSink?.OnMessage(new DiagnosticMessage(
                     "Authentication fixture is running in TESTING mode (attempting to spin up ironclad from source, postgres from a docker container)"));
 
-                this.postgres = new PostgresContainer();
+                this.postgres = new PostgresContainer(this.settings.PostgresTag);
                 this.ironclad = new IroncladBinaries(this.settings.Authority, this.settings.Port, this.postgres.GetConnectionStringForHost());
             }
             else if (this.settings.UseDockerImage)
@@ -54,7 +54,7 @@ namespace Ironclad.Tests.Sdk
                 messageSink?.OnMessage(new DiagnosticMessage(
                     "Authentication fixture is running in INTEGRATING mode (attempting to spin up both ironclad and postgres from docker containers)"));
 
-                this.postgres = new PostgresContainer();
+                this.postgres = new PostgresContainer(this.settings.PostgresTag);
                 this.ironclad = new IroncladContainer(
                     this.settings.Authority,
                     this.settings.Port,
@@ -113,6 +113,8 @@ namespace Ironclad.Tests.Sdk
 
             public bool UseSourceCode => this.use_source_code == true;
 
+            public string PostgresTag => this.postgres_tag ?? "alpine";
+
             public string Authority => $"http://localhost:{this.Port}";
 
             private int port { get; set; }
@@ -122,6 +124,8 @@ namespace Ironclad.Tests.Sdk
             private Docker docker { get; set; }
 
             private bool? use_source_code { get; set; }
+
+            private string postgres_tag { get; set; }
 
             private class Docker
             {

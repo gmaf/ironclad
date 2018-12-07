@@ -14,13 +14,14 @@ namespace Ironclad.Tests.Sdk
         private readonly int port = PortManager.GetNextPort();
         private readonly PostgresProbe probe;
 
-        public PostgresContainer()
+        public PostgresContainer(string dockerTag)
         {
             var connectionStringBuilder = new NpgsqlConnectionStringBuilder(string.Format(CultureInfo.InvariantCulture, ConnectionString, "localhost", 5432));
 
             this.Configuration = new ContainerConfiguration
             {
-                Image = "postgres", Tag = "10.1-alpine",
+                Image = "postgres",
+                Tag = dockerTag,
                 ContainerName = "ironclad-integration-postgres",
                 ContainerPortBindings = new[]
                 {
