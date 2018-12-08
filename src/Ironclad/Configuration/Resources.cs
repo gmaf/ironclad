@@ -6,7 +6,6 @@ namespace Ironclad.Configuration
     using System.Collections.Generic;
     using IdentityModel;
     using IdentityServer4.Models;
-    using Microsoft.Extensions.Configuration;
 
     public static partial class Config
     {
@@ -25,7 +24,7 @@ namespace Ironclad.Configuration
             };
 
         // NOTE (Cameron): User claims defined against API resources will result in those claims being in the access token.
-        public static IEnumerable<ApiResource> GetDefaultApiResources(IConfiguration configuration) =>
+        public static IEnumerable<ApiResource> GetDefaultApiResources(string authApiSecret) =>
             new List<ApiResource>
             {
                 new ApiResource("sample_api", "Sample Web API")
@@ -40,7 +39,7 @@ namespace Ironclad.Configuration
                 },
                 new ApiResource("auth_api", "Authorization Server Web API")
                 {
-                    ApiSecrets = { new Secret(configuration.GetValue<string>("Introspection-Secret").Sha256()) },
+                    ApiSecrets = { new Secret(authApiSecret.Sha256()) },
                     UserClaims = { JwtClaimTypes.Name, JwtClaimTypes.Role },
                     Scopes = { new Scope("auth_api:write") },
                 },

@@ -34,13 +34,10 @@ namespace Ironclad.Tests.Sdk
                 {
                     $"ASPNETCORE_URLS=http://*:80",
 
-                    // NOTE (Cameron): This is required for introspection within the container.
-                    $"AUTHORITY=http://localhost",
-                    $"IRONCLAD_CONNECTIONSTRING={connectionString}",
-
-                    // NOTE (Cameron): Not secret. Only functional for development eg. localhost.
-                    $"GOOGLE_CLIENT_ID=835517018777-4hnr0i9s8750kb10uaejdokel68bhtbb.apps.googleusercontent.com",
-                    $"GOOGLE_SECRET=LCPH4fgebc-i4JR99GmoYU-X",
+                    // LINK (Cameron): https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063ba56
+                    $"SERVER__DATABASE={connectionString}",
+                    $"API__AUTHORITY=http://localhost",
+                    $"API__SECRET=secret", // self-introspection secret (not a secret)
                 },
             };
 

@@ -29,8 +29,9 @@ namespace Ironclad
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile($"appsettings.Custom.json", optional: true)
                 .AddJsonFile($"appsettings.{environmentName}.json", optional: true)
+                .AddUserSecrets<Startup>()
+                .AddEnvironmentVariables()
                 .AddCommandLine(args)
-                .AddEnvironmentSecrets(args)
                 .Build();
 
             // LINK (Cameron): https://mitchelsellers.com/blogs/2017/10/09/real-world-aspnet-core-logging-configuration
@@ -50,8 +51,6 @@ namespace Ironclad
             Log.Information($"Running on: {RuntimeInformation.OSDescription}");
 
             Console.Title = $"{title} [{version}]";
-
-            configuration.ValidateEnvironmentSecrets(Log.Logger);
 
             try
             {

@@ -13,7 +13,6 @@ namespace Ironclad.Data.Maintenance
     using Ironclad.Configuration;
     using Marten;
     using Microsoft.AspNetCore.Identity;
-    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
 
     public class SynchronizationManager
@@ -55,7 +54,7 @@ namespace Ironclad.Data.Maintenance
             await this.userManager.AddToRoleAsync(adminUser, "admin");
         }
 
-        public async Task SynchronizeConfigurationAsync(IConfiguration configuration)
+        public async Task SynchronizeConfigurationAsync(string authApiSecret)
         {
             using (var session = this.documentStore.LightweightSession())
             {
@@ -76,7 +75,7 @@ namespace Ironclad.Data.Maintenance
 
                 this.logger.LogInformation("Synchronizing default API resources...");
                 var apiResourceSecretsComparer = new KeyEqualityComparer<ApiSecret>(secret => secret.Value);
-                var apiResources = Config.GetDefaultApiResources(configuration).Select(x => x.ToEntity());
+                var apiResources = Config.GetDefaultApiResources(authApiSecret).Select(x => x.ToEntity());
                 foreach (var apiResource in apiResources)
                 {
                     var exisingApiResources = await session.Query<ApiResource>().Where(document => document.Name == apiResource.Name).ToListAsync();
