@@ -1,5 +1,5 @@
 ﻿{
   "auth_server": {
-    "use_source_code": false
+    "use_source_code": true
   }
 }
