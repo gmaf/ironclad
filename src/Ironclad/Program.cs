@@ -6,6 +6,7 @@ namespace Ironclad
     using System;
     using System.Reflection;
     using System.Runtime.InteropServices;
+    using Ironclad.Extensions;
     using Microsoft.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
@@ -30,6 +31,7 @@ namespace Ironclad
                 .AddJsonFile($"appsettings.Custom.json", optional: true)
                 .AddJsonFile($"appsettings.{environmentName}.json", optional: true)
                 .AddUserSecrets<Startup>()
+                .AddAzureKeyVaultSecrets()
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
                 .Build();

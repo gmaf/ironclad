@@ -23,6 +23,8 @@ namespace Ironclad
 
         public MailSettings Mail { get; set; }
 
+        public AzureKeyVaultSettings AzureVault { get; set; }
+
         public void Validate()
         {
             var sections = new Dictionary<string, IEnumerable<string>>();
@@ -196,6 +198,19 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
                     yield return $"'{{0}}:{nameof(this.Password).ToLowerInvariant()}' is null or empty but '{{0}}{nameof(this.Username)}' is not.";
                 }
             }
+        }
+
+        public class AzureKeyVaultSettings
+        {
+            public string VaultName { get; set; }
+
+            public string Endpoint => $"https://{this.VaultName}.vault.azure.net";
+
+            public string IdentityApplicationId { get; set; }
+
+            public string IdentityClientSecret { get; set; }
+
+            public string IdentityTenantId { get; set; }
         }
     }
 }
