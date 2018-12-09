@@ -75,6 +75,7 @@ namespace Ironclad
 
         private static IWebHostBuilder CreateWebHostBuilder(string[] args, IConfigurationRoot configuration) =>
             WebHost.CreateDefaultBuilder(args)
+                .UseApplicationInsights()
                 .UseConfiguration(configuration)
                 .UseStartup<Startup>()
                 .UseSerilog();
