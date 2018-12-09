@@ -3,6 +3,7 @@
 
 namespace Ironclad
 {
+    using System;
     using IdentityModel.Client;
     using IdentityServer4.AccessTokenValidation;
     using IdentityServer4.Postgresql.Extensions;
@@ -12,6 +13,7 @@ namespace Ironclad
     using Ironclad.Services.Email;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.DataProtection;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.HttpOverrides;
     using Microsoft.AspNetCore.Identity;
@@ -40,6 +42,10 @@ namespace Ironclad
         public void ConfigureServices(IServiceCollection services)
         {
             var migrationsAssembly = typeof(Startup).GetType().Assembly.GetName().Name;
+
+            services.AddDataProtection()
+             .PersistKeysToAzureBlobStorage(new Uri("https://ironcladdev.blob.core.windows.net/ironclad-dev-data-protection/key-ring/key-7947fc9c-4f2e-4aa4-b7c7-de0181f3752e.xml?sp=rcwd&st=2018-12-09T14:43:40Z&se=2019-03-09T22:43:40Z&spr=https&sv=2018-03-28&sig=dJyI2hKdoPBEb48Nk8UHib1KwHRLPPpjUBZU6YS%2ByZU%3D&sr=b"))
+             .ProtectKeysWithAzureKeyVault("https://ironclad-dev.vault.azure.net/keys/data-protection-at-rest/7527e085c1fb4be39b0b5bb0b4c105de", "51f55a27-19be-48b3-91d4-a8d49bfba866", "5e3sF1NNi15sy91XJ+df3wRIfBkqpiVD/a1HVI5sv28=");
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(this.settings.Server.Database));
 
