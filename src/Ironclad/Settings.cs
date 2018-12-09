@@ -23,6 +23,8 @@ namespace Ironclad
 
         public MailSettings Mail { get; set; }
 
+        public AzureSettings Azure { get; set; }
+
         public void Validate()
         {
             var sections = new Dictionary<string, IEnumerable<string>>();
@@ -53,6 +55,11 @@ namespace Ironclad
             if (this.Mail?.GetValidationErrors().Any() == true)
             {
                 sections.Add(nameof(this.Mail), this.Mail.GetValidationErrors());
+            }
+
+            if (this.Azure?.KeyVault?.GetValidationErrors().Any() == true)
+            {
+                sections.Add($"{nameof(this.Azure)}:{nameof(this.Azure.KeyVault)}", this.Azure.KeyVault.GetValidationErrors());
             }
 
             if (sections.Any())
@@ -194,6 +201,32 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
                 if (!string.IsNullOrEmpty(this.Username) && string.IsNullOrEmpty(this.Password))
                 {
                     yield return $"'{{0}}:{nameof(this.Password).ToLowerInvariant()}' is null or empty but '{{0}}{nameof(this.Username)}' is not.";
+                }
+            }
+        }
+
+        public class AzureSettings
+        {
+            public KeyVaultSettings KeyVault => this.key_vault;
+
+            private KeyVaultSettings key_vault { get; set; }
+
+            public class KeyVaultSettings
+            {
+                public string Name { get; set; }
+
+                public string ConnectionString { get; set; }
+
+                public string Endpoint => $"https://{this.Name}.vault.azure.net";
+
+                public bool IsValid() => !this.GetValidationErrors().Any();
+
+                public IEnumerable<string> GetValidationErrors()
+                {
+                    if (string.IsNullOrEmpty(this.Name))
+                    {
+                        yield return $"'{{0}}:{nameof(this.Name).ToLowerInvariant()}' is null or empty.";
+                    }
                 }
             }
         }
