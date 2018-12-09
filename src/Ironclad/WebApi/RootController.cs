@@ -3,6 +3,7 @@
 
 namespace Ironclad.WebApi
 {
+    using System;
     using System.Diagnostics;
     using System.Reflection;
     using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,15 @@ namespace Ironclad.WebApi
                 Version = typeof(Program).Assembly.Attribute<AssemblyInformationalVersionAttribute>(attribute => attribute.InformationalVersion),
                 OS = System.Runtime.InteropServices.RuntimeInformation.OSDescription.TrimEnd(),
                 ProcessId = Process.GetCurrentProcess().Id,
+                Azure = Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID") != null
+                    ? new
+                    {
+                        InstanceId = Environment.GetEnvironmentVariable("WEBSITE_INSTANCE_ID"),
+                        SiteName = Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME"),
+                        Hostname = Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME"),
+                        SlotName = Environment.GetEnvironmentVariable("WEBSITE_SLOT_NAME"),
+                    }
+                    : null,
             };
 
         [HttpGet]
