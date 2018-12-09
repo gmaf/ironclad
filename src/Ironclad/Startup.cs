@@ -26,20 +26,20 @@ namespace Ironclad
     public class Startup
     {
         private readonly ILogger<Startup> logger;
-        private readonly IConfiguration configuration;
+        private readonly Settings settings;
 
         public Startup(ILogger<Startup> logger, IConfiguration configuration)
         {
             this.logger = logger;
-            this.configuration = configuration;
+            this.settings = configuration.Get<Settings>(options => options.BindNonPublicProperties = true);
+            this.settings.Validate();
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
             var migrationsAssembly = typeof(Startup).GetType().Assembly.GetName().Name;
-            var connectionString = this.configuration.GetConnectionString("Ironclad");
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
+            services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(this.settings.Server.Database));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(
                 options =>
@@ -57,28 +57,6 @@ namespace Ironclad
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            // TODO (Cameron): This is a bit messy. I think ultimately this should be configurable inside the application itself.
-            var mailUsername = this.configuration.GetValue<string>("Mail:Username");
-            if (string.IsNullOrEmpty(mailUsername))
-            {
-                this.logger.LogWarning("No credentials specified for SMTP. Email will be disabled.");
-                services.AddSingleton<IEmailSender>(new NullEmailSender());
-            }
-            else
-            {
-                services.AddSingleton<IEmailSender>(
-                    new EmailSender(
-                        this.configuration.GetValue<string>("Mail:Sender"),
-                        this.configuration.GetValue<string>("Mail:Host"),
-                        this.configuration.GetValue<int>("Mail:Port"),
-                        this.configuration.GetValue<bool>("Mail:EnableSSL"),
-                        mailUsername,
-                        this.configuration.GetValue<string>("Mail:Password")));
-            }
-
-            services.AddSingleton<IAuthorizationHandler, ScopeHandler>();
-            services.AddSingleton<IAuthorizationHandler, RoleHandler>();
-
             services.AddMvc()
                 .AddJsonOptions(
                     options =>
@@ -88,36 +66,62 @@ namespace Ironclad
                         options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                     });
 
-            services.AddIdentityServer(options => options.IssuerUri = this.configuration.GetValue<string>("issuerUri"))
+            services.AddIdentityServer(options => options.IssuerUri = this.settings.Server.IssuerUri)
                 .AddDeveloperSigningCredential()
-                .AddConfigurationStore(connectionString)
+                .AddConfigurationStore(this.settings.Server.Database)
                 .AddOperationalStore()
                 .AddAppAuthRedirectUriValidator()
                 .AddAspNetIdentity<ApplicationUser>();
 
-            services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
-                .AddGoogle(
-                    options =>
-                    {
-                        options.ClientId = this.configuration.GetValue<string>("Google-ClientId");
-                        options.ClientSecret = this.configuration.GetValue<string>("Google-Secret");
-                    })
+            var authenticationServices = services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(
                     "token",
                     options =>
                     {
-                        options.Authority = this.configuration.GetValue<string>("authority");
-                        options.Audience = $"{this.configuration.GetValue<string>("issuerUri")}/resources";
+                        options.Authority = this.settings.Api.Authority;
+                        options.Audience = this.settings.Api.Audience;
                         options.RequireHttpsMetadata = false;
                     },
                     options =>
                     {
-                        options.Authority = this.configuration.GetValue<string>("authority");
-                        options.ClientId = "auth_api";
-                        options.ClientSecret = this.configuration.GetValue<string>("Introspection-Secret");
+                        options.Authority = this.settings.Api.Authority;
+                        options.ClientId = this.settings.Api.ClientId;
+                        options.ClientSecret = this.settings.Api.Secret;
                         options.DiscoveryPolicy = new DiscoveryPolicy { ValidateIssuerName = false };
                     })
                 .AddExternalIdentityProviders();
+
+            if (this.settings.Idp?.Google.IsValid() == true)
+            {
+                this.logger.LogInformation("Configuring Google identity provider");
+                authenticationServices.AddGoogle(
+                    options =>
+                    {
+                        options.ClientId = this.settings.Idp.Google.ClientId;
+                        options.ClientSecret = this.settings.Idp.Google.Secret;
+                    });
+            }
+
+            // TODO (Cameron): This is a bit messy. I think ultimately this should be configurable inside the application itself.
+            if (this.settings.Mail?.IsValid() == true)
+            {
+                services.AddSingleton<IEmailSender>(
+                    new EmailSender(
+                        this.settings.Mail.Sender,
+                        this.settings.Mail.Host,
+                        this.settings.Mail.Port,
+                        this.settings.Mail.EnableSsl,
+                        this.settings.Mail.Username,
+                        this.settings.Mail.Password));
+            }
+            else
+            {
+                this.logger.LogWarning("No credentials specified for SMTP. Email will be disabled.");
+                services.AddSingleton<IEmailSender>(new NullEmailSender());
+            }
+
+            services.AddSingleton<IAuthorizationHandler, ScopeHandler>();
+            services.AddSingleton<IAuthorizationHandler, RoleHandler>();
 
             services.AddAuthorization(
                 options =>
@@ -135,7 +139,7 @@ namespace Ironclad
                 app.UseDatabaseErrorPage();
             }
 
-            if (this.configuration.GetValue<bool>("respectXForwardedForHeaders"))
+            if (this.settings.Server.RespectXForwardedForHeaders)
             {
                 var options = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedHost | ForwardedHeaders.XForwardedProto };
                 app.UseForwardedHeaders(options);
@@ -144,7 +148,7 @@ namespace Ironclad
             app.UseStaticFiles();
             app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();
-            app.InitializeDatabase().SeedDatabase(this.configuration);
+            app.InitializeDatabase().SeedDatabase(this.settings.Api.Secret);
         }
     }
 }

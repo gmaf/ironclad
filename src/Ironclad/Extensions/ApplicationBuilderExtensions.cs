@@ -10,7 +10,6 @@ namespace Ironclad
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
 
@@ -28,7 +27,7 @@ namespace Ironclad
             return app;
         }
 
-        public static IApplicationBuilder SeedDatabase(this IApplicationBuilder app, IConfiguration configuration)
+        public static IApplicationBuilder SeedDatabase(this IApplicationBuilder app, string authApiSecret)
         {
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
@@ -39,7 +38,7 @@ namespace Ironclad
 
                 var synchronizationManager = new SynchronizationManager(userManager, roleManager, store, logger);
                 synchronizationManager.SynchonizeAdminUserAsync().Wait();
-                synchronizationManager.SynchronizeConfigurationAsync(configuration).Wait();
+                synchronizationManager.SynchronizeConfigurationAsync(authApiSecret).Wait();
 
                 var compatiabilityManager = new CompatiabilityManager(serviceScope);
                 compatiabilityManager.FixInvalidScopesFollowingIdentityServerPackageUpgrade().Wait();

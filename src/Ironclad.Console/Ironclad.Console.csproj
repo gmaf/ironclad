@@ -5,10 +5,6 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <!--<PackageTags></PackageTags>-->
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <!--<CodeAnalysisRuleSet>../Ironclad.ruleset</CodeAnalysisRuleSet>-->
-    <DefineConstants>$(DefineConstants)</DefineConstants>
     <OutputType>Exe</OutputType>
     <AssemblyName>ironclad</AssemblyName>
     <PackAsTool>true</PackAsTool>

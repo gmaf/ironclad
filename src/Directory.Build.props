@@ -6,10 +6,10 @@
     <Authors>Lykke Corp, Ironclad Contributors</Authors>
     <Copyright>Copyright (c) Lykke Corp. All rights reserved.</Copyright>
     <PackageIconUrl>https://raw.githubusercontent.com/lykkecorp/ironclad/master/assets/ironclad.png</PackageIconUrl>
-    <!--<PackageLicenseUrl>https://github.com/lykkecorp/ironclad/blob/master/LICENSE</PackageLicenseUrl>-->
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/lykkecorp/ironclad</PackageProjectUrl>
     <PackageReleaseNotes>https://github.com/lykkecorp/ironclad/milestones?state=closed</PackageReleaseNotes>
+    <PackageTags>identity;oauth;oath2;openid;openid connect;ironclad</PackageTags>
     <LangVersion>latest</LangVersion>
     <MinVerMajorMinor>0.6</MinVerMajorMinor>
     <NoWarn>$(NoWarn);NU5105</NoWarn>
