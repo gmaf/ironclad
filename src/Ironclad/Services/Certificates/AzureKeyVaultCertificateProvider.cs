@@ -31,8 +31,8 @@ namespace Ironclad.Services.Certificates
 
             using (var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(tokenProvider.KeyVaultTokenCallback)))
             {
-                var certificate = await keyVaultClient.GetCertificateAsync(this.certificateId).ConfigureAwait(false);
-                if (certificate == null)
+                var certificateSecret = await keyVaultClient.GetSecretAsync(this.certificateId).ConfigureAwait(false);
+                if (certificateSecret == null)
                 {
                     var message = $"Certificate with identity '{this.certificateId}' not found in Azure Key Vault.";
 
@@ -40,7 +40,9 @@ namespace Ironclad.Services.Certificates
                     throw new InvalidOperationException(message);
                 }
 
-                return new X509Certificate2(certificate.Cer);
+                var cert = new X509Certificate2(Convert.FromBase64String(certificateSecret.Value));
+
+                return cert;
             }
         }
     }
