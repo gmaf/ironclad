@@ -31,7 +31,7 @@ namespace Ironclad
                 .AddJsonFile($"appsettings.Custom.json", optional: true)
                 .AddJsonFile($"appsettings.{environmentName}.json", optional: true)
                 .AddUserSecrets<Startup>()
-                .AddAzureKeyVaultSecrets()
+                .AddAzureKeyVaultFromConfig(args)
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
                 .Build();

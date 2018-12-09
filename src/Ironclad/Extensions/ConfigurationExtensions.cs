@@ -3,6 +3,10 @@
 
 namespace Ironclad.Extensions
 {
+    using System;
+    using System.Globalization;
+    using System.Linq;
+    using System.Text;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Configuration;
@@ -10,30 +14,38 @@ namespace Ironclad.Extensions
 
     internal static class ConfigurationExtensions
     {
-        internal static IConfigurationBuilder AddAzureKeyVaultSecrets(this IConfigurationBuilder builder)
+        internal static IConfigurationBuilder AddAzureKeyVaultFromConfig(this IConfigurationBuilder builder, string[] args)
         {
-            var configuration = new ConfigurationBuilder().AddUserSecrets<Startup>().AddEnvironmentVariables().Build();
+            const string key = "azure:key_vault";
 
-            var azureKeyVaultSection = configuration.GetSection("AzureVaultSettings");
-            var kv = azureKeyVaultSection.Get<Settings.AzureKeyVaultSettings>();
+            var configuration = new ConfigurationBuilder()
+                .AddUserSecrets<Startup>()
+                .AddEnvironmentVariables()
+                .AddCommandLine(args)
+                .Build();
 
-            if (!string.IsNullOrEmpty(kv.VaultName))
+            var settings = configuration.GetSection("azure:key_vault")?.Get<Settings.AzureSettings.KeyVaultSettings>(options => options.BindNonPublicProperties = true);
+            if (settings == null)
             {
-                // Note (Pawel) If user provided KV name without identity secrets, let him use user-assigned managed identity
-                var tokenProviderConnString = !string.IsNullOrEmpty(kv.IdentityApplicationId) ?
-                    $"RunAs=App;AppId={kv.IdentityApplicationId};TenantId={kv.IdentityTenantId};AppKey={kv.IdentityClientSecret}"
-                    : null;
-
-                var tokenProvider = new AzureServiceTokenProvider(tokenProviderConnString);
-                var keyVaultClient = new KeyVaultClient(
-                          new KeyVaultClient.AuthenticationCallback(
-                              tokenProvider.KeyVaultTokenCallback));
-
-                return builder.AddAzureKeyVault(
-                           kv.Endpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
+                return builder;
             }
 
-            return builder;
+            if (settings?.GetValidationErrors().Any() == true)
+            {
+                var stringBuilder = new StringBuilder();
+                var errors = settings.GetValidationErrors().Select(value => string.Format(CultureInfo.InvariantCulture, value, key));
+                stringBuilder.Append($"\r\nErrors in '{key}' section:\r\n - {string.Join("\r\n - ", errors)}");
+
+                // TODO (Cameron): Change link to point to somewhere sensible (when it exists).
+                throw new InvalidOperationException(
+                    $@"Validation of configuration settings failed.{stringBuilder.ToString()}
+Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063ba56 for more information.");
+            }
+
+            var tokenProvider = new AzureServiceTokenProvider(settings.ConnectionString);
+            var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(tokenProvider.KeyVaultTokenCallback));
+
+            return builder.AddAzureKeyVault(settings.Endpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
         }
     }
 }

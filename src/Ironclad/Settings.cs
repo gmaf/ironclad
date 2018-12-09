@@ -23,7 +23,7 @@ namespace Ironclad
 
         public MailSettings Mail { get; set; }
 
-        public AzureKeyVaultSettings AzureVault { get; set; }
+        public AzureSettings Azure { get; set; }
 
         public void Validate()
         {
@@ -55,6 +55,11 @@ namespace Ironclad
             if (this.Mail?.GetValidationErrors().Any() == true)
             {
                 sections.Add(nameof(this.Mail), this.Mail.GetValidationErrors());
+            }
+
+            if (this.Azure?.KeyVault?.GetValidationErrors().Any() == true)
+            {
+                sections.Add($"{nameof(this.Azure)}:{nameof(this.Azure.KeyVault)}", this.Azure.KeyVault.GetValidationErrors());
             }
 
             if (sections.Any())
@@ -200,17 +205,30 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
             }
         }
 
-        public class AzureKeyVaultSettings
+        public class AzureSettings
         {
-            public string VaultName { get; set; }
+            public KeyVaultSettings KeyVault => this.key_vault;
 
-            public string Endpoint => $"https://{this.VaultName}.vault.azure.net";
+            private KeyVaultSettings key_vault { get; set; }
 
-            public string IdentityApplicationId { get; set; }
+            public class KeyVaultSettings
+            {
+                public string Name { get; set; }
 
-            public string IdentityClientSecret { get; set; }
+                public string ConnectionString { get; set; }
 
-            public string IdentityTenantId { get; set; }
+                public string Endpoint => $"https://{this.Name}.vault.azure.net";
+
+                public bool IsValid() => !this.GetValidationErrors().Any();
+
+                public IEnumerable<string> GetValidationErrors()
+                {
+                    if (string.IsNullOrEmpty(this.Name))
+                    {
+                        yield return $"'{{0}}:{nameof(this.Name).ToLowerInvariant()}' is null or empty.";
+                    }
+                }
+            }
         }
     }
 }
