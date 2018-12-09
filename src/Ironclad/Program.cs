@@ -12,9 +12,6 @@ namespace Ironclad
     using Microsoft.Extensions.Configuration;
     using Serilog;
     using Serilog.Events;
-    using System;
-    using System.Reflection;
-    using System.Runtime.InteropServices;
 
     public static class Program
     {
@@ -78,9 +75,9 @@ namespace Ironclad
 
         private static IWebHostBuilder CreateWebHostBuilder(string[] args, IConfigurationRoot configuration) =>
             WebHost.CreateDefaultBuilder(args)
-                 .UseApplicationInsights()
-                 .UseConfiguration(configuration)
-                 .UseStartup<Startup>()
-                 .UseSerilog();
+                .UseApplicationInsights()
+                .UseConfiguration(configuration)
+                .UseStartup<Startup>()
+                .UseSerilog();
     }
 }

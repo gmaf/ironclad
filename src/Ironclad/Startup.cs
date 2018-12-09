@@ -122,12 +122,6 @@ namespace Ironclad
                 services.AddSingleton<IEmailSender>(new NullEmailSender());
             }
 
-            var applicationInsightsKey = this.configuration.GetValue<string>("APPINSIGHTS_INSTRUMENTATIONKEY");
-            if (!string.IsNullOrEmpty(applicationInsightsKey))
-            {
-                this.logger.Information($"Using Application Insights {applicationInsightsKey}");
-            }
-
             services.AddSingleton<IAuthorizationHandler, ScopeHandler>();
             services.AddSingleton<IAuthorizationHandler, RoleHandler>();
 
