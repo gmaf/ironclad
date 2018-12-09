@@ -3,6 +3,7 @@
 
 namespace Ironclad
 {
+    using System;
     using IdentityModel.Client;
     using IdentityServer4.AccessTokenValidation;
     using IdentityServer4.Postgresql.Extensions;
@@ -12,6 +13,7 @@ namespace Ironclad
     using Ironclad.Services.Email;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.DataProtection;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.HttpOverrides;
     using Microsoft.AspNetCore.Identity;
@@ -120,6 +122,13 @@ namespace Ironclad
             {
                 this.logger.LogWarning("No credentials specified for SMTP. Email will be disabled.");
                 services.AddSingleton<IEmailSender>(new NullEmailSender());
+            }
+
+            if (this.settings.Server?.DataProtection?.IsValid() == true)
+            {
+                services.AddDataProtection()
+                    .PersistKeysToAzureBlobStorage(new Uri(this.settings.Server.DataProtection.KeyfileUri))
+                    .ProtectKeysWithAzureKeyVault(this.settings.Azure.KeyVault.Client, this.settings.Server.DataProtection.KeyId);
             }
 
             services.AddSingleton<IAuthorizationHandler, ScopeHandler>();
