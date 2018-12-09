@@ -21,22 +21,22 @@ namespace Ironclad.Services.Certificates
 
         public Task<X509Certificate2> GetCertificateAsync()
         {
-            this.logger.LogInformation($"Loading {this.thumbprint} certificate from local store.");
+            this.logger.LogInformation($"Loading certificate from local store.");
 
             using (var store = new X509Store(StoreName.My, StoreLocation.LocalMachine))
             {
                 store.Open(OpenFlags.ReadOnly);
 
-                var certs = store.Certificates.Find(X509FindType.FindByThumbprint, this.thumbprint, false);
-                if (certs.Count == 0)
+                var certificates = store.Certificates.Find(X509FindType.FindByThumbprint, this.thumbprint, false);
+                if (certificates.Count == 0)
                 {
-                    var message = $"Certificate {this.thumbprint} not found in local store.";
+                    var message = $"Certificate '{this.thumbprint}' not found in local store.";
 
                     this.logger.LogError(message);
                     throw new InvalidOperationException(message);
                 }
 
-                return Task.FromResult(certs[0]);
+                return Task.FromResult(certificates[0]);
             }
         }
     }

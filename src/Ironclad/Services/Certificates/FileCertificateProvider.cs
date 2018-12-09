@@ -24,14 +24,16 @@ namespace Ironclad.Services.Certificates
         // TODO (Cameron): Needs to handle certs with passwords.
         public async Task<X509Certificate2> GetCertificateAsync()
         {
+            this.logger.LogInformation($"Loading certificate from file path.");
+
             if (!File.Exists(this.filepath))
             {
-                var message = $"Certificate file {this.filepath} not found.";
+                var message = $"Certificate file '{this.filepath}' not found.";
+
                 this.logger.LogError(message);
                 throw new FileNotFoundException(message);
             }
 
-            this.logger.LogInformation($"Loading certificate from {this.filepath} path.");
             var file = await File.ReadAllBytesAsync(this.filepath).ConfigureAwait(false);
 
             return new X509Certificate2(file, this.password);

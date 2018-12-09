@@ -9,44 +9,38 @@ namespace Ironclad.Services.Certificates
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Logging;
-    using static Ironclad.Settings.AzureSettings;
 
     internal class AzureKeyVaultCertificateProvider : ICertificateProvider
     {
-        private readonly KeyVaultSettings settings;
+        private readonly string connectionString;
         private readonly string certificateId;
-        private readonly ILogger logger;
+        private readonly ILogger<AzureKeyVaultCertificateProvider> logger;
 
-        public AzureKeyVaultCertificateProvider(KeyVaultSettings settings, string certificateId, ILogger logger)
+        public AzureKeyVaultCertificateProvider(string connectionString, string certificateId, ILogger<AzureKeyVaultCertificateProvider> logger)
         {
-            if (string.IsNullOrEmpty(settings.ConnectionString))
-            {
-                throw new InvalidOperationException("Key vault connection string is missing in configuration.");
-            }
-
-            this.settings = settings;
+            this.connectionString = connectionString;
             this.certificateId = certificateId;
             this.logger = logger;
         }
 
         public async Task<X509Certificate2> GetCertificateAsync()
         {
-            this.logger.LogInformation($"Loading {this.certificateId} from Azure key vault.");
+            this.logger.LogInformation($"Loading certificate from Azure Key Vault.");
 
-            var tokenProvider = new AzureServiceTokenProvider(this.settings.ConnectionString);
+            var tokenProvider = new AzureServiceTokenProvider(this.connectionString);
+
             using (var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(tokenProvider.KeyVaultTokenCallback)))
             {
-                var cert = await keyVaultClient.GetCertificateAsync(this.certificateId).ConfigureAwait(false);
-
-                if (cert == null)
+                var certificate = await keyVaultClient.GetCertificateAsync(this.certificateId).ConfigureAwait(false);
+                if (certificate == null)
                 {
-                    this.logger.LogError($"Key vault certificate {this.certificateId} not found.");
-                    throw new InvalidOperationException($"Key vault certificate {this.certificateId} not found.");
+                    var message = $"Certificate with identity '{this.certificateId}' not found in Azure Key Vault.";
+
+                    this.logger.LogError(message);
+                    throw new InvalidOperationException(message);
                 }
 
-                var x509 = new X509Certificate2(cert.Cer);
-
-                return x509;
+                return new X509Certificate2(certificate.Cer);
             }
         }
     }

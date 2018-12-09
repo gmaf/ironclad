@@ -38,7 +38,10 @@ namespace Ironclad
             }
             else if (!string.IsNullOrEmpty(settings.Server.SigningCertificate.CertificateId))
             {
-                ////var provider = new FileCertificateProvider(settings.Server.SigningCertificate.Filepath, loggerFactory.CreateLogger<FileCertificateProvider>());
+                provider = new AzureKeyVaultCertificateProvider(
+                    settings.Azure.KeyVault.ConnectionString,
+                    settings.Server.SigningCertificate.CertificateId,
+                    loggerFactory.CreateLogger<AzureKeyVaultCertificateProvider>());
             }
 
             var certificate = provider.GetCertificateAsync().Result;
