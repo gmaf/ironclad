@@ -31,7 +31,7 @@
 
             Target(
                     BuildSolution,
-                    DependsOn(RestoreNugetPackages),                () => Run("dotnet", "build src/Ironclad.sln -c Release --no-restore"));
+                    DependsOn(RestoreNugetPackages),                () => Run("dotnet", "build src/Ironclad.sln -c CI --no-restore"));
 
             Target(
                     BuildDockerImage,                               () => Run("docker", "build --tag ironclad ."));
