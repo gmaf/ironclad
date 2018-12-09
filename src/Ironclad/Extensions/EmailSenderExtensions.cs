@@ -5,7 +5,7 @@ namespace Ironclad
 {
     using System.Text.Encodings.Web;
     using System.Threading.Tasks;
-    using Ironclad.Services;
+    using Ironclad.Services.Email;
 
     public static class EmailSenderExtensions
     {

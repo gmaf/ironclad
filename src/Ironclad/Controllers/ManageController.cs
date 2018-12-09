@@ -12,7 +12,7 @@ namespace Ironclad.Controllers
     using Ironclad.Application;
     using Ironclad.Models;
     using Ironclad.Sdk;
-    using Ironclad.Services;
+    using Ironclad.Services.Email;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;

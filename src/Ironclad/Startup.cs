@@ -9,7 +9,7 @@ namespace Ironclad
     using Ironclad.Application;
     using Ironclad.Authorization;
     using Ironclad.Data;
-    using Ironclad.Services;
+    using Ironclad.Services.Email;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
@@ -26,11 +26,13 @@ namespace Ironclad
     public class Startup
     {
         private readonly ILogger<Startup> logger;
+        private readonly ILoggerFactory loggerFactory;
         private readonly Settings settings;
 
-        public Startup(ILogger<Startup> logger, IConfiguration configuration)
+        public Startup(ILogger<Startup> logger, ILoggerFactory loggerFactory, IConfiguration configuration)
         {
             this.logger = logger;
+            this.loggerFactory = loggerFactory;
             this.settings = configuration.Get<Settings>(options => options.BindNonPublicProperties = true);
             this.settings.Validate();
         }
@@ -67,7 +69,7 @@ namespace Ironclad
                     });
 
             services.AddIdentityServer(options => options.IssuerUri = this.settings.Server.IssuerUri)
-                .AddDeveloperSigningCredential()
+                .AddSigningCredentialFromSettings(this.settings, this.loggerFactory)
                 .AddConfigurationStore(this.settings.Server.Database)
                 .AddOperationalStore()
                 .AddAppAuthRedirectUriValidator()

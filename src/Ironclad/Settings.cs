@@ -2,7 +2,7 @@
 // See the LICENSE file in the project root for more information.
 
 // TODO (Cameron): Refactor and remove when JSON configuration supports snake case.
-#pragma warning disable IDE1006, SA1300
+#pragma warning disable IDE1006, SA1300, SA1202
 #pragma warning disable CA1812, CA1308
 
 namespace Ironclad
@@ -38,6 +38,11 @@ namespace Ironclad
                 sections.Add(nameof(this.Server), this.Server.GetValidationErrors());
             }
 
+            if (this.Server?.SigningCertificate?.GetValidationErrors().Any() == true)
+            {
+                sections.Add($"{nameof(this.Server)}:{nameof(this.Server.signing_certificate)}", this.Server.SigningCertificate.GetValidationErrors());
+            }
+
             if (this.Api == null)
             {
                 sections.Add(nameof(this.Api), new[] { "Missing section." });
@@ -59,7 +64,7 @@ namespace Ironclad
 
             if (this.Azure?.KeyVault?.GetValidationErrors().Any() == true)
             {
-                sections.Add($"{nameof(this.Azure)}:{nameof(this.Azure.KeyVault)}", this.Azure.KeyVault.GetValidationErrors());
+                sections.Add($"{nameof(this.Azure)}:{nameof(this.Azure.key_vault)}", this.Azure.KeyVault.GetValidationErrors());
             }
 
             if (sections.Any())
@@ -86,9 +91,13 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
 
             public bool RespectXForwardedForHeaders => this.respect_x_forwarded_for_headers == false ? false : true;
 
+            public SigningCertificateSettings SigningCertificate => this.signing_certificate;
+
             private string issuer_uri { get; set; }
 
             private bool? respect_x_forwarded_for_headers { get; set; }
+
+            internal SigningCertificateSettings signing_certificate { get; set; }
 
             public bool IsValid() => !this.GetValidationErrors().Any();
 
@@ -97,6 +106,40 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
                 if (string.IsNullOrEmpty(this.Database))
                 {
                     yield return $"'{{0}}:{nameof(this.Database).ToLowerInvariant()}' is null or empty.";
+                }
+            }
+
+            public class SigningCertificateSettings
+            {
+                public string Filepath { get; set; }
+
+                public string Password { get; set; }
+
+                public string Thumbprint { get; set; }
+
+                public string CertificateId => this.certificate_id;
+
+                private string certificate_id { get; set; }
+
+                public bool IsValid() => !this.GetValidationErrors().Any();
+
+                public IEnumerable<string> GetValidationErrors()
+                {
+                    var keys = string.Join(
+                        ", ",
+                        new[] { nameof(this.Thumbprint), nameof(this.Filepath), nameof(this.certificate_id) }.Select(name => $"'{{0}}:{name.ToLowerInvariant()}'"));
+
+                    if (string.IsNullOrEmpty(this.Filepath) && string.IsNullOrEmpty(this.Thumbprint) && string.IsNullOrEmpty(this.CertificateId))
+                    {
+                        yield return $"All of the following configuration settings are either null or empty (which is invalid): {keys}.";
+                    }
+
+                    if (new[] { string.IsNullOrEmpty(this.Filepath), string.IsNullOrEmpty(this.Thumbprint), string.IsNullOrEmpty(this.CertificateId) }
+                        .Where(condition => !condition)
+                        .Count() > 1)
+                    {
+                        yield return $"More than one of the following configuration settings have values (which is invalid): {keys}.";
+                    }
                 }
             }
         }
@@ -209,7 +252,7 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
         {
             public KeyVaultSettings KeyVault => this.key_vault;
 
-            private KeyVaultSettings key_vault { get; set; }
+            internal KeyVaultSettings key_vault { get; set; }
 
             public class KeyVaultSettings
             {
