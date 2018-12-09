@@ -38,7 +38,7 @@ namespace Ironclad
 
             // LINK (Cameron): https://mitchelsellers.com/blogs/2017/10/09/real-world-aspnet-core-logging-configuration
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.Async(a => a.Console(outputTemplate: "[{AzureWebsiteInstanceId}] [{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"))
+                .WriteTo.Async(a => a.Console(outputTemplate: "[{InstanceId}] [{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"))
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .Enrich.FromLogContext()
                 .Enrich.WithMachineName()
