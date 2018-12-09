@@ -17,7 +17,7 @@ namespace Ironclad.WebApi
     using Ironclad.Application;
     using Ironclad.Client;
     using Ironclad.Configuration;
-    using Ironclad.Services;
+    using Ironclad.Services.Email;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;

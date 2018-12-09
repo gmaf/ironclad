@@ -3,11 +3,8 @@
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    using System;
-
     using AspNetCore.Authentication;
     using AspNetCore.Authentication.OpenIdConnect;
-    using AspNetCore.Builder;
     using Extensions;
     using Ironclad.ExternalIdentityProvider;
     using Ironclad.ExternalIdentityProvider.Persistence;
