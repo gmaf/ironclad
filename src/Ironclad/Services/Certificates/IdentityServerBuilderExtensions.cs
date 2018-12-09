@@ -39,7 +39,7 @@ namespace Ironclad
             else if (!string.IsNullOrEmpty(settings.Server.SigningCertificate.CertificateId))
             {
                 provider = new AzureKeyVaultCertificateProvider(
-                    settings.Azure.KeyVault.ConnectionString,
+                    settings.Azure.KeyVault.Client,
                     settings.Server.SigningCertificate.CertificateId,
                     loggerFactory.CreateLogger<AzureKeyVaultCertificateProvider>());
             }

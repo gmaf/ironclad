@@ -12,8 +12,11 @@ namespace Ironclad
     using System.Globalization;
     using System.Linq;
     using System.Text;
+    using Microsoft.Azure.KeyVault;
+    using Microsoft.Azure.Services.AppAuthentication;
 
-    internal class Settings
+    // TODO (Cameron): This class is a huge mess - for many reasons. Something needs to be done...
+    internal sealed class Settings
     {
         public ServerSettings Server { get; set; }
 
@@ -41,6 +44,11 @@ namespace Ironclad
             if (this.Server?.SigningCertificate?.GetValidationErrors().Any() == true)
             {
                 sections.Add($"{nameof(this.Server)}:{nameof(this.Server.signing_certificate)}", this.Server.SigningCertificate.GetValidationErrors());
+            }
+
+            if (this.Server?.DataProtection?.GetValidationErrors().Any() == true)
+            {
+                sections.Add($"{nameof(this.Server)}:{nameof(this.Server.data_protection)}", this.Server.DataProtection.GetValidationErrors());
             }
 
             if (this.Api == null)
@@ -83,7 +91,7 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
             }
         }
 
-        public class ServerSettings
+        public sealed class ServerSettings
         {
             public string Database { get; set; }
 
@@ -93,11 +101,15 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
 
             public SigningCertificateSettings SigningCertificate => this.signing_certificate;
 
+            public DataProtectionSettings DataProtection => this.data_protection;
+
             private string issuer_uri { get; set; }
 
             private bool? respect_x_forwarded_for_headers { get; set; }
 
             internal SigningCertificateSettings signing_certificate { get; set; }
+
+            internal DataProtectionSettings data_protection { get; set; }
 
             public bool IsValid() => !this.GetValidationErrors().Any();
 
@@ -109,7 +121,7 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
                 }
             }
 
-            public class SigningCertificateSettings
+            public sealed class SigningCertificateSettings
             {
                 public string Filepath { get; set; }
 
@@ -142,9 +154,31 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
                     }
                 }
             }
+
+            public sealed class DataProtectionSettings
+            {
+                public string KeyfileUri => this.keyfile_uri;
+
+                public string KeyId => this.key_id;
+
+                public string keyfile_uri { get; set; }
+
+                public string key_id { get; set; }
+
+                public bool IsValid() => !this.GetValidationErrors().Any();
+
+                public IEnumerable<string> GetValidationErrors()
+                {
+                    if (string.IsNullOrEmpty(this.KeyfileUri) || string.IsNullOrEmpty(this.KeyId))
+                    {
+                        yield return
+                            $"One or more of '{{0}}:{nameof(this.keyfile_uri).ToLowerInvariant()}' and '{{0}}:{nameof(this.key_id).ToLowerInvariant()}' are null or empty.";
+                    }
+                }
+            }
         }
 
-        public class ApiSettings
+        public sealed class ApiSettings
         {
             public string Authority { get; set; }
 
@@ -211,7 +245,7 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
             }
         }
 
-        public class MailSettings
+        public sealed class MailSettings
         {
             public string Sender { get; set; }
 
@@ -248,19 +282,40 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
             }
         }
 
-        public class AzureSettings
+        public sealed class AzureSettings
         {
             public KeyVaultSettings KeyVault => this.key_vault;
 
             internal KeyVaultSettings key_vault { get; set; }
 
-            public class KeyVaultSettings
+            public sealed class KeyVaultSettings : IDisposable
             {
+                private KeyVaultClient client;
+
                 public string Name { get; set; }
 
                 public string ConnectionString { get; set; }
 
                 public string Endpoint => $"https://{this.Name}.vault.azure.net";
+
+                public KeyVaultClient Client
+                {
+                    get
+                    {
+                        if (this.client != null)
+                        {
+                            return this.client;
+                        }
+
+                        if (!this.IsValid())
+                        {
+                            return null;
+                        }
+
+                        var tokenProvider = new AzureServiceTokenProvider(this.ConnectionString);
+                        return this.client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(tokenProvider.KeyVaultTokenCallback));
+                    }
+                }
 
                 public bool IsValid() => !this.GetValidationErrors().Any();
 
@@ -271,6 +326,8 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
                         yield return $"'{{0}}:{nameof(this.Name).ToLowerInvariant()}' is null or empty.";
                     }
                 }
+
+                public void Dispose() => this.client?.Dispose();
             }
         }
     }

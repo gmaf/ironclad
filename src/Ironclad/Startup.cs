@@ -43,10 +43,6 @@ namespace Ironclad
         {
             var migrationsAssembly = typeof(Startup).GetType().Assembly.GetName().Name;
 
-            services.AddDataProtection()
-             .PersistKeysToAzureBlobStorage(new Uri("https://ironcladdev.blob.core.windows.net/ironclad-dev-data-protection/key-ring/key-7947fc9c-4f2e-4aa4-b7c7-de0181f3752e.xml?sp=rcwd&st=2018-12-09T14:43:40Z&se=2019-03-09T22:43:40Z&spr=https&sv=2018-03-28&sig=dJyI2hKdoPBEb48Nk8UHib1KwHRLPPpjUBZU6YS%2ByZU%3D&sr=b"))
-             .ProtectKeysWithAzureKeyVault("https://ironclad-dev.vault.azure.net/keys/data-protection-at-rest/7527e085c1fb4be39b0b5bb0b4c105de", "51f55a27-19be-48b3-91d4-a8d49bfba866", "5e3sF1NNi15sy91XJ+df3wRIfBkqpiVD/a1HVI5sv28=");
-
             services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(this.settings.Server.Database));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(
@@ -126,6 +122,13 @@ namespace Ironclad
             {
                 this.logger.LogWarning("No credentials specified for SMTP. Email will be disabled.");
                 services.AddSingleton<IEmailSender>(new NullEmailSender());
+            }
+
+            if (this.settings.Server?.DataProtection?.IsValid() == true)
+            {
+                services.AddDataProtection()
+                    .PersistKeysToAzureBlobStorage(new Uri(this.settings.Server.DataProtection.KeyfileUri))
+                    .ProtectKeysWithAzureKeyVault(this.settings.Azure.KeyVault.Client, this.settings.Server.DataProtection.KeyId);
             }
 
             services.AddSingleton<IAuthorizationHandler, ScopeHandler>();

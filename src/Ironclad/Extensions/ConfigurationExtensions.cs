@@ -7,8 +7,6 @@ namespace Ironclad.Extensions
     using System.Globalization;
     using System.Linq;
     using System.Text;
-    using Microsoft.Azure.KeyVault;
-    using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Configuration.AzureKeyVault;
 
@@ -42,10 +40,7 @@ namespace Ironclad.Extensions
 Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063ba56 for more information.");
             }
 
-            var tokenProvider = new AzureServiceTokenProvider(settings.ConnectionString);
-            var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(tokenProvider.KeyVaultTokenCallback));
-
-            return builder.AddAzureKeyVault(settings.Endpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
+            return builder.AddAzureKeyVault(settings.Endpoint, settings.Client, new DefaultKeyVaultSecretManager());
         }
     }
 }

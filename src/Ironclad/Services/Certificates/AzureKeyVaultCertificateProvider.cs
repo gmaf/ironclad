@@ -12,13 +12,13 @@ namespace Ironclad.Services.Certificates
 
     internal class AzureKeyVaultCertificateProvider : ICertificateProvider
     {
-        private readonly string connectionString;
+        private readonly KeyVaultClient keyValutClient;
         private readonly string certificateId;
         private readonly ILogger<AzureKeyVaultCertificateProvider> logger;
 
-        public AzureKeyVaultCertificateProvider(string connectionString, string certificateId, ILogger<AzureKeyVaultCertificateProvider> logger)
+        public AzureKeyVaultCertificateProvider(KeyVaultClient keyValutClient, string certificateId, ILogger<AzureKeyVaultCertificateProvider> logger)
         {
-            this.connectionString = connectionString;
+            this.keyValutClient = keyValutClient;
             this.certificateId = certificateId;
             this.logger = logger;
         }
@@ -27,23 +27,18 @@ namespace Ironclad.Services.Certificates
         {
             this.logger.LogInformation($"Loading certificate from Azure Key Vault.");
 
-            var tokenProvider = new AzureServiceTokenProvider(this.connectionString);
-
-            using (var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(tokenProvider.KeyVaultTokenCallback)))
+            var certificateSecret = await this.keyValutClient.GetSecretAsync(this.certificateId).ConfigureAwait(false);
+            if (certificateSecret == null)
             {
-                var certificateSecret = await keyVaultClient.GetSecretAsync(this.certificateId).ConfigureAwait(false);
-                if (certificateSecret == null)
-                {
-                    var message = $"Certificate with identity '{this.certificateId}' not found in Azure Key Vault.";
+                var message = $"Certificate with identity '{this.certificateId}' not found in Azure Key Vault.";
 
-                    this.logger.LogError(message);
-                    throw new InvalidOperationException(message);
-                }
-
-                var cert = new X509Certificate2(Convert.FromBase64String(certificateSecret.Value));
-
-                return cert;
+                this.logger.LogError(message);
+                throw new InvalidOperationException(message);
             }
+
+            var cert = new X509Certificate2(Convert.FromBase64String(certificateSecret.Value));
+
+            return cert;
         }
     }
 }
