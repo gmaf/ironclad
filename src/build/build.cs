@@ -10,7 +10,6 @@
 
     internal static class Program
     {
-        private const string DetectEnvironment      = "env";
         private const string RestoreNugetPackages   = "restore";
         private const string BuildSolution          = "build";
         private const string BuildDockerImage       = "docker";
@@ -37,52 +36,51 @@
             var dockerPassword = default(string);
             var dockerTag = default(string);
 
-            Target(
-                DetectEnvironment,
-                () =>
+            // LINK (Cameron): https://docs.travis-ci.com/user/environment-variables/#default-environment-variables
+            if (settings.TRAVIS == true)
+            {
+                Console.WriteLine("Travis build server detected.");
+
+                if (int.TryParse(settings.TRAVIS_PULL_REQUEST, out var _))
                 {
-                    // LINK (Cameron): https://docs.travis-ci.com/user/environment-variables/#default-environment-variables
-                    if (settings.TRAVIS == true)
-                    {
-                        Console.WriteLine("Travis build server detected.");
+                    Console.WriteLine("Pull request build detected.");
+                    isPullRequest = true;
+                    return;
+                }
 
-                        if (int.TryParse(settings.TRAVIS_PULL_REQUEST, out var _))
-                        {
-                            Console.WriteLine("Pull request build detected.");
-                            isPullRequest = true;
-                            return;
-                        }
+                if (!string.IsNullOrEmpty(settings.TRAVIS_TAG))
+                {
+                    Console.WriteLine("Release build detected.");
 
-                        if (!string.IsNullOrEmpty(settings.TRAVIS_TAG))
-                        {
-                            Console.WriteLine("Release build detected.");
+                    nugetServer = settings.BUILD_SERVER__NUGET__SERVER;
+                    nugetApiKey = settings.BUILD_SERVER__NUGET__API_KEY;
 
-                            nugetServer = settings.BUILD_SERVER__NUGET__SERVER;
-                            nugetApiKey = settings.BUILD_SERVER__NUGET__API_KEY;
+                    dockerRegistry = settings.BUILD_SERVER__DOCKER_REGISTRY;
+                    dockerUsername = settings.BUILD_SERVER__DOCKER_USERNAME;
+                    dockerPassword = settings.BUILD_SERVER__DOCKER_PASSWORD;
+                    dockerTag = settings.TRAVIS_TAG;
 
-                            dockerRegistry = settings.BUILD_SERVER__DOCKER_REGISTRY;
-                            dockerUsername = settings.BUILD_SERVER__DOCKER_USERNAME;
-                            dockerPassword = settings.BUILD_SERVER__DOCKER_PASSWORD;
-                            dockerTag = settings.TRAVIS_TAG;
-                        }
-                        else
-                        {
-                            Console.WriteLine("Pre-release build detected.");
+                    Console.WriteLine($"Values: nugetServer = '{nugetServer}', nugetApiKey.Length = '{nugetApiKey.Length}'");
+                }
+                else
+                {
+                    Console.WriteLine("Pre-release build detected.");
 
-                            nugetServer = settings.BUILD_SERVER__NUGET__BETA_SERVER;
-                            nugetApiKey = settings.BUILD_SERVER__NUGET__BETA_API_KEY;
+                    nugetServer = settings.BUILD_SERVER__NUGET__BETA_SERVER;
+                    nugetApiKey = settings.BUILD_SERVER__NUGET__BETA_API_KEY;
 
-                            dockerRegistry = settings.BUILD_SERVER__DOCKER__BETA_REGISTRY;
-                            dockerUsername = settings.BUILD_SERVER__DOCKER__BETA_USERNAME;
-                            dockerPassword = settings.BUILD_SERVER__DOCKER__BETA_PASSWORD;
-                            dockerTag = "latest";
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Build server not detected.");
-                    }
-                });
+                    dockerRegistry = settings.BUILD_SERVER__DOCKER__BETA_REGISTRY;
+                    dockerUsername = settings.BUILD_SERVER__DOCKER__BETA_USERNAME;
+                    dockerPassword = settings.BUILD_SERVER__DOCKER__BETA_PASSWORD;
+                    dockerTag = "latest";
+
+                    Console.WriteLine("Release build detected.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Build server not detected.");
+            }
 
             Target(
                 RestoreNugetPackages,
@@ -114,7 +112,7 @@
 
             Target(
                 PublishNugetPackages,
-                DependsOn(DetectEnvironment, CreateNugetPackages, TestDockerImage),
+                DependsOn(CreateNugetPackages, TestDockerImage),
                 () =>
                 {
                     var packagesToPublish = Directory.GetFiles(ArtifactsFolder, "*.nupkg", SearchOption.TopDirectoryOnly);
@@ -125,6 +123,8 @@
                         Console.WriteLine("Build is pull request. Packages will not be published.");
                         return;
                     }
+
+                    Console.WriteLine($"Values: nugetServer = '{nugetServer}', nugetApiKey.Length = '{nugetApiKey.Length}'");
 
                     if (string.IsNullOrWhiteSpace(nugetServer) || string.IsNullOrWhiteSpace(nugetApiKey))
                     {
@@ -140,7 +140,7 @@
 
             Target(
                 PublishDockerImage,
-                DependsOn(DetectEnvironment, TestDockerImage),
+                DependsOn(TestDockerImage),
                 () =>
                 {
                     if (isPullRequest)
@@ -151,7 +151,7 @@
 
                     if (string.IsNullOrWhiteSpace(dockerRegistry) || string.IsNullOrWhiteSpace(dockerUsername) || string.IsNullOrWhiteSpace(dockerPassword))
                     {
-                        Console.WriteLine("Docker credentials not specified. Docker images will not be published.");
+                        Console.WriteLine("Docker settings not specified. Docker images will not be published.");
                         return;
                     }
 
