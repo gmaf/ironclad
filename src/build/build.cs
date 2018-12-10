@@ -64,8 +64,6 @@
                             dockerUsername = settings.BUILD_SERVER?.DOCKER?.USERNAME;
                             dockerPassword = settings.BUILD_SERVER?.DOCKER?.PASSWORD;
                             dockerTag = settings.TRAVIS_TAG;
-
-                            Console.WriteLine($"Values: nugetServer = '{nugetServer}', nugetApiKey.Length = '{nugetApiKey.Length}'");
                         }
                         else
                         {
@@ -78,8 +76,6 @@
                             dockerUsername = settings.BUILD_SERVER?.DOCKER?.BETA_USERNAME;
                             dockerPassword = settings.BUILD_SERVER?.DOCKER?.BETA_PASSWORD;
                             dockerTag = "latest";
-
-                            Console.WriteLine($"Values: nugetServer = '{nugetServer}', nugetApiKey.Length = '{nugetApiKey.Length}'");
                         }
                     }
                     else
@@ -90,12 +86,12 @@
 
             Target(
                 RestoreNugetPackages,
-                () => Run("dotnet", "restore src/Ironclad.sln"));
+                () => Run("dotnet", $"restore src/Ironclad.sln"));
 
             Target(
                 BuildSolution,
                 DependsOn(RestoreNugetPackages),
-                () => Run("dotnet", "build src/Ironclad.sln -c CI --no-restore"));
+                () => Run("dotnet", $"build src/Ironclad.sln -c CI --no-restore"));
 
             Target(
                 BuildDockerImage,
@@ -111,10 +107,10 @@
                 CreateNugetPackages,
                 DependsOn(BuildSolution),
                 ForEach(
-                    "src/Ironclad.Client/Ironclad.Client.csproj", 
-                    "src/Ironclad.Console/Ironclad.Console.csproj", 
-                    "src/tests/Ironclad.Tests.Sdk/Ironclad.Tests.Sdk.csproj"),
-                project => Run("dotnet", $"pack {project} -c Release -o ../../{(project.StartsWith("src/tests") ? "../" : "") + ArtifactsFolder} --no-build"));
+                    $"src/Ironclad.Client/Ironclad.Client.csproj", 
+                    $"src/Ironclad.Console/Ironclad.Console.csproj", 
+                    $"src/tests/Ironclad.Tests.Sdk/Ironclad.Tests.Sdk.csproj"),
+                project => Run("dotnet", $"pack {project} -c Release -o ../../{(project.StartsWith($"src/tests") ? "../" : "") + ArtifactsFolder} --no-build"));
 
             Target(
                 PublishNugetPackages,
@@ -140,6 +136,7 @@
 
                     foreach (var packageToPublish in packagesToPublish)
                     {
+                        Console.WriteLine($"dotnet nuget push {packageToPublish} -s {nugetServer} -k {nugetApiKey}");
                         Run("dotnet", $"nuget push {packageToPublish} -s {nugetServer} -k {nugetApiKey}", noEcho: true);
                     }
                 });
@@ -163,7 +160,7 @@
 
                     Run("docker", $"login {dockerRegistry} -u {dockerUsername} -p {dockerPassword}");
                     Run("docker", $"tag ironclad:latest {dockerRegistry}/ironclad:{dockerTag}");
-                    Run("docker", $"docker push {dockerRegistry}/ironclad:{dockerTag}");
+                    Run("docker", $"push {dockerRegistry}/ironclad:{dockerTag}");
                 });
 
             Target(
