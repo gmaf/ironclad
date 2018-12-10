@@ -25,6 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleWebApi", "samples\Sam
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{008344D0-EA64-4D6B-8EAA-F03592B863BF}"
 	ProjectSection(SolutionItems) = preProject
+		samples\Directory.Build.props = samples\Directory.Build.props
 		samples\README.md = samples\README.md
 	EndProjectSection
 EndProject
@@ -138,8 +139,8 @@ Global
 		{17A91EA2-44AC-4314-8961-606EF06FD07A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{17A91EA2-44AC-4314-8961-606EF06FD07A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{76F9DF80-D494-428A-BB46-4E7248A260AA}.CI|Any CPU.ActiveCfg = Release|Any CPU
-		{76F9DF80-D494-428A-BB46-4E7248A260AA}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{76F9DF80-D494-428A-BB46-4E7248A260AA}.Debug|Any CPU.Build.0 = Release|Any CPU
+		{76F9DF80-D494-428A-BB46-4E7248A260AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76F9DF80-D494-428A-BB46-4E7248A260AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76F9DF80-D494-428A-BB46-4E7248A260AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution

@@ -10,6 +10,7 @@
 
     internal static class Program
     {
+        private const string DetectEnvironment      = "env";
         private const string RestoreNugetPackages   = "restore";
         private const string BuildSolution          = "build";
         private const string BuildDockerImage       = "docker";
@@ -36,51 +37,56 @@
             var dockerPassword = default(string);
             var dockerTag = default(string);
 
-            // LINK (Cameron): https://docs.travis-ci.com/user/environment-variables/#default-environment-variables
-            if (settings.TRAVIS == true)
-            {
-                Console.WriteLine("Travis build server detected.");
-
-                if (int.TryParse(settings.TRAVIS_PULL_REQUEST, out var _))
+            Target(
+                DetectEnvironment,
+                () =>
                 {
-                    Console.WriteLine("Pull request build detected.");
-                    isPullRequest = true;
-                    return;
-                }
+                    // LINK (Cameron): https://docs.travis-ci.com/user/environment-variables/#default-environment-variables
+                    if (settings.TRAVIS == true)
+                    {
+                        Console.WriteLine("Travis build server detected.");
 
-                if (!string.IsNullOrEmpty(settings.TRAVIS_TAG))
-                {
-                    Console.WriteLine("Release build detected.");
+                        if (int.TryParse(settings.TRAVIS_PULL_REQUEST, out var _))
+                        {
+                            Console.WriteLine("Pull request build detected.");
+                            isPullRequest = true;
+                            return;
+                        }
 
-                    nugetServer = settings.BUILD_SERVER__NUGET__SERVER;
-                    nugetApiKey = settings.BUILD_SERVER__NUGET__API_KEY;
+                        if (!string.IsNullOrEmpty(settings.TRAVIS_TAG))
+                        {
+                            Console.WriteLine($"Release build detected for tag = '{settings.TRAVIS_TAG}'.");
 
-                    dockerRegistry = settings.BUILD_SERVER__DOCKER_REGISTRY;
-                    dockerUsername = settings.BUILD_SERVER__DOCKER_USERNAME;
-                    dockerPassword = settings.BUILD_SERVER__DOCKER_PASSWORD;
-                    dockerTag = settings.TRAVIS_TAG;
+                            nugetServer = settings.BUILD_SERVER?.NUGET?.SERVER;
+                            nugetApiKey = settings.BUILD_SERVER?.NUGET?.API_KEY;
 
-                    Console.WriteLine($"Values: nugetServer = '{nugetServer}', nugetApiKey.Length = '{nugetApiKey.Length}'");
-                }
-                else
-                {
-                    Console.WriteLine("Pre-release build detected.");
+                            dockerRegistry = settings.BUILD_SERVER?.DOCKER?.REGISTRY;
+                            dockerUsername = settings.BUILD_SERVER?.DOCKER?.USERNAME;
+                            dockerPassword = settings.BUILD_SERVER?.DOCKER?.PASSWORD;
+                            dockerTag = settings.TRAVIS_TAG;
 
-                    nugetServer = settings.BUILD_SERVER__NUGET__BETA_SERVER;
-                    nugetApiKey = settings.BUILD_SERVER__NUGET__BETA_API_KEY;
+                            Console.WriteLine($"Values: nugetServer = '{nugetServer}', nugetApiKey.Length = '{nugetApiKey.Length}'");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Pre-release build detected.");
 
-                    dockerRegistry = settings.BUILD_SERVER__DOCKER__BETA_REGISTRY;
-                    dockerUsername = settings.BUILD_SERVER__DOCKER__BETA_USERNAME;
-                    dockerPassword = settings.BUILD_SERVER__DOCKER__BETA_PASSWORD;
-                    dockerTag = "latest";
+                            nugetServer = settings.BUILD_SERVER?.NUGET?.BETA_SERVER;
+                            nugetApiKey = settings.BUILD_SERVER?.NUGET?.BETA_API_KEY;
 
-                    Console.WriteLine("Release build detected.");
-                }
-            }
-            else
-            {
-                Console.WriteLine("Build server not detected.");
-            }
+                            dockerRegistry = settings.BUILD_SERVER?.DOCKER?.BETA_REGISTRY;
+                            dockerUsername = settings.BUILD_SERVER?.DOCKER?.BETA_USERNAME;
+                            dockerPassword = settings.BUILD_SERVER?.DOCKER?.BETA_PASSWORD;
+                            dockerTag = "latest";
+
+                            Console.WriteLine($"Values: nugetServer = '{nugetServer}', nugetApiKey.Length = '{nugetApiKey.Length}'");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Build server not detected.");
+                    }
+                });
 
             Target(
                 RestoreNugetPackages,
@@ -112,7 +118,7 @@
 
             Target(
                 PublishNugetPackages,
-                DependsOn(CreateNugetPackages, TestDockerImage),
+                DependsOn(DetectEnvironment, CreateNugetPackages, TestDockerImage),
                 () =>
                 {
                     var packagesToPublish = Directory.GetFiles(ArtifactsFolder, "*.nupkg", SearchOption.TopDirectoryOnly);
@@ -140,7 +146,7 @@
 
             Target(
                 PublishDockerImage,
-                DependsOn(TestDockerImage),
+                DependsOn(DetectEnvironment, TestDockerImage),
                 () =>
                 {
                     if (isPullRequest)
@@ -178,17 +184,31 @@
             public string TRAVIS_PULL_REQUEST { get; set; }
             public string TRAVIS_TAG { get; set; }
 
-            // build specific
-            public string BUILD_SERVER__NUGET__BETA_SERVER { get; set; }
-            public string BUILD_SERVER__NUGET__BETA_API_KEY { get; set; }
-            public string BUILD_SERVER__NUGET__SERVER { get; set; }
-            public string BUILD_SERVER__NUGET__API_KEY { get; set; }
-            public string BUILD_SERVER__DOCKER__BETA_REGISTRY { get; set; }
-            public string BUILD_SERVER__DOCKER__BETA_USERNAME { get; set; }
-            public string BUILD_SERVER__DOCKER__BETA_PASSWORD { get; set; }
-            public string BUILD_SERVER__DOCKER_REGISTRY { get; set; }
-            public string BUILD_SERVER__DOCKER_USERNAME { get; set; }
-            public string BUILD_SERVER__DOCKER_PASSWORD { get; set; }
+            public BuildSettings BUILD_SERVER { get; set; }
+
+            public class BuildSettings
+            {
+                public NugetSettings NUGET { get; set; }
+                public DockerSettings DOCKER { get; set; }
+
+                public class NugetSettings
+                {
+                    public string BETA_SERVER { get; set; }
+                    public string BETA_API_KEY { get; set; }
+                    public string SERVER { get; set; }
+                    public string API_KEY { get; set; }
+                }
+
+                public class DockerSettings
+                {
+                    public string BETA_REGISTRY { get; set; }
+                    public string BETA_USERNAME { get; set; }
+                    public string BETA_PASSWORD { get; set; }
+                    public string REGISTRY { get; set; }
+                    public string USERNAME { get; set; }
+                    public string PASSWORD { get; set; }
+                }
+            }
         }
     }
 }
