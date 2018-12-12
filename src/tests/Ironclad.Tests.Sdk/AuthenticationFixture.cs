@@ -6,7 +6,6 @@
 namespace Ironclad.Tests.Sdk
 {
     using System;
-    using System.Configuration;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading;
@@ -14,7 +13,6 @@ namespace Ironclad.Tests.Sdk
     using IdentityModel.Client;
     using IdentityModel.OidcClient;
     using Ironclad.Client;
-    using Microsoft.Extensions.Configuration;
     using Xunit;
     using Xunit.Abstractions;
 

@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <IsPackable>false</IsPackable>
-    <NoWarn>1701;1702;SA1633;SA1652</NoWarn>
     <Configurations>Debug</Configurations>
   </PropertyGroup>
 
@@ -15,6 +14,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\tests\Ironclad.Tests.Sdk\Ironclad.Tests.Sdk.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="testsettings.Custom.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
