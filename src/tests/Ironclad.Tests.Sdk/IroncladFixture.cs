@@ -37,7 +37,11 @@ namespace Ironclad.Tests.Sdk
 
         public IroncladFixture(IMessageSink messageSink)
         {
-            var configuration = new ConfigurationBuilder().AddJsonFile("testsettings.json", optional: true).AddEnvironmentVariables().Build();
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("testsettings.json", optional: true)
+                .AddJsonFile("testsettings.Custom.json", optional: true)
+                .AddEnvironmentVariables()
+                .Build();
 
             this.settings = configuration.GetSection("auth_server").Get<Settings>(options => options.BindNonPublicProperties = true) ?? new Settings();
 
