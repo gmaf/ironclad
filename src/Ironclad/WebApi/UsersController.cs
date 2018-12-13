@@ -391,7 +391,7 @@ namespace Ironclad.WebApi
                 }
             }
 
-            return this.Ok();
+            return this.NoContent();
         }
 
         [HttpDelete("{username}")]
@@ -410,7 +410,7 @@ namespace Ironclad.WebApi
 
             await this.userManager.DeleteAsync(user);
 
-            return this.Ok();
+            return this.NoContent();
         }
 
 #pragma warning disable CA1034, CA1056
