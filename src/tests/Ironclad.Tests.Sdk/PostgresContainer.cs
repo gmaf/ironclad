@@ -3,7 +3,9 @@
 
 namespace Ironclad.Tests.Sdk
 {
+    using System;
     using System.Globalization;
+    using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using Npgsql;
 
@@ -42,12 +44,14 @@ namespace Ironclad.Tests.Sdk
 
         public string GetConnectionStringForHost() => string.Format(CultureInfo.InvariantCulture, ConnectionString, "localhost", this.port);
 
-        public string GetConnectionStringForContainer() => string.Format(CultureInfo.InvariantCulture, ConnectionString, "host.docker.internal", this.port);
+        public string GetConnectionStringForContainer() => string.Format(CultureInfo.InvariantCulture, ConnectionString, ResolveHost(), this.port);
 
         public override async Task InitializeAsync()
         {
             await base.InitializeAsync().ConfigureAwait(false);
             await this.probe.WaitUntilAvailable(true, default).ConfigureAwait(false);
         }
+
+        private static string ResolveHost() => RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? Environment.MachineName : "host.docker.internal";
     }
 }
