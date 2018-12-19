@@ -18,8 +18,10 @@ namespace Ironclad.Configuration
                 new IdentityResources.Phone(),
                 new IdentityResource
                 {
+                    Description = "Your assigned role(s)",
                     Name = JwtClaimTypes.Role,
                     UserClaims = { JwtClaimTypes.Role },
+                    ShowInDiscoveryDocument = false,
                 },
             };
 

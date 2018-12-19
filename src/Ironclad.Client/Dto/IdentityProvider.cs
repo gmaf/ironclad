@@ -37,7 +37,7 @@ namespace Ironclad.Client
         public string Authority { get; set; }
 
         /// <summary>
-        /// Gets or sets the client ID for the identity provider.
+        /// Gets or sets the client identity for the identity provider.
         /// </summary>
         /// <value>The secret.</value>
         public string ClientId { get; set; }
@@ -49,10 +49,9 @@ namespace Ironclad.Client
         public string CallbackPath { get; set; }
 
         /// <summary>
-        /// Gets or sets the acr_values string for the identity provider.
+        /// Gets or sets the authentication context class reference values for the identity provider.
         /// </summary>
-        /// <value>Space-separated string that specifies the acr values.</value>
+        /// <value>Space-separated string that specifies the authentication context class reference values.</value>
         public string AcrValues { get; set; }
-
     }
 }

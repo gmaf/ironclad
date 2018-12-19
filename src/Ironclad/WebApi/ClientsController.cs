@@ -108,17 +108,17 @@ namespace Ironclad.WebApi
                 return this.BadRequest(new { Message = $"Cannot create a client without a client ID" });
             }
 
-            if (!TryParseEnum<AccessTokenType>(model.AccessTokenType, out var accessTokenType))
+            if (!string.IsNullOrEmpty(model.AccessTokenType) & !Enum.TryParse<AccessTokenType>(model.AccessTokenType, out var accessTokenType))
             {
                 return this.BadRequest(new { Message = $"Access token type '{model.AccessTokenType}' does not exist" });
             }
 
-            if (!TryParseEnum<TokenUsage>(model.RefreshTokenUsage, out var refreshTokenUsage))
+            if (!string.IsNullOrEmpty(model.RefreshTokenUsage) & !Enum.TryParse<TokenUsage>(model.RefreshTokenUsage, out var refreshTokenUsage))
             {
                 return this.BadRequest(new { Message = $"Refresh token usage '{model.RefreshTokenUsage}' does not exist" });
             }
 
-            if (!TryParseEnum<TokenExpiration>(model.RefreshTokenExpiration, out var refreshTokenExpiration))
+            if (!string.IsNullOrEmpty(model.RefreshTokenExpiration) & !Enum.TryParse<TokenExpiration>(model.RefreshTokenExpiration, out var refreshTokenExpiration))
             {
                 return this.BadRequest(new { Message = $"Refresh token expiration '{model.RefreshTokenExpiration}' does not exist" });
             }
@@ -160,14 +160,6 @@ namespace Ironclad.WebApi
             return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/clients/" + model.Id)), null);
         }
 
-        private static bool TryParseEnum<T>(string modelValue, out T resultingValue)
-            where T : struct
-        {
-            resultingValue = default;
-
-            return modelValue == null || Enum.TryParse(modelValue, out resultingValue);
-        }
-
         [HttpPut("{clientId}")]
         public async Task<IActionResult> Put(string clientId, [FromBody]IroncladClient model)
         {
@@ -184,17 +176,17 @@ namespace Ironclad.WebApi
                     return this.NotFound(new { Message = $"Client '{clientId}' not found" });
                 }
 
-                if (!TryParseEnum<AccessTokenType>(model.AccessTokenType, out var accessTokenType))
+                if (!string.IsNullOrEmpty(model.AccessTokenType) & !Enum.TryParse<AccessTokenType>(model.AccessTokenType, out var accessTokenType))
                 {
                     return this.BadRequest(new { Message = $"Access token type '{model.AccessTokenType}' does not exist" });
                 }
 
-                if (!TryParseEnum<TokenUsage>(model.RefreshTokenUsage, out var refreshTokenUsage))
+                if (!string.IsNullOrEmpty(model.RefreshTokenUsage) & !Enum.TryParse<TokenUsage>(model.RefreshTokenUsage, out var refreshTokenUsage))
                 {
                     return this.BadRequest(new { Message = $"Refresh token usage '{model.RefreshTokenUsage}' does not exist" });
                 }
 
-                if (!TryParseEnum<TokenExpiration>(model.RefreshTokenExpiration, out var refreshTokenExpiration))
+                if (!string.IsNullOrEmpty(model.RefreshTokenExpiration) & !Enum.TryParse<TokenExpiration>(model.RefreshTokenExpiration, out var refreshTokenExpiration))
                 {
                     return this.BadRequest(new { Message = $"Refresh token expiration '{model.RefreshTokenExpiration}' does not exist" });
                 }
@@ -212,7 +204,7 @@ namespace Ironclad.WebApi
                 client.AccessTokenType = model.AccessTokenType == null ? client.AccessTokenType : accessTokenType;
                 client.RefreshTokenUsage = model.RefreshTokenUsage == null ? client.RefreshTokenUsage : refreshTokenUsage;
                 client.RefreshTokenExpiration = model.RefreshTokenExpiration == null ? client.RefreshTokenExpiration : refreshTokenExpiration;
-                
+
                 // NOTE (Cameron): If the secret is updated we want to add the new secret...
                 if (!string.IsNullOrEmpty(model.Secret))
                 {

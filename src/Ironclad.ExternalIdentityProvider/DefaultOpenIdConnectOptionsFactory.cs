@@ -25,20 +25,21 @@ namespace Ironclad.ExternalIdentityProvider
             {
                 Authority = identityProvider.Authority,
                 ClientId = identityProvider.ClientId,
+                RequireHttpsMetadata = false, // NOTE (Cameron): We want to enable developers to use this for testing purposes.
             };
 
             options.CallbackPath = identityProvider.CallbackPath ?? options.CallbackPath;
 
-            this.configureOptions.PostConfigure(identityProvider.Name, options);
-
             if (!string.IsNullOrEmpty(identityProvider.AcrValues))
             {
                 options.Events.OnRedirectToIdentityProvider = context =>
-                    {
-                        context.ProtocolMessage.AcrValues = identityProvider.AcrValues;
-                        return Task.CompletedTask;
-                    };
+                {
+                    context.ProtocolMessage.AcrValues = identityProvider.AcrValues;
+                    return Task.CompletedTask;
+                };
             }
+
+            this.configureOptions.PostConfigure(identityProvider.Name, options);
 
             return options;
         }
