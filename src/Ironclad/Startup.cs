@@ -4,6 +4,7 @@
 namespace Ironclad
 {
     using System;
+    using IdentityModel;
     using IdentityModel.Client;
     using IdentityServer4.AccessTokenValidation;
     using IdentityServer4.Postgresql.Extensions;

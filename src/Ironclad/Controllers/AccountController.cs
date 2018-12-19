@@ -344,14 +344,42 @@ namespace Ironclad.Controllers
                 this.logger.LogWarning("User {Sub} failed to log in with {Name} provider (no account).", info.ProviderKey, info.LoginProvider);
                 return this.RedirectToAction(nameof(this.Unsupported));
             }
-            else
+
+            // NOTE (Cameron): This is a generic catch-all for external providers.
+            // We will attempt to auto-provision them based on the information we have. If we do not have enough information then we will prompt for it.
+            // This combines some of the ExternalLoginConfirmation call.
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(email))
             {
                 // if the user does not have an account, then ask the user to create an account.
                 this.ViewData["ReturnUrl"] = returnUrl;
                 this.ViewData["LoginProvider"] = info.LoginProvider;
 
-                return this.View("ExternalLogin", new ExternalLoginModel { Email = info.Principal.FindFirstValue(ClaimTypes.Email) });
+                return this.View(nameof(this.ExternalLogin), new ExternalLoginModel { Email = email });
             }
+
+            var phone = info.Principal.FindFirstValue(ClaimTypes.OtherPhone);
+
+            // if the user does not have an account, then ask the user to create an account.
+            var user = new ApplicationUser { UserName = email, Email = email };
+
+            var userResult = await this.userManager.CreateAsync(user);
+            if (userResult.Succeeded)
+            {
+                userResult = await this.userManager.AddLoginAsync(user, info);
+                if (userResult.Succeeded)
+                {
+                    await this.signInManager.SignInAsync(user, isPersistent: false);
+                    this.logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
+                    return this.RedirectToLocal(returnUrl);
+                }
+            }
+
+            this.AddErrors(userResult);
+
+            this.ViewData["ReturnUrl"] = returnUrl;
+
+            return this.View(nameof(this.ExternalLogin), new ExternalLoginModel { Email = email });
         }
 
         [HttpPost]
