@@ -47,7 +47,9 @@ namespace Ironclad.Tests.Feature
                 Authority = "https://auth-test.lykkecloud.com",
                 ClientId = "test-oidc",
                 CallbackPath = "/test",
-                AcrValues = "idp:lykke tenant:ironclad"
+                AcrValues = { "idp:lykke", "tenant:ironclad" },
+                Scopes = { "phone", "email" },
+                AutoProvision = true,
             };
 
             // act

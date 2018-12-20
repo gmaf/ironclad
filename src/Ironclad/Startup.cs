@@ -4,13 +4,11 @@
 namespace Ironclad
 {
     using System;
-    using IdentityModel;
     using IdentityModel.Client;
     using IdentityServer4.AccessTokenValidation;
     using IdentityServer4.Postgresql.Extensions;
     using Ironclad.Application;
     using Ironclad.Authorization;
-    using Ironclad.Configuration;
     using Ironclad.Data;
     using Ironclad.Services.Email;
     using Microsoft.AspNetCore.Authorization;

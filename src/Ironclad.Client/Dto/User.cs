@@ -48,6 +48,11 @@ namespace Ironclad.Client
         public string ExternalLoginProvider { get; set; }
 
         /// <summary>
+        /// Gets or sets the external login providers for the user.
+        /// </summary>
+        public ICollection<string> ExternalLoginProviders { get; set; }
+
+        /// <summary>
         /// Gets or sets the registration link for this user.
         /// </summary>
         public string RegistrationLink { get; set; }

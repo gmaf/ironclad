@@ -4,23 +4,28 @@
 namespace Ironclad.ExternalIdentityProvider
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
-
     using Ironclad.ExternalIdentityProvider.Persistence;
     using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 
     public sealed class DefaultOpenIdConnectOptionsFactory : IOpenIdConnectOptionsFactory
     {
         private readonly IPostConfigureOptions<OpenIdConnectOptions> configureOptions;
+        private readonly ILogger<DefaultOpenIdConnectOptionsFactory> logger;
 
-        public DefaultOpenIdConnectOptionsFactory(IPostConfigureOptions<OpenIdConnectOptions> configureOptions)
+        public DefaultOpenIdConnectOptionsFactory(IPostConfigureOptions<OpenIdConnectOptions> configureOptions, ILogger<DefaultOpenIdConnectOptionsFactory> logger)
         {
             this.configureOptions = configureOptions;
+            this.logger = logger;
         }
 
         public OpenIdConnectOptions CreateOptions(IdentityProvider identityProvider)
         {
+            this.logger.LogInformation($"Configuring {identityProvider.Name} identity provider");
+
             var options = new OpenIdConnectOptions
             {
                 Authority = identityProvider.Authority,
@@ -30,11 +35,19 @@ namespace Ironclad.ExternalIdentityProvider
 
             options.CallbackPath = identityProvider.CallbackPath ?? options.CallbackPath;
 
-            if (!string.IsNullOrEmpty(identityProvider.AcrValues))
+            foreach (var scope in identityProvider.Scopes ?? Enumerable.Empty<string>())
+            {
+                if (!options.Scope.Contains(scope))
+                {
+                    options.Scope.Add(scope);
+                }
+            }
+
+            if (identityProvider.AcrValues?.Count > 0)
             {
                 options.Events.OnRedirectToIdentityProvider = context =>
                 {
-                    context.ProtocolMessage.AcrValues = identityProvider.AcrValues;
+                    context.ProtocolMessage.AcrValues = string.Join(" ", identityProvider.AcrValues);
                     return Task.CompletedTask;
                 };
             }

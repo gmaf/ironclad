@@ -21,11 +21,13 @@ namespace Ironclad.WebApi
     public class IdentityProvidersController : Controller
     {
         private readonly IStore<IdentityProvider> store;
+        private readonly IIdentityProviderAuthenticationHandlerCache cache;
         private readonly IOpenIdConnectOptionsFactory optionsFactory;
 
-        public IdentityProvidersController(IStore<IdentityProvider> store, IOpenIdConnectOptionsFactory optionsFactory)
+        public IdentityProvidersController(IStore<IdentityProvider> store, IIdentityProviderAuthenticationHandlerCache cache, IOpenIdConnectOptionsFactory optionsFactory)
         {
             this.store = store;
+            this.cache = cache;
             this.optionsFactory = optionsFactory;
         }
 
@@ -69,16 +71,18 @@ namespace Ironclad.WebApi
             }
 
             return this.Ok(
-                    new IdentityProviderResource
-                    {
-                        Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/providers/" + identityProvider.Name),
-                        Name = identityProvider.Name,
-                        DisplayName = identityProvider.DisplayName,
-                        Authority = identityProvider.Authority,
-                        ClientId = identityProvider.ClientId,
-                        CallbackPath = identityProvider.CallbackPath,
-                        AcrValues = identityProvider.AcrValues,
-                    });
+                new IdentityProviderResource
+                {
+                    Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/providers/" + identityProvider.Name),
+                    Name = identityProvider.Name,
+                    DisplayName = identityProvider.DisplayName,
+                    Authority = identityProvider.Authority,
+                    ClientId = identityProvider.ClientId,
+                    CallbackPath = identityProvider.CallbackPath,
+                    AcrValues = identityProvider.AcrValues,
+                    Scopes = identityProvider.Scopes,
+                    AutoProvision = identityProvider.AutoProvision,
+                });
         }
 
         [HttpPost]
@@ -86,7 +90,7 @@ namespace Ironclad.WebApi
         {
             if (string.IsNullOrEmpty(model.Name))
             {
-                return this.BadRequest(new { Message = "Cannot create an identity devprovider without a name" });
+                return this.BadRequest(new { Message = "Cannot create an identity provider without a name" });
             }
 
             if (await this.store.AnyAsync(provider => provider.Name == model.Name))
@@ -112,6 +116,8 @@ namespace Ironclad.WebApi
                 ClientId = model.ClientId,
                 CallbackPath = model.CallbackPath,
                 AcrValues = model.AcrValues,
+                Scopes = model.Scopes,
+                AutoProvision = model.AutoProvision,
             };
 
             try
@@ -132,6 +138,9 @@ namespace Ironclad.WebApi
         public async Task<IActionResult> Delete(string name)
         {
             await this.store.TryRemoveAsync(name);
+
+            // TODO (Cameron): Wrap the store with the cache so we're not removing in 2 place.
+            this.cache.TryRemove(name);
 
             return this.Ok();
         }

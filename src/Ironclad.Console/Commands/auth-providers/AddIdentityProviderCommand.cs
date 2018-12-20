@@ -4,6 +4,7 @@
 namespace Ironclad.Console.Commands
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using Ironclad.Client;
     using McMaster.Extensions.CommandLineUtils;
@@ -30,10 +31,12 @@ namespace Ironclad.Console.Commands
 
             // options
 #pragma warning disable SA1025
-            var optionDisplayName =  app.Option("-d|--description <description>",    "The identity provider description",            CommandOptionType.SingleValue);
-            var optionCallbackPath = app.Option("-c|--callback <path>",              "The callback path for the identity provider",  CommandOptionType.SingleValue);
-            var optionAcrValues =    app.Option("-a|--acr <value>",                  "The acr_values for the identity provider (you can call this several times). Example: (\"tenant:ironclad\").",  CommandOptionType.MultipleValue);
-            var optionInteractive =  app.Option("-i|--interactive",                  "Enters interactive mode",                      CommandOptionType.NoValue);
+            var optionDisplayName =   app.Option("-d|--description <description>",  "The identity provider description",                                                                            CommandOptionType.SingleValue);
+            var optionCallbackPath =  app.Option("-c|--callback <path>",            "The callback path for the identity provider",                                                                  CommandOptionType.SingleValue);
+            var optionAcrValues =     app.Option("-a|--acr <value>",                "The acr_values for the identity provider (you can call this several times). Example: (\"tenant:ironclad\").",  CommandOptionType.MultipleValue);
+            var optionScopes =        app.Option("-s|--scope <value>",              "The scopes for the identity provider (you can call this several times).",                                      CommandOptionType.MultipleValue);
+            var optionAutoProvision = app.Option("-p|--auto-provision",             "Auto-provision users for this identity provider",                                                              CommandOptionType.NoValue);
+            var optionInteractive =   app.Option("-i|--interactive",                "Enters interactive mode",                                                                                      CommandOptionType.NoValue);
 #pragma warning restore SA1025
 
             app.HelpOption();
@@ -52,15 +55,18 @@ namespace Ironclad.Console.Commands
                     var reporter = new ConsoleReporter(console, options.Verbose.HasValue(), false);
                     var helper = new IdentityProviderHelper();
 
-                    var resource = new IdentityProvider
-                    {
-                        Name = argumentName.Value,
-                        DisplayName = optionDisplayName.Value(),
-                        Authority = argumentAuthority.Value,
-                        ClientId = argumentClientId.Value,
-                        CallbackPath = optionCallbackPath.Value(),
-                        AcrValues = optionAcrValues.Value()
-                    };
+                    var resource = helper.GetPrototype(
+                        new IdentityProvider
+                        {
+                            Name = argumentName.Value,
+                            DisplayName = optionDisplayName.Value(),
+                            Authority = argumentAuthority.Value,
+                            ClientId = argumentClientId.Value,
+                            CallbackPath = optionCallbackPath.Value(),
+                            AcrValues = optionAcrValues.HasValue() ? optionAcrValues.Values.Distinct().ToHashSet() : null,
+                            Scopes = optionScopes.HasValue() ? optionScopes.Values.Distinct().ToHashSet() : null,
+                            AutoProvision = optionAutoProvision.HasValue() ? (bool?)true : null,
+                        });
 
                     reporter.Verbose("Prototype identity provider (from command line arguments):");
                     reporter.Verbose(JsonConvert.SerializeObject(resource));
@@ -113,7 +119,6 @@ namespace Ironclad.Console.Commands
                 identityProvider.ClientId = identityProvider.ClientId ??
                     Safe(Prompt.GetString("Client identifier:"), "Cannot create an identity provider without a client identifier.");
                 identityProvider.CallbackPath = Prompt.GetString("Callback path for the identity provider [optional]:", identityProvider.CallbackPath);
-                identityProvider.AcrValues = Prompt.GetString("AcrValues for the identity provider(Example \"tenant:ironclad idp:ironclad\"). [optional]:", identityProvider.AcrValues);
 
                 // defaults
                 identityProvider.DisplayName = string.IsNullOrWhiteSpace(identityProvider.DisplayName) ? null : identityProvider.DisplayName;

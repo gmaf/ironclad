@@ -14,6 +14,7 @@ namespace Ironclad.Controllers
     using IdentityServer4.Extensions;
     using IdentityServer4.Services;
     using Ironclad.Application;
+    using Ironclad.ExternalIdentityProvider.Persistence;
     using Ironclad.Models;
     using Ironclad.Sdk;
     using Ironclad.Services.Email;
@@ -29,6 +30,7 @@ namespace Ironclad.Controllers
     {
         private readonly UserManager<ApplicationUser> userManager;
         private readonly SignInManager<ApplicationUser> signInManager;
+        private readonly IStore<IdentityProvider> store;
         private readonly IEmailSender emailSender;
         private readonly ILogger logger;
 
@@ -37,12 +39,14 @@ namespace Ironclad.Controllers
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
+            IStore<IdentityProvider> store,
             IEmailSender emailSender,
             ILogger<AccountController> logger,
             IIdentityServerInteractionService interaction)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
+            this.store = store;
             this.emailSender = emailSender;
             this.logger = logger;
             this.interaction = interaction;
@@ -345,39 +349,46 @@ namespace Ironclad.Controllers
                 return this.RedirectToAction(nameof(this.Unsupported));
             }
 
-            // NOTE (Cameron): This is a generic catch-all for external providers.
-            // We will attempt to auto-provision them based on the information we have. If we do not have enough information then we will prompt for it.
-            // This combines some of the ExternalLoginConfirmation call.
-            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-            if (string.IsNullOrEmpty(email))
+            // NOTE (Cameron): Supported claims for provisioning. I have no idea why some are mapped using the Microsoft nonsense.
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email) ?? info.Principal.FindFirstValue(JwtClaimTypes.Email);
+            var emailVerified = info.Principal.FindFirstValue(JwtClaimTypes.EmailVerified);
+            var phone = info.Principal.FindFirstValue(JwtClaimTypes.PhoneNumber);
+            var phoneVerified = info.Principal.FindFirstValue(JwtClaimTypes.PhoneNumberVerified);
+
+            var user = new ApplicationUser
             {
-                // if the user does not have an account, then ask the user to create an account.
-                this.ViewData["ReturnUrl"] = returnUrl;
-                this.ViewData["LoginProvider"] = info.LoginProvider;
+                Email = email,
+                EmailConfirmed = bool.TryParse(emailVerified, out var emailVerifiedValue) ? emailVerifiedValue : false,
+                PhoneNumber = phone,
+                PhoneNumberConfirmed = bool.TryParse(phoneVerified, out var phoneVerifiedValue) ? phoneVerifiedValue : false,
+            };
 
-                return this.View(nameof(this.ExternalLogin), new ExternalLoginModel { Email = email });
-            }
-
-            var phone = info.Principal.FindFirstValue(ClaimTypes.OtherPhone);
-
-            // if the user does not have an account, then ask the user to create an account.
-            var user = new ApplicationUser { UserName = email, Email = email };
-
-            var userResult = await this.userManager.CreateAsync(user);
-            if (userResult.Succeeded)
+            var identityProvider = await this.store.SingleOrDefaultAsync(provider => string.Equals(provider.Name, info.LoginProvider, StringComparison.OrdinalIgnoreCase));
+            if (identityProvider?.AutoProvision == true)
             {
-                userResult = await this.userManager.AddLoginAsync(user, info);
-                if (userResult.Succeeded)
+                // NOTE (Cameron): When auto-provision is specified we always use a GUID for the username.
+                user.UserName = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+
+                var autoProvisionResult = await this.userManager.CreateAsync(user);
+                if (autoProvisionResult.Succeeded)
                 {
-                    await this.signInManager.SignInAsync(user, isPersistent: false);
-                    this.logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
-                    return this.RedirectToLocal(returnUrl);
+                    autoProvisionResult = await this.userManager.AddLoginAsync(user, info);
+                    if (autoProvisionResult.Succeeded)
+                    {
+                        await this.signInManager.SignInAsync(user, isPersistent: false);
+                        this.logger.LogInformation("User created an account using {Name} provider (auto-provisioned).", info.LoginProvider);
+                        return this.RedirectToLocal(returnUrl);
+                    }
                 }
+
+                // NOTE (Cameron): This should not happen.
+                this.logger.LogWarning("User {Sub} failed to log in with {Name} provider (auto-provisioning failed).", info.ProviderKey, info.LoginProvider);
+                return this.RedirectToAction(nameof(this.Unsupported));
             }
 
-            this.AddErrors(userResult);
-
+            // The user does not have an account and auto-provision is not configured, so ask the user to create an account.
             this.ViewData["ReturnUrl"] = returnUrl;
+            this.ViewData["LoginProvider"] = info.LoginProvider;
 
             return this.View(nameof(this.ExternalLogin), new ExternalLoginModel { Email = email });
         }
