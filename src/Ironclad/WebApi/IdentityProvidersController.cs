@@ -21,11 +21,13 @@ namespace Ironclad.WebApi
     public class IdentityProvidersController : Controller
     {
         private readonly IStore<IdentityProvider> store;
+        private readonly IIdentityProviderAuthenticationHandlerCache cache;
         private readonly IOpenIdConnectOptionsFactory optionsFactory;
 
-        public IdentityProvidersController(IStore<IdentityProvider> store, IOpenIdConnectOptionsFactory optionsFactory)
+        public IdentityProvidersController(IStore<IdentityProvider> store, IIdentityProviderAuthenticationHandlerCache cache, IOpenIdConnectOptionsFactory optionsFactory)
         {
             this.store = store;
+            this.cache = cache;
             this.optionsFactory = optionsFactory;
         }
 
@@ -132,6 +134,9 @@ namespace Ironclad.WebApi
         public async Task<IActionResult> Delete(string name)
         {
             await this.store.TryRemoveAsync(name);
+
+            // TODO (Cameron): Wrap the store with the cache so we're not removing in 2 place.
+            this.cache.TryRemove(name);
 
             return this.Ok();
         }

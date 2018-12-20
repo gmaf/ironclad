@@ -16,7 +16,7 @@ namespace Ironclad.ExternalIdentityProvider.Persistence
 
         Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
 
-        #pragma warning disable CA1716
+#pragma warning disable CA1716
         IEnumerable<TResult> Select<TResult>(Func<T, TResult> predicate);
 
         Task<IdentityProvider> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate);

@@ -8,19 +8,24 @@ namespace Ironclad.ExternalIdentityProvider
 
     using Ironclad.ExternalIdentityProvider.Persistence;
     using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 
     public sealed class DefaultOpenIdConnectOptionsFactory : IOpenIdConnectOptionsFactory
     {
         private readonly IPostConfigureOptions<OpenIdConnectOptions> configureOptions;
+        private readonly ILogger<DefaultOpenIdConnectOptionsFactory> logger;
 
-        public DefaultOpenIdConnectOptionsFactory(IPostConfigureOptions<OpenIdConnectOptions> configureOptions)
+        public DefaultOpenIdConnectOptionsFactory(IPostConfigureOptions<OpenIdConnectOptions> configureOptions, ILogger<DefaultOpenIdConnectOptionsFactory> logger)
         {
             this.configureOptions = configureOptions;
+            this.logger = logger;
         }
 
         public OpenIdConnectOptions CreateOptions(IdentityProvider identityProvider)
         {
+            this.logger.LogInformation($"Configuring {identityProvider.Name} identity provider");
+
             var options = new OpenIdConnectOptions
             {
                 Authority = identityProvider.Authority,
