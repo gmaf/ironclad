@@ -40,6 +40,9 @@ namespace Ironclad
             this.settings = configuration.Get<Settings>(options => options.BindNonPublicProperties = true);
             this.websiteSettings = configuration.GetSection("website").Get<WebsiteSettings>(options => options.BindNonPublicProperties = true) ?? new WebsiteSettings();
             this.settings.Validate();
+
+            // HACK (Cameron): Should not be necessary. But is. Needs refactoring.
+            this.websiteSettings.RestrictedDomains = this.settings.Idp.RestrictedDomains ?? Array.Empty<string>();
         }
 
         public void ConfigureServices(IServiceCollection services)
