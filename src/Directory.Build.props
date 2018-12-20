@@ -11,14 +11,14 @@
     <PackageReleaseNotes>https://github.com/lykkecorp/ironclad/milestones?state=closed</PackageReleaseNotes>
     <PackageTags>identity;oauth;oath2;openid;openid connect;ironclad</PackageTags>
     <LangVersion>latest</LangVersion>
-    <MinVerMajorMinor>0.6</MinVerMajorMinor>
+    <MinVerMinimumMajorMinor>0.6</MinVerMinimumMajorMinor>
     <NoWarn>$(NoWarn);NU5105</NoWarn>
     <CodeAnalysisRuleSet>../Ironclad.ruleset</CodeAnalysisRuleSet>
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
   </PropertyGroup>
 
   <ItemGroup>
-      <PackageReference Include="MinVer" Version="1.0.0-beta.1" PrivateAssets="all" />
+      <PackageReference Include="MinVer" Version="1.0.0-beta.2" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>
