@@ -4,10 +4,12 @@
 #if PERSISTENCE
 namespace Ironclad.ExternalIdentityProvider.Persistence
 {
+    using System.Collections.Generic;
     using Marten.Schema;
 #else
 namespace Ironclad.Client
 {
+    using System.Collections.Generic;
 #endif
 
     /// <summary>
@@ -52,6 +54,18 @@ namespace Ironclad.Client
         /// Gets or sets the authentication context class reference values for the identity provider.
         /// </summary>
         /// <value>Space-separated string that specifies the authentication context class reference values.</value>
-        public string AcrValues { get; set; }
+        public ICollection<string> AcrValues { get; set; }
+
+        /// <summary>
+        /// Gets or sets the scopes to use for the identity provider.
+        /// </summary>
+        /// <value>The scopes.</value>
+        public ICollection<string> Scopes { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether auto-provision the user without prompting for further information.
+        /// </summary>
+        /// <value>Returns <c>true</c> if auto-provisioning is configured; otherwise, <c>false</c>.</value>
+        public bool? AutoProvision { get; set; }
     }
 }

@@ -84,7 +84,7 @@ namespace Ironclad.WebApi
                     Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/users/" + user.UserName),
                     Id = user.Id,
                     Username = user.UserName,
-                    Email = user.Email
+                    Email = user.Email,
                 });
 
             var resourceSet = new ResourceSet<UserSummaryResource>(skip, totalSize, resources);
@@ -105,6 +105,7 @@ namespace Ironclad.WebApi
             }
 
             var roles = await this.userManager.GetRolesAsync(user);
+            var logins = await this.userManager.GetLoginsAsync(user);
             var claimsPrincipal = await this.claimsFactory.CreateAsync(user);
             var claims = new JwtSecurityToken(new JwtHeader(), new JwtPayload(claimsPrincipal.Claims)).Payload;
 
@@ -120,6 +121,7 @@ namespace Ironclad.WebApi
                     PhoneNumber = user.PhoneNumber,
                     Roles = new List<string>(roles),
                     Claims = claims,
+                    ExternalLoginProviders = logins.Select(login => login.ProviderDisplayName).ToList(),
                 });
         }
 

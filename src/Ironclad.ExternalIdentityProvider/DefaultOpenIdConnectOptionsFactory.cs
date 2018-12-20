@@ -4,6 +4,7 @@
 namespace Ironclad.ExternalIdentityProvider
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
 
     using Ironclad.ExternalIdentityProvider.Persistence;
@@ -35,11 +36,19 @@ namespace Ironclad.ExternalIdentityProvider
 
             options.CallbackPath = identityProvider.CallbackPath ?? options.CallbackPath;
 
-            if (!string.IsNullOrEmpty(identityProvider.AcrValues))
+            foreach (var scope in identityProvider.Scopes ?? Enumerable.Empty<string>())
+            {
+                if (!options.Scope.Contains(scope))
+                {
+                    options.Scope.Add(scope);
+                }
+            }
+
+            if (identityProvider.AcrValues?.Count > 0)
             {
                 options.Events.OnRedirectToIdentityProvider = context =>
                 {
-                    context.ProtocolMessage.AcrValues = identityProvider.AcrValues;
+                    context.ProtocolMessage.AcrValues = string.Join(" ", identityProvider.AcrValues);
                     return Task.CompletedTask;
                 };
             }

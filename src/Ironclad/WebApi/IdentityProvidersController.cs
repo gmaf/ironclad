@@ -71,16 +71,18 @@ namespace Ironclad.WebApi
             }
 
             return this.Ok(
-                    new IdentityProviderResource
-                    {
-                        Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/providers/" + identityProvider.Name),
-                        Name = identityProvider.Name,
-                        DisplayName = identityProvider.DisplayName,
-                        Authority = identityProvider.Authority,
-                        ClientId = identityProvider.ClientId,
-                        CallbackPath = identityProvider.CallbackPath,
-                        AcrValues = identityProvider.AcrValues,
-                    });
+                new IdentityProviderResource
+                {
+                    Url = this.HttpContext.GetIdentityServerRelativeUrl("~/api/providers/" + identityProvider.Name),
+                    Name = identityProvider.Name,
+                    DisplayName = identityProvider.DisplayName,
+                    Authority = identityProvider.Authority,
+                    ClientId = identityProvider.ClientId,
+                    CallbackPath = identityProvider.CallbackPath,
+                    AcrValues = identityProvider.AcrValues,
+                    Scopes = identityProvider.Scopes,
+                    AutoProvision = identityProvider.AutoProvision,
+                });
         }
 
         [HttpPost]
@@ -88,7 +90,7 @@ namespace Ironclad.WebApi
         {
             if (string.IsNullOrEmpty(model.Name))
             {
-                return this.BadRequest(new { Message = "Cannot create an identity devprovider without a name" });
+                return this.BadRequest(new { Message = "Cannot create an identity provider without a name" });
             }
 
             if (await this.store.AnyAsync(provider => provider.Name == model.Name))
@@ -114,6 +116,8 @@ namespace Ironclad.WebApi
                 ClientId = model.ClientId,
                 CallbackPath = model.CallbackPath,
                 AcrValues = model.AcrValues,
+                Scopes = model.Scopes,
+                AutoProvision = model.AutoProvision,
             };
 
             try
