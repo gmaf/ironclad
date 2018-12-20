@@ -33,8 +33,8 @@ namespace Ironclad.Controllers
         private readonly IStore<IdentityProvider> store;
         private readonly IEmailSender emailSender;
         private readonly ILogger logger;
-
         private readonly IIdentityServerInteractionService interaction;
+        private readonly WebsiteSettings websiteSettings;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
@@ -42,7 +42,8 @@ namespace Ironclad.Controllers
             IStore<IdentityProvider> store,
             IEmailSender emailSender,
             ILogger<AccountController> logger,
-            IIdentityServerInteractionService interaction)
+            IIdentityServerInteractionService interaction,
+            WebsiteSettings websiteSettings)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
@@ -50,6 +51,7 @@ namespace Ironclad.Controllers
             this.emailSender = emailSender;
             this.logger = logger;
             this.interaction = interaction;
+            this.websiteSettings = websiteSettings;
         }
 
         [TempData]
@@ -65,6 +67,11 @@ namespace Ironclad.Controllers
             if (context?.IdP != null && (await this.signInManager.GetExternalAuthenticationSchemesAsync()).Any(p => string.Equals(p.Name, context.IdP, StringComparison.InvariantCultureIgnoreCase)))
             {
                 return this.ExternalLogin(context.IdP, returnUrl);
+            }
+
+            if (!this.websiteSettings.ShowLoginScreen)
+            {
+                return this.RedirectToAction(nameof(HomeController.Index), "Home");
             }
 
             this.ViewData["ReturnUrl"] = returnUrl;

@@ -69,7 +69,7 @@ namespace Ironclad.Client
 #endif
 
         /// <summary>
-        /// Gets or sets a value indicating whether auto-provision the user without prompting for further information.
+        /// Gets or sets a value indicating whether or not to auto-provision the user without prompting for further information.
         /// </summary>
         /// <value>Returns <c>true</c> if auto-provisioning is configured; otherwise, <c>false</c>.</value>
         public bool? AutoProvision { get; set; }

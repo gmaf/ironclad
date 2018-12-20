@@ -22,8 +22,6 @@ namespace Ironclad
 
         public ApiSettings Api { get; set; }
 
-        public VisualSettings Visual { get; set; }
-
         public IdpSettings Idp { get; set; }
 
         public MailSettings Mail { get; set; }
@@ -331,13 +329,6 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
 
                 public void Dispose() => this.client?.Dispose();
             }
-        }
-
-        public sealed class VisualSettings
-        {
-            public string StylesFile { get; set; }
-
-            public string LogoFile { get; set; }
         }
     }
 }
