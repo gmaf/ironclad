@@ -5,9 +5,9 @@ namespace Ironclad.Models
 {
     public class WebsiteSettings
     {
-        public string Styles { get; set; }
+        public string Styles { get; set; } = "css/default.css";
 
-        public string Logo { get; set; }
+        public string Logo { get; set; } = "img/fingerprint.svg";
 
         public bool ShowLoginScreen => this.show_login_screen.HasValue ? this.show_login_screen.Value : true;
 

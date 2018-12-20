@@ -38,7 +38,7 @@ namespace Ironclad
             this.logger = logger;
             this.loggerFactory = loggerFactory;
             this.settings = configuration.Get<Settings>(options => options.BindNonPublicProperties = true);
-            this.websiteSettings = configuration.GetSection("website").Get<WebsiteSettings>(options => options.BindNonPublicProperties = true);
+            this.websiteSettings = configuration.GetSection("website").Get<WebsiteSettings>(options => options.BindNonPublicProperties = true) ?? new WebsiteSettings();
             this.settings.Validate();
         }
 
