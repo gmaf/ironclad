@@ -55,12 +55,18 @@ namespace Ironclad.Client
         /// </summary>
         /// <value>Space-separated string that specifies the authentication context class reference values.</value>
         public ICollection<string> AcrValues { get; set; }
+#if CLIENT
+            = new HashSet<string>();
+#endif
 
         /// <summary>
         /// Gets or sets the scopes to use for the identity provider.
         /// </summary>
         /// <value>The scopes.</value>
         public ICollection<string> Scopes { get; set; }
+#if CLIENT
+            = new HashSet<string>();
+#endif
 
         /// <summary>
         /// Gets or sets a value indicating whether auto-provision the user without prompting for further information.
