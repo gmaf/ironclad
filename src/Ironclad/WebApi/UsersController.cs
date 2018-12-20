@@ -108,8 +108,10 @@ namespace Ironclad.WebApi
             var logins = await this.userManager.GetLoginsAsync(user);
             var claimsPrincipal = await this.claimsFactory.CreateAsync(user);
             var claims = new JwtSecurityToken(new JwtHeader(), new JwtPayload(claimsPrincipal.Claims)).Payload;
+            var externalLoginProviders = logins.Select(login => login.ProviderDisplayName).ToList();
 
             claims.Remove(AspNetIdentitySecurityStamp);
+            claims.Remove(JwtClaimTypes.Role);
 
             return this.Ok(
                 new UserResource
@@ -121,7 +123,7 @@ namespace Ironclad.WebApi
                     PhoneNumber = user.PhoneNumber,
                     Roles = new List<string>(roles),
                     Claims = claims,
-                    ExternalLoginProviders = logins.Select(login => login.ProviderDisplayName).ToList(),
+                    ExternalLoginProviders = externalLoginProviders.Count > 0 ? externalLoginProviders : null,
                 });
         }
 

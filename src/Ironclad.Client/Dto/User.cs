@@ -48,7 +48,7 @@ namespace Ironclad.Client
         public string ExternalLoginProvider { get; set; }
 
         /// <summary>
-        /// Gets or sets the external login provider for the user.
+        /// Gets or sets the external login providers for the user.
         /// </summary>
         public ICollection<string> ExternalLoginProviders { get; set; }
 

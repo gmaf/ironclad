@@ -8,7 +8,6 @@ namespace Ironclad.ExternalIdentityProvider.Persistence
     using System.Linq;
     using System.Linq.Expressions;
     using System.Threading.Tasks;
-
     using Marten;
 
     public sealed class IdentityProviderStore : IStore<IdentityProvider>

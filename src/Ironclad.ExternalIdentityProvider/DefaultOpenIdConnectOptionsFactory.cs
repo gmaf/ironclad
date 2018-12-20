@@ -6,7 +6,6 @@ namespace Ironclad.ExternalIdentityProvider
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-
     using Ironclad.ExternalIdentityProvider.Persistence;
     using Microsoft.AspNetCore.Authentication.OpenIdConnect;
     using Microsoft.Extensions.Logging;

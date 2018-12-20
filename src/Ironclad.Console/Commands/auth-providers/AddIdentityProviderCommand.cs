@@ -119,19 +119,6 @@ namespace Ironclad.Console.Commands
                 identityProvider.ClientId = identityProvider.ClientId ??
                     Safe(Prompt.GetString("Client identifier:"), "Cannot create an identity provider without a client identifier.");
                 identityProvider.CallbackPath = Prompt.GetString("Callback path for the identity provider [optional]:", identityProvider.CallbackPath);
-                ////identityProvider.AcrValues = Safe(
-                ////    Prompt.GetString(
-                ////        "The acr_values for the identity provider (space separated) [optional]:",
-                ////        identityProvider.AcrValues == null ? null : string.Join(' ', identityProvider.AcrValues)),
-                ////    "Cannot create a website client without any redirect URIs.")
-                ////    .Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                ////identityProvider.Scopes = Safe(
-                ////    Prompt.GetString(
-                ////        "Scopes for the identity provider (space separated)  [optional]:",
-                ////        identityProvider.Scopes == null ? null : string.Join(' ', identityProvider.Scopes)),
-                ////    "Cannot create a website client without any redirect URIs.")
-                ////    .Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                ////identityProvider.AutoProvision = Prompt.GetYesNo("Auto-provision?", identityProvider.AutoProvision ?? false);
 
                 // defaults
                 identityProvider.DisplayName = string.IsNullOrWhiteSpace(identityProvider.DisplayName) ? null : identityProvider.DisplayName;

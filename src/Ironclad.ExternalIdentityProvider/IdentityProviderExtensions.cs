@@ -5,10 +5,10 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     using AspNetCore.Authentication;
     using AspNetCore.Authentication.OpenIdConnect;
-    using Extensions;
     using Ironclad.ExternalIdentityProvider;
     using Ironclad.ExternalIdentityProvider.Persistence;
-    using Options;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.Extensions.Options;
 
     public static class IdentityProviderExtensions
     {

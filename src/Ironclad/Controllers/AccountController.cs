@@ -349,14 +349,6 @@ namespace Ironclad.Controllers
                 return this.RedirectToAction(nameof(this.Unsupported));
             }
 
-            var identityProvider = await this.store.SingleOrDefaultAsync(provider => string.Equals(provider.Name, info.LoginProvider, StringComparison.OrdinalIgnoreCase));
-            if (identityProvider == null)
-            {
-                // NOTE (Cameron): This is odd. Not sure how we got here.
-                this.logger.LogWarning("User {Sub} failed to log in with {Name} provider (no account).", info.ProviderKey, info.LoginProvider);
-                return this.RedirectToAction(nameof(this.Unsupported));
-            }
-
             // NOTE (Cameron): Supported claims for provisioning. I have no idea why some are mapped using the Microsoft nonsense.
             var email = info.Principal.FindFirstValue(ClaimTypes.Email) ?? info.Principal.FindFirstValue(JwtClaimTypes.Email);
             var emailVerified = info.Principal.FindFirstValue(JwtClaimTypes.EmailVerified);
@@ -371,7 +363,8 @@ namespace Ironclad.Controllers
                 PhoneNumberConfirmed = bool.TryParse(phoneVerified, out var phoneVerifiedValue) ? phoneVerifiedValue : false,
             };
 
-            if (identityProvider.AutoProvision == true)
+            var identityProvider = await this.store.SingleOrDefaultAsync(provider => string.Equals(provider.Name, info.LoginProvider, StringComparison.OrdinalIgnoreCase));
+            if (identityProvider?.AutoProvision == true)
             {
                 // NOTE (Cameron): When auto-provision is specified we always use a GUID for the username.
                 user.UserName = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
