@@ -13,6 +13,7 @@ namespace Ironclad.WebApi
     using Ironclad.ExternalIdentityProvider.Persistence;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Logging;
     using IdentityProvider = Ironclad.ExternalIdentityProvider.Persistence.IdentityProvider;
     using Model = Ironclad.Client.IdentityProvider;
 
@@ -21,14 +22,14 @@ namespace Ironclad.WebApi
     public class IdentityProvidersController : Controller
     {
         private readonly IStore<IdentityProvider> store;
-        private readonly IIdentityProviderAuthenticationHandlerCache cache;
         private readonly IOpenIdConnectOptionsFactory optionsFactory;
+        private readonly ILogger<IdentityProvidersController> logger;
 
-        public IdentityProvidersController(IStore<IdentityProvider> store, IIdentityProviderAuthenticationHandlerCache cache, IOpenIdConnectOptionsFactory optionsFactory)
+        public IdentityProvidersController(IStore<IdentityProvider> store, IOpenIdConnectOptionsFactory optionsFactory, ILogger<IdentityProvidersController> logger)
         {
             this.store = store;
-            this.cache = cache;
             this.optionsFactory = optionsFactory;
+            this.logger = logger;
         }
 
         [HttpGet]
@@ -129,6 +130,8 @@ namespace Ironclad.WebApi
                 return this.BadRequest(new { Message = ex.Message });
             }
 
+            this.logger.LogInformation($"Added '{identityProvider.Name}' identity provider");
+
             await this.store.AddOrUpdateAsync(identityProvider.Name, identityProvider);
 
             return this.Created(new Uri(this.HttpContext.GetIdentityServerRelativeUrl("~/api/providers/" + model.Name)), null);
@@ -137,10 +140,10 @@ namespace Ironclad.WebApi
         [HttpDelete("{name}")]
         public async Task<IActionResult> Delete(string name)
         {
-            await this.store.TryRemoveAsync(name);
-
-            // TODO (Cameron): Wrap the store with the cache so we're not removing in 2 place.
-            this.cache.TryRemove(name);
+            if (await this.store.TryRemoveAsync(name))
+            {
+                this.logger.LogInformation($"Removed '{name}' identity provider");
+            }
 
             return this.Ok();
         }

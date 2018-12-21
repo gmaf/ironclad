@@ -3,6 +3,8 @@
 
 namespace Ironclad.ExternalIdentityProvider
 {
+    using System;
+    using System.Collections.Generic;
     using System.Text.Encodings.Web;
     using System.Threading.Tasks;
     using Ironclad.ExternalIdentityProvider.Persistence;
@@ -14,9 +16,12 @@ namespace Ironclad.ExternalIdentityProvider
 #pragma warning disable CA1812
     internal class IdentityProviderAuthenticationHandlerProvider : IAuthenticationHandlerProvider
     {
+        // NOTE (Cameron): Handler instance cache, need to initialize once per request.
+        // LINK (Cameron): https://github.com/aspnet/HttpAbstractions/blob/master/src/Microsoft.AspNetCore.Authentication.Core/AuthenticationHandlerProvider.cs
+        private readonly Dictionary<string, IAuthenticationHandler> cache = new Dictionary<string, IAuthenticationHandler>(StringComparer.Ordinal);
+
         private readonly IAuthenticationHandlerProvider handlers;
         private readonly IAuthenticationSchemeProvider schemes;
-        private readonly IIdentityProviderAuthenticationHandlerCache cache;
         private readonly IStore<IdentityProvider> store;
         private readonly IOpenIdConnectOptionsFactory optionsFactory;
         private readonly ILoggerFactory logger;
@@ -27,7 +32,6 @@ namespace Ironclad.ExternalIdentityProvider
         public IdentityProviderAuthenticationHandlerProvider(
             Decorator<IAuthenticationHandlerProvider> handlerProvider,
             Decorator<IAuthenticationSchemeProvider> schemeProvider,
-            IIdentityProviderAuthenticationHandlerCache cache,
             IStore<IdentityProvider> store,
             IOpenIdConnectOptionsFactory optionsFactory,
             ILoggerFactory logger,
@@ -37,7 +41,6 @@ namespace Ironclad.ExternalIdentityProvider
         {
             this.handlers = handlerProvider.Instance;
             this.schemes = schemeProvider.Instance;
-            this.cache = cache;
             this.store = store;
             this.optionsFactory = optionsFactory;
             this.logger = logger;
@@ -78,7 +81,7 @@ namespace Ironclad.ExternalIdentityProvider
             await handler.InitializeAsync(new AuthenticationScheme(identityProvider.Name, identityProvider.DisplayName, typeof(OpenIdConnectHandler)), context)
                 .ConfigureAwait(false);
 
-            this.cache.AddOrUpdate(authenticationScheme, handler);
+            this.cache[authenticationScheme] = handler;
 
             return handler;
         }

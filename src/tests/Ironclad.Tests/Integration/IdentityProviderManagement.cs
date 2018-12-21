@@ -206,11 +206,11 @@ namespace Ironclad.Tests.Feature
             var httpClient = new IdentityProvidersHttpClient(this.Authority, this.Handler);
             var provider = new IdentityProvider
             {
-                Name = $"idsvr",
+                Name = $"idsvr-{Guid.NewGuid():N}",
                 Authority = "https://demo.identityserver.io",
                 ClientId = "implicit",
                 AcrValues = { "tenant:abc", "something:amazing" },
-                Scopes = { "email", "phone" },
+                Scopes = { "email", "profile" },
                 CallbackPath = "/signin-idsvr",
                 DisplayName = "IdentityServer (Demo)"
             };
