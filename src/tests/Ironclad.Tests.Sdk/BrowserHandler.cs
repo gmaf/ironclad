@@ -4,6 +4,7 @@
 namespace Ironclad.Tests.Sdk
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
@@ -84,8 +85,30 @@ namespace Ironclad.Tests.Sdk
 
             if (this.AllowCookies && response.Headers.Contains("Set-Cookie"))
             {
-                var responseCookieHeader = string.Join(",", response.Headers.GetValues("Set-Cookie"));
-                this.cookieContainer.SetCookies(request.RequestUri, responseCookieHeader);
+                var rootDomain = request.RequestUri.Scheme + "://" + request.RequestUri.Authority;
+
+                var responseCookieHeaders = new Dictionary<string, string>();
+                foreach (var cookie in response.Headers.GetValues("Set-Cookie"))
+                {
+                    var pathLocation = cookie.IndexOf("path=", StringComparison.OrdinalIgnoreCase) + 5;
+                    var path = cookie.Substring(pathLocation).Contains(";")
+                        ? cookie.Substring(pathLocation, cookie.IndexOf(";", pathLocation, StringComparison.OrdinalIgnoreCase) - pathLocation)
+                        : cookie.Substring(pathLocation);
+
+                    if (!responseCookieHeaders.TryGetValue(path, out var responseCookieHeader))
+                    {
+                        responseCookieHeaders.Add(path, cookie);
+                    }
+                    else
+                    {
+                        responseCookieHeaders[path] = responseCookieHeaders[path] + "," + cookie;
+                    }
+                }
+
+                foreach (var responseCookieHeader in responseCookieHeaders)
+                {
+                    this.cookieContainer.SetCookies(new Uri(rootDomain + responseCookieHeader.Key), responseCookieHeader.Value);
+                }
             }
 
             return response;
