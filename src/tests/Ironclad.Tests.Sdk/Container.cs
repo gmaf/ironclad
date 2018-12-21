@@ -104,7 +104,10 @@ namespace Ironclad.Tests.Sdk
                 {
                     if (this.Configuration.OutputDockerLogs)
                     {
-                        using (var stream = await this.client.Containers.GetContainerLogsAsync(id, new ContainerLogsParameters { Follow = false, ShowStderr = true, ShowStdout = true }).ConfigureAwait(false))
+                        using (var stream = await this.client.Containers.GetContainerLogsAsync(
+                            id,
+                            new ContainerLogsParameters { Follow = false, ShowStderr = true, ShowStdout = true })
+                            .ConfigureAwait(false))
                         using (var reader = new StreamReader(stream))
                         {
                             var logs = await reader.ReadToEndAsync().ConfigureAwait(false);

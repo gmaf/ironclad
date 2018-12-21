@@ -58,15 +58,14 @@ namespace Ironclad.Tests.Sdk
                 messageSink?.OnMessage(new DiagnosticMessage(
                     "Authentication fixture is running in INTEGRATING mode (attempting to spin up both ironclad and postgres from docker containers)"));
 
-                this.postgres = new PostgresContainer(this.settings.PostgresTag, this.settings.OutputDockerLogs);
+                this.postgres = new PostgresContainer(this.settings.PostgresTag);
                 this.ironclad = new IroncladContainer(
                     this.settings.Authority,
                     this.settings.Port,
                     this.postgres.GetConnectionStringForContainer(),
                     this.settings.DockerRegistry,
                     this.settings.DockerCredentials,
-                    this.settings.DockerTag,
-                    this.settings.OutputDockerLogs);
+                    this.settings.DockerTag);
             }
             else
             {
@@ -121,8 +120,6 @@ namespace Ironclad.Tests.Sdk
             public string PostgresTag => this.postgres_tag ?? "alpine";
 
             public string Authority => $"http://localhost:{this.Port}";
-
-            public bool OutputDockerLogs { get; set; }
 
             private int port { get; set; }
 

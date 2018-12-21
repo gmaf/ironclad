@@ -42,7 +42,7 @@ namespace Ironclad
             this.settings.Validate();
 
             // HACK (Cameron): Should not be necessary. But is. Needs refactoring.
-            this.websiteSettings.RestrictedDomains = this.settings.Idp.RestrictedDomains ?? Array.Empty<string>();
+            this.websiteSettings.RestrictedDomains = this.settings.Idp?.RestrictedDomains ?? Array.Empty<string>();
         }
 
         public void ConfigureServices(IServiceCollection services)

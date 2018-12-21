@@ -16,7 +16,7 @@ namespace Ironclad.Tests.Sdk
         private readonly int port = PortManager.GetNextPort();
         private readonly PostgresProbe probe;
 
-        public PostgresContainer(string dockerTag, bool outputDockerLogs = false)
+        public PostgresContainer(string dockerTag)
         {
             var connectionStringBuilder = new NpgsqlConnectionStringBuilder(string.Format(CultureInfo.InvariantCulture, ConnectionString, "localhost", 5432));
 
@@ -37,7 +37,7 @@ namespace Ironclad.Tests.Sdk
                     "POSTGRES_PASSWORD=" + connectionStringBuilder.Password,
                     "POSTGRES_DB=" + connectionStringBuilder.Database
                 },
-                OutputDockerLogs = outputDockerLogs
+                OutputDockerLogs = true
             };
 
             this.probe = new PostgresProbe(this.GetConnectionStringForHost(), 4, 20);
