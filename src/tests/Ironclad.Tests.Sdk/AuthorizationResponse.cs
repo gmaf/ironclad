@@ -25,5 +25,11 @@ namespace Ironclad.Tests.Sdk
         /// </summary>
         /// <value>The access token.</value>
         public string AccessToken { get; set; }
+
+        /// <summary>
+        /// Gets or sets the raw response.
+        /// </summary>
+        /// <value>The raw response.</value>
+        public string Raw { get; set; }
     }
 }

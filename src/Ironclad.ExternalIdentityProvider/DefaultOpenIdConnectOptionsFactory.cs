@@ -14,18 +14,14 @@ namespace Ironclad.ExternalIdentityProvider
     public sealed class DefaultOpenIdConnectOptionsFactory : IOpenIdConnectOptionsFactory
     {
         private readonly IPostConfigureOptions<OpenIdConnectOptions> configureOptions;
-        private readonly ILogger<DefaultOpenIdConnectOptionsFactory> logger;
 
-        public DefaultOpenIdConnectOptionsFactory(IPostConfigureOptions<OpenIdConnectOptions> configureOptions, ILogger<DefaultOpenIdConnectOptionsFactory> logger)
+        public DefaultOpenIdConnectOptionsFactory(IPostConfigureOptions<OpenIdConnectOptions> configureOptions)
         {
             this.configureOptions = configureOptions;
-            this.logger = logger;
         }
 
         public OpenIdConnectOptions CreateOptions(IdentityProvider identityProvider)
         {
-            this.logger.LogInformation($"Configuring {identityProvider.Name} identity provider");
-
             var options = new OpenIdConnectOptions
             {
                 Authority = identityProvider.Authority,

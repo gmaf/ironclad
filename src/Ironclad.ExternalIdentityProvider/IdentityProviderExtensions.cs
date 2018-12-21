@@ -19,7 +19,6 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Services.AddTransient<IOpenIdConnectOptionsFactory, DefaultOpenIdConnectOptionsFactory>();
             builder.Services.AddTransientDecorator<IAuthenticationHandlerProvider, IdentityProviderAuthenticationHandlerProvider>();
             builder.Services.AddTransientDecorator<IAuthenticationSchemeProvider, IdentityProviderAuthenticationSchemeProvider>();
-            builder.Services.AddSingleton<IIdentityProviderAuthenticationHandlerCache, IdentityProviderAuthenticationHandlerCache>();
             return builder;
         }
     }

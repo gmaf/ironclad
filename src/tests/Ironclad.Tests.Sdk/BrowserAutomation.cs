@@ -66,16 +66,18 @@ namespace Ironclad.Tests.Sdk
         /// <summary>
         /// Logs in to the authorization server.
         /// </summary>
+        /// <param name="provider">The provider.</param>
         /// <returns>A task representing an asynchronous operation.</returns>
-        public Task LoginToAuthorizationServerAsync() => this.Login(false);
+        public Task LoginToAuthorizationServerAsync(string provider = null) => this.Login(provider, false);
 
         /// <summary>
         /// Logs in to the authorization server and captures the redirect.
         /// </summary>
+        /// <param name="provider">The provider.</param>
         /// <returns>A task representing an asynchronous operation.</returns>
-        public Task<AuthorizationResponse> LoginToAuthorizationServerAndCaptureRedirectAsync() => this.Login(true);
+        public Task<AuthorizationResponse> LoginToAuthorizationServerAndCaptureRedirectAsync(string provider = null) => this.Login(provider, true);
 
-        private async Task<AuthorizationResponse> Login(bool capture)
+        private async Task<AuthorizationResponse> Login(string provider, bool capture)
         {
             if (this.loginResult == null)
             {
@@ -84,18 +86,26 @@ namespace Ironclad.Tests.Sdk
 
             // grab the necessary items for the POST...
             var loginPageHtml = await this.loginResult.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var actionStartIndex = loginPageHtml.IndexOf("<form method=\"post\" action=\"", 0, StringComparison.OrdinalIgnoreCase) + 28;
+            var actionStartIndex = string.IsNullOrEmpty(provider)
+                ? loginPageHtml.IndexOf("<form method=\"post\" action=\"", 0, StringComparison.OrdinalIgnoreCase) + 28
+                : loginPageHtml.IndexOf("<form method=\"post\" class=\"form-horizontal\" action=\"", 0, StringComparison.OrdinalIgnoreCase) + 52;
             var action = loginPageHtml.Substring(actionStartIndex, loginPageHtml.IndexOf("\"", actionStartIndex, StringComparison.OrdinalIgnoreCase) - actionStartIndex);
             var tokenStartIndex = loginPageHtml.IndexOf("<input name=\"__RequestVerificationToken\" type=\"hidden\" value=\"", 0, StringComparison.OrdinalIgnoreCase) + 62;
             var token = loginPageHtml.Substring(tokenStartIndex, loginPageHtml.IndexOf("\"", tokenStartIndex, StringComparison.OrdinalIgnoreCase) - tokenStartIndex);
 
-            var form = new Dictionary<string, string>
-            {
-                { "Username", this.username },
-                { "Password", this.password },
-                { "__RequestVerificationToken", token },
-                { "RememberMe", "false" },
-            };
+            var form = string.IsNullOrEmpty(provider)
+                ? new Dictionary<string, string>
+                {
+                    { "Username", this.username },
+                    { "Password", this.password },
+                    { "__RequestVerificationToken", token },
+                    { "RememberMe", "false" },
+                }
+                : new Dictionary<string, string>
+                {
+                    { "provider", provider },
+                    { "__RequestVerificationToken", token },
+                };
 
             if (capture)
             {
@@ -119,6 +129,7 @@ namespace Ironclad.Tests.Sdk
                         IsError = response.IsError,
                         Error = response.Error,
                         AccessToken = response.AccessToken,
+                        Raw = response.Raw,
                     };
                 }
 

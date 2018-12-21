@@ -9,6 +9,7 @@ namespace Ironclad.Tests.Feature
     using FluentAssertions;
     using Ironclad.Client;
     using Ironclad.Tests.Sdk;
+    using Microsoft.AspNetCore.WebUtilities;
     using Xunit;
 
     public class IdentityProviderManagement : AuthenticationTest
@@ -196,6 +197,49 @@ namespace Ironclad.Tests.Feature
 
             // assert
             func.Should().Throw<HttpException>().And.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        }
+
+        [Fact]
+        public async Task CanUseExternalProvider()
+        {
+            // arrange
+            var httpClient = new IdentityProvidersHttpClient(this.Authority, this.Handler);
+            var provider = new IdentityProvider
+            {
+                Name = $"idsvr-{Guid.NewGuid():N}",
+                Authority = "https://demo.identityserver.io",
+                ClientId = "implicit",
+                AcrValues = { "tenant:abc", "something:amazing" },
+                Scopes = { "email", "profile" },
+                CallbackPath = "/signin-idsvr",
+                DisplayName = "IdentityServer (Demo)"
+            };
+
+            await httpClient.AddIdentityProviderAsync(provider).ConfigureAwait(false);
+
+            var automation = new BrowserAutomation(null, null);
+            var browser = new Browser(automation);
+            var url = this.Authority + "/account/login";
+
+            // act
+            await automation.NavigateToLoginAsync(url).ConfigureAwait(false);
+            var authorizeResponse = await automation.LoginToAuthorizationServerAndCaptureRedirectAsync(provider.Name).ConfigureAwait(false);
+
+            // assert
+            authorizeResponse.IsError.Should().BeFalse();
+            var queryString = new Uri(authorizeResponse.Raw).Query;
+            var queryDictionary = QueryHelpers.ParseQuery(queryString);
+            queryDictionary.Should().ContainKey("ReturnUrl");
+            var returnUrlQueryString = queryDictionary["ReturnUrl"];
+            var returnUrlQueryDictionary = QueryHelpers.ParseQuery(returnUrlQueryString);
+            returnUrlQueryDictionary.Should().ContainKey("/connect/authorize/callback?client_id");
+            returnUrlQueryDictionary["/connect/authorize/callback?client_id"].ToString().Should().Be(provider.ClientId);
+            returnUrlQueryDictionary.Should().ContainKey("redirect_uri");
+            returnUrlQueryDictionary["redirect_uri"].ToString().Should().EndWith(provider.CallbackPath);
+            returnUrlQueryDictionary.Should().ContainKey("scope");
+            returnUrlQueryDictionary["scope"].ToString().Split(' ').Should().Contain(provider.Scopes);
+            returnUrlQueryDictionary.Should().ContainKey("acr_values");
+            returnUrlQueryDictionary["acr_values"].ToString().Split(' ').Should().Contain(provider.AcrValues);
         }
 
         private static IdentityProvider CreateMinimumProvider(string namePrefix = "")
