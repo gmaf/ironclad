@@ -229,7 +229,7 @@ namespace Ironclad.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Unsupported() => this.View();
+        public IActionResult LoginError() => this.View();
 
         [HttpGet]
         [AllowAnonymous]
@@ -348,16 +348,26 @@ namespace Ironclad.Controllers
             {
                 return this.RedirectToAction(nameof(this.Lockout));
             }
-            else if (info.LoginProvider == "some_external_provider")
+
+            // NOTE (Cameron): We're looking at external providers now so we need to check the domain name against the restricted domain name.
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email) ?? info.Principal.FindFirstValue(JwtClaimTypes.Email);
+            if (this.websiteSettings.RestrictedDomains.Any() && email?.Contains('@', StringComparison.OrdinalIgnoreCase) == true)
             {
-                // NOTE (Cameron): This external provider is not currently configured (in StartUp.cs).
-                // NOTE (Cameron): We do not auto-provision these accounts, their creation happens via a different workflow.
-                this.logger.LogWarning("User {Sub} failed to log in with {Name} provider (no account).", info.ProviderKey, info.LoginProvider);
-                return this.RedirectToAction(nameof(this.Unsupported));
+                // we can only do this if we have an email claim
+                var domainName = email.Substring(email.IndexOf('@', StringComparison.OrdinalIgnoreCase));
+                if (!this.websiteSettings.RestrictedDomains.Contains(domainName))
+                {
+                    this.logger.LogWarning("User {Sub} failed to log in with {Name} provider (no account).", info.ProviderKey, info.LoginProvider);
+
+                    this.ViewData["Title"] = "Login Forbidden";
+                    this.ViewData["Error"] = "You are unable to login to the system with this account. " +
+                        $"In order to login you must use an account with one of the following domains: {string.Join(", ", this.websiteSettings.RestrictedDomains)}.";
+
+                    return this.View(nameof(this.LoginError));
+                }
             }
 
             // NOTE (Cameron): Supported claims for provisioning. I have no idea why some are mapped using the Microsoft nonsense.
-            var email = info.Principal.FindFirstValue(ClaimTypes.Email) ?? info.Principal.FindFirstValue(JwtClaimTypes.Email);
             var emailVerified = info.Principal.FindFirstValue(JwtClaimTypes.EmailVerified);
             var phone = info.Principal.FindFirstValue(JwtClaimTypes.PhoneNumber);
             var phoneVerified = info.Principal.FindFirstValue(JwtClaimTypes.PhoneNumberVerified);
@@ -390,7 +400,11 @@ namespace Ironclad.Controllers
 
                 // NOTE (Cameron): This should not happen.
                 this.logger.LogWarning("User {Sub} failed to log in with {Name} provider (auto-provisioning failed).", info.ProviderKey, info.LoginProvider);
-                return this.RedirectToAction(nameof(this.Unsupported));
+
+                this.ViewData["Title"] = "Login Failed";
+                this.ViewData["Error"] = "This login attempt failed to successfully provision and sign-in the user.";
+
+                return this.View(nameof(this.LoginError));
             }
 
             // The user does not have an account and auto-provision is not configured, so ask the user to create an account.

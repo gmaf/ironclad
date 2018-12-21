@@ -218,7 +218,11 @@ Please see https://gist.github.com/cameronfletcher/58673a468c8ebbbf91b81e706063b
 
         public class IdpSettings
         {
+            public IEnumerable<string> RestrictedDomains => this.restricted_domains ?? new HashSet<string>();
+
             public GoogleSettings Google { get; set; }
+
+            private HashSet<string> restricted_domains { get; set; }
 
             public class GoogleSettings
             {
