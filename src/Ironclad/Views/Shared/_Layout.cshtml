@@ -1,9 +1,8 @@
 ﻿@inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet
 @using IdentityServer4.Extensions
 @using Microsoft.Extensions.Options;
-@using Ironclad;
 
-@inject IOptions<Settings.VisualSettings> ThemeConfiguration
+@inject WebsiteSettings websiteSettings
 
 @{
     string name = null;
@@ -21,7 +20,7 @@
     <title>Ironclad</title>
     <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
     <link rel="shortcut icon" type="image/x-icon" href="~/favicon.ico" />
-    <link rel="stylesheet" href="~/@ThemeConfiguration.Value.StylesFile" />
+    <link rel="stylesheet" href="~/@websiteSettings.Styles" />
 </head>
 <body>
     <header>
@@ -29,11 +28,14 @@
             <div class="container d-flex justify-content-between">
                 <a href="~/" class="navbar-brand d-flex align-items-center">
                     <span class="navbar-brand">
-                        <img src="~/@ThemeConfiguration.Value.LogoFile" class="icon-banner" height="32">
+                        <img src="~/@websiteSettings.Logo" class="icon-banner" height="32">
                     </span>
                 </a>
                 <nav class="my-2 my-md-0 mr-md-3">
-                    @if (!string.IsNullOrWhiteSpace(name))
+                    @if (!websiteSettings.ShowLoginScreen)
+                    {
+                    }
+                    else if (!string.IsNullOrWhiteSpace(name))
                     {
                         <a asp-action="Index" asp-controller="Manage">@name</a>
                         <a asp-action="Logout" asp-controller="Account">Logout</a>

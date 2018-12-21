@@ -10,6 +10,7 @@ namespace Ironclad
     using Ironclad.Application;
     using Ironclad.Authorization;
     using Ironclad.Data;
+    using Ironclad.Models;
     using Ironclad.Services.Email;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
@@ -30,12 +31,14 @@ namespace Ironclad
         private readonly ILogger<Startup> logger;
         private readonly ILoggerFactory loggerFactory;
         private readonly Settings settings;
+        private readonly WebsiteSettings websiteSettings;
 
         public Startup(ILogger<Startup> logger, ILoggerFactory loggerFactory, IConfiguration configuration)
         {
             this.logger = logger;
             this.loggerFactory = loggerFactory;
             this.settings = configuration.Get<Settings>(options => options.BindNonPublicProperties = true);
+            this.websiteSettings = configuration.GetSection("website").Get<WebsiteSettings>(options => options.BindNonPublicProperties = true) ?? new WebsiteSettings();
             this.settings.Validate();
         }
 
@@ -43,11 +46,7 @@ namespace Ironclad
         {
             var migrationsAssembly = typeof(Startup).GetType().Assembly.GetName().Name;
 
-            services.Configure<Settings.VisualSettings>(options =>
-            {
-                options.LogoFile = this.settings.Visual.LogoFile;
-                options.StylesFile = this.settings.Visual.StylesFile;
-            });
+            services.AddSingleton(this.websiteSettings);
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(this.settings.Server.Database));
 
@@ -98,6 +97,8 @@ namespace Ironclad
                         options.ClientId = this.settings.Api.ClientId;
                         options.ClientSecret = this.settings.Api.Secret;
                         options.DiscoveryPolicy = new DiscoveryPolicy { ValidateIssuerName = false };
+                        options.EnableCaching = true;
+                        options.CacheDuration = new TimeSpan(0, 1, 0);
                     })
                 .AddExternalIdentityProviders();
 
