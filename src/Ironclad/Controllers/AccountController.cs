@@ -392,7 +392,7 @@ namespace Ironclad.Controllers
                     autoProvisionResult = await this.userManager.AddLoginAsync(user, info);
                     if (autoProvisionResult.Succeeded)
                     {
-                        await this.signInManager.SignInAsync(user, isPersistent: false);
+                        await this.signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
                         this.logger.LogInformation("User created an account using {Name} provider (auto-provisioned).", info.LoginProvider);
                         return this.RedirectToLocal(returnUrl);
                     }
