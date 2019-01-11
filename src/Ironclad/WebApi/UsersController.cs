@@ -7,6 +7,7 @@ namespace Ironclad.WebApi
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IdentityModel.Tokens.Jwt;
     using System.Linq;
     using System.Net;
@@ -17,6 +18,7 @@ namespace Ironclad.WebApi
     using Ironclad.Application;
     using Ironclad.Client;
     using Ironclad.Configuration;
+    using Ironclad.Sdk;
     using Ironclad.Services.Email;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -291,25 +293,9 @@ namespace Ironclad.WebApi
                 return this.BadRequest(new { Message = $"Cannot add claims without both a type and a value" });
             }
 
-            if (model.Claims?.Any(claim => new[] { "sub", "role", "preferred_username", "name", "email", "phone_number", "AspNet.Identity.SecurityStamp" }.Contains(claim.Key)) == true)
+            if (model.Claims?.Any(claim => ReservedClaims.Contains(claim.Key)) == true)
             {
                 return this.BadRequest(new { Message = $"Cannot change reserved claims values" });
-            }
-
-            var isConfirmEmailRequest = default(bool);
-            if (model.Claims != null &&
-                model.Claims.TryGetValue(JwtClaimTypes.EmailVerified, out var emailVerifiedObject) &&
-                (!bool.TryParse(emailVerifiedObject.ToString(), out isConfirmEmailRequest) || isConfirmEmailRequest != true))
-            {
-                return this.BadRequest(new { Message = $"Invalid value for claim '{JwtClaimTypes.EmailVerified}' (only valid value is 'true')" });
-            }
-
-            var isConfirmPhoneNumberRequest = default(bool);
-            if (model.Claims != null &&
-                model.Claims.TryGetValue(JwtClaimTypes.PhoneNumberVerified, out var phoneNumberVerifiedObject) &&
-                (!bool.TryParse(phoneNumberVerifiedObject.ToString(), out isConfirmPhoneNumberRequest) || isConfirmPhoneNumberRequest != true))
-            {
-                return this.BadRequest(new { Message = $"Invalid value for claim '{JwtClaimTypes.PhoneNumberVerified}' (only valid value is 'true')" });
             }
 
             user.UserName = model.Username ?? user.UserName;
@@ -326,73 +312,24 @@ namespace Ironclad.WebApi
             {
                 var roles = await this.userManager.GetRolesAsync(user);
 
-                var oldRoles = roles.Except(model.Roles ?? Array.Empty<string>()).ToArray();
-                if (oldRoles.Length > 0)
-                {
-                    var removeResult = await this.userManager.RemoveFromRolesAsync(user, oldRoles);
-                    if (!removeResult.Succeeded)
-                    {
-                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = removeResult.ToString() });
-                    }
-                }
+                // HACK (Cameron): This is a bit of a hack...
+                await this.DeleteRoles(user.UserName, new HashSet<string>(roles));
+                await this.PostRoles(user.UserName, new HashSet<string>(model.Roles));
 
-                var newRoles = (model.Roles ?? Array.Empty<string>()).Except(roles).ToArray();
-                if (newRoles.Length > 0)
-                {
-                    var addResult = await this.userManager.AddToRolesAsync(user, newRoles);
-                    if (!addResult.Succeeded)
-                    {
-                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addResult.ToString() });
-                    }
-                }
+                roles = await this.userManager.GetRolesAsync(user);
             }
 
             if (model.Claims != null)
             {
                 var claims = await this.userManager.GetClaimsAsync(user);
-                var userClaims = model.Claims
-                    .Where(claim => !new[] { "email_verified", "phone_number_verified" }.Contains(claim.Key))
-                    .Select(claim => new Claim(claim.Key, claim.Value.ToString())).ToArray();
 
-                var oldClaims = claims.Except(userClaims, ClaimComparer).ToArray();
-                if (oldClaims.Length > 0)
-                {
-                    var removeResult = await this.userManager.RemoveClaimsAsync(user, oldClaims);
-                    if (!removeResult.Succeeded)
-                    {
-                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = removeResult.ToString() });
-                    }
-                }
+                var oldClaims = claims.Where(claim => !SpecialClaims.Contains(claim.Type) && !ReservedClaims.Contains(claim.Type)).ToList();
+                var newClaims = model.Claims.Where(claim => !ReservedClaims.Contains(claim.Key)).Select(claim => new Claim(claim.Key, claim.Value.ToString())).ToList();
 
-                var newClaims = userClaims.Except(claims, ClaimComparer).ToArray();
-                if (newClaims.Length > 0)
-                {
-                    var addResult = await this.userManager.AddClaimsAsync(user, newClaims);
-                    if (!addResult.Succeeded)
-                    {
-                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = addResult.ToString() });
-                    }
-                }
+                await this.DeleteClaims(user.UserName, oldClaims);
+                await this.PostClaims(user.UserName, newClaims);
 
-                if (isConfirmEmailRequest && !user.EmailConfirmed)
-                {
-                    var token = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var confirmResult = await this.userManager.ConfirmEmailAsync(user, token);
-                    if (!confirmResult.Succeeded)
-                    {
-                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = confirmResult.ToString() });
-                    }
-                }
-
-                if (isConfirmPhoneNumberRequest && !user.PhoneNumberConfirmed)
-                {
-                    var token = await this.userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
-                    var confirmResult = await this.userManager.ChangePhoneNumberAsync(user, user.PhoneNumber, token);
-                    if (!confirmResult.Succeeded)
-                    {
-                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = confirmResult.ToString() });
-                    }
-                }
+                claims = await this.userManager.GetClaimsAsync(user);
             }
 
             return this.NoContent();
@@ -413,6 +350,213 @@ namespace Ironclad.WebApi
             }
 
             await this.userManager.DeleteAsync(user);
+
+            return this.NoContent();
+        }
+
+        [HttpHead("{username}/claims")]
+        [HttpGet("{username}/claims")]
+        public async Task<IActionResult> GetClaims(string username)
+        {
+            var user = await this.userManager.FindByNameAsync(username) ?? await this.userManager.FindByIdAsync(username);
+            if (user == null)
+            {
+                return this.NotFound(new { Message = $"User '{username}' not found" });
+            }
+
+            var claimsPrincipal = await this.claimsFactory.CreateAsync(user);
+            var claims = new JwtSecurityToken(new JwtHeader(), new JwtPayload(claimsPrincipal.Claims)).Payload;
+
+            claims.Remove(AspNetIdentitySecurityStamp);
+            claims.Remove(JwtClaimTypes.Role);
+
+            return this.Ok(claims);
+        }
+
+        [HttpPost("{username}/claims")]
+        public async Task<IActionResult> PostClaims(string username, [ModelBinder(typeof(ClaimsModelBinder))]IEnumerable<Claim> claims)
+        {
+            var user = await this.userManager.FindByNameAsync(username) ?? await this.userManager.FindByIdAsync(username);
+            if (user == null)
+            {
+                return this.NotFound(new { Message = $"User '{username}' not found" });
+            }
+
+            if (claims.Any(kvp => string.IsNullOrWhiteSpace(kvp.Type)))
+            {
+                return this.BadRequest(new { Message = "Cannot add empty claim" });
+            }
+
+            if (claims.Any(kvp => string.IsNullOrWhiteSpace(kvp.Value)))
+            {
+                return this.BadRequest(new { Message = "Cannot add empty claim value" });
+            }
+
+            if (claims.Any(claim => ReservedClaims.Contains(claim.Type)))
+            {
+                return this.BadRequest(new { Message = $"Cannot change reserved claims values" });
+            }
+
+            var emailVerified = claims.FirstOrDefault(claim => string.Equals(claim.Type, JwtClaimTypes.EmailVerified, StringComparison.OrdinalIgnoreCase));
+            if (emailVerified != null)
+            {
+                if (!bool.TryParse(emailVerified.Value?.ToString(CultureInfo.InvariantCulture), out var isConfirmEmailRequest) || isConfirmEmailRequest != true)
+                {
+                    return this.BadRequest(new { Message = $"Invalid value for claim '{JwtClaimTypes.EmailVerified}' (only valid value is 'true')" });
+                }
+                else if (!user.EmailConfirmed)
+                {
+                    var token = await this.userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var confirmResult = await this.userManager.ConfirmEmailAsync(user, token);
+                    if (!confirmResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = confirmResult.ToString() });
+                    }
+                }
+            }
+
+            var phoneNumberVerified = claims.FirstOrDefault(claim => string.Equals(claim.Type, JwtClaimTypes.PhoneNumberVerified, StringComparison.OrdinalIgnoreCase));
+            if (phoneNumberVerified != null)
+            {
+                if (!bool.TryParse(phoneNumberVerified.Value?.ToString(CultureInfo.InvariantCulture), out var isConfirmPhoneNumberRequest) || isConfirmPhoneNumberRequest != true)
+                {
+                    return this.BadRequest(new { Message = $"Invalid value for claim '{JwtClaimTypes.PhoneNumberVerified}' (only valid value is 'true')" });
+                }
+                else if (!user.PhoneNumberConfirmed)
+                {
+                    var token = await this.userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
+                    var confirmResult = await this.userManager.ChangePhoneNumberAsync(user, user.PhoneNumber, token);
+                    if (!confirmResult.Succeeded)
+                    {
+                        return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = confirmResult.ToString() });
+                    }
+                }
+            }
+
+            var userClaims = await this.userManager.GetClaimsAsync(user);
+            var newClaims = claims.Where(claim => !SpecialClaims.Contains(claim.Type)).Except(userClaims, ClaimComparer);
+
+            var result = await this.userManager.AddClaimsAsync(user, newClaims);
+            if (!result.Succeeded)
+            {
+                return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = result.ToString() });
+            }
+
+            return this.NoContent();
+        }
+
+        [HttpDelete("{username}/claims")]
+        public async Task<IActionResult> DeleteClaims(string username, [ModelBinder(typeof(ClaimsModelBinder))]IEnumerable<Claim> claims)
+        {
+            var user = await this.userManager.FindByNameAsync(username) ?? await this.userManager.FindByIdAsync(username);
+            if (user == null)
+            {
+                return this.NotFound(new { Message = $"User '{username}' not found" });
+            }
+
+            if (claims.Any(kvp => string.IsNullOrWhiteSpace(kvp.Type)))
+            {
+                return this.BadRequest(new { Message = "Cannot remove empty claim" });
+            }
+
+            if (claims.Any(kvp => string.IsNullOrWhiteSpace(kvp.Value)))
+            {
+                return this.BadRequest(new { Message = "Cannot remove empty claim value" });
+            }
+
+            if (claims.Any(claim => ReservedClaims.Contains(claim.Type) || SpecialClaims.Contains(claim.Type)))
+            {
+                return this.BadRequest(new { Message = $"Cannot change reserved claims values" });
+            }
+
+            var userClaims = await this.userManager.GetClaimsAsync(user);
+            var oldClaims = userClaims.Intersect(claims, ClaimComparer);
+
+            var result = await this.userManager.RemoveClaimsAsync(user, oldClaims);
+            if (!result.Succeeded)
+            {
+                return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = result.ToString() });
+            }
+
+            return this.NoContent();
+        }
+
+        [HttpHead("{username}/roles")]
+        [HttpGet("{username}/roles")]
+        public async Task<IActionResult> GetRoles(string username)
+        {
+            var user = await this.userManager.FindByNameAsync(username) ?? await this.userManager.FindByIdAsync(username);
+            if (user == null)
+            {
+                return this.NotFound(new { Message = $"User '{username}' not found" });
+            }
+
+            var roles = await this.userManager.GetRolesAsync(user);
+
+            return this.Ok(roles);
+        }
+
+        [HttpPost("{username}/roles")]
+        public async Task<IActionResult> PostRoles(string username, [FromBody]HashSet<string> roles)
+        {
+            var user = await this.userManager.FindByNameAsync(username) ?? await this.userManager.FindByIdAsync(username);
+            if (user == null)
+            {
+                return this.NotFound(new { Message = $"User '{username}' not found" });
+            }
+
+            if (roles.Count == 0 || roles.Any(string.IsNullOrWhiteSpace))
+            {
+                return this.BadRequest(new { Message = "Cannot add empty role" });
+            }
+
+            foreach (var role in roles)
+            {
+                if (!await this.roleManager.RoleExistsAsync(role))
+                {
+                    return this.BadRequest(new { Message = $"The role {role} does not exist" });
+                }
+            }
+
+            var userRoles = await this.userManager.GetRolesAsync(user);
+            var newRoles = roles.Except(userRoles, StringComparer.OrdinalIgnoreCase);
+
+            var result = await this.userManager.AddToRolesAsync(user, newRoles);
+            if (!result.Succeeded)
+            {
+                return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = result.ToString() });
+            }
+
+            return this.NoContent();
+        }
+
+        [HttpDelete("{username}/roles")]
+        public async Task<IActionResult> DeleteRoles(string username, [FromBody]HashSet<string> roles)
+        {
+            var user = await this.userManager.FindByNameAsync(username) ?? await this.userManager.FindByIdAsync(username);
+            if (user == null)
+            {
+                return this.NotFound(new { Message = $"User '{username}' not found" });
+            }
+
+            if (roles.Count == 0 || roles.Any(string.IsNullOrWhiteSpace))
+            {
+                return this.BadRequest(new { Message = "Cannot remove empty role" });
+            }
+
+            if (user.Id == Config.DefaultAdminUserId && roles.Contains("admin", StringComparer.OrdinalIgnoreCase))
+            {
+                return this.BadRequest(new { Message = $"Cannot remove the role 'admin' from the default admin user" });
+            }
+
+            var userRoles = await this.userManager.GetRolesAsync(user);
+            var oldRoles = roles.Intersect(userRoles, StringComparer.OrdinalIgnoreCase);
+
+            var result = await this.userManager.RemoveFromRolesAsync(user, oldRoles);
+            if (!result.Succeeded)
+            {
+                return this.StatusCode((int)HttpStatusCode.InternalServerError, new { Message = result.ToString() });
+            }
 
             return this.NoContent();
         }
