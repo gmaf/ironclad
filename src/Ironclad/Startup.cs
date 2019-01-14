@@ -1,20 +1,25 @@
 ﻿// Copyright (c) Lykke Corp.
 // See the LICENSE file in the project root for more information.
 
+using Ironclad.Sdk;
+
 namespace Ironclad
 {
     using System;
     using System.Linq;
+    using System.Net;
     using Application;
     using Authorization;
     using Data;
     using IdentityModel.Client;
     using IdentityServer4.AccessTokenValidation;
     using IdentityServer4.Postgresql.Extensions;
+    using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.DataProtection;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.HttpOverrides;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
@@ -167,18 +172,10 @@ namespace Ironclad
                 };
 
                 app.UseForwardedHeaders(forwardedHeadersOptions);
-
-                app.Use((context, next) =>
-                {
-                    if (context.Request.Headers.TryGetValue("X-Forwarded-PathBase", out var pathBases))
-                    {
-                        context.Request.PathBase = pathBases.First();
-                    }
-
-                    return next();
-                });
+                app.UseMiddleware<PathBaseHeaderMiddleware>();
             }
 
+            app.UseMiddleware<AuthCookieMiddleware>();
             app.UseStaticFiles();
             app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();
