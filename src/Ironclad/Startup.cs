@@ -4,13 +4,15 @@
 namespace Ironclad
 {
     using System;
-    using Application;
-    using Authorization;
-    using Data;
     using IdentityModel.Client;
     using IdentityServer4.AccessTokenValidation;
     using IdentityServer4.Postgresql.Extensions;
+    using Ironclad.Application;
+    using Ironclad.Authorization;
+    using Ironclad.Data;
+    using Ironclad.Models;
     using Ironclad.Sdk;
+    using Ironclad.Services.Email;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.DataProtection;
@@ -22,12 +24,9 @@ namespace Ironclad
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
-    using Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Serialization;
-    using Sdk;
-    using Services.Email;
 
     public class Startup
     {
