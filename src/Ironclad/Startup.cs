@@ -4,7 +4,6 @@
 namespace Ironclad
 {
     using System;
-    using System.Linq;
     using Application;
     using Authorization;
     using Data;
@@ -25,6 +24,7 @@ namespace Ironclad
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Serialization;
+    using Sdk;
     using Services.Email;
 
     public class Startup
@@ -167,18 +167,10 @@ namespace Ironclad
                 };
 
                 app.UseForwardedHeaders(forwardedHeadersOptions);
-
-                app.Use((context, next) =>
-                {
-                    if (context.Request.Headers.TryGetValue("X-Forwarded-PathBase", out var pathBases))
-                    {
-                        context.Request.PathBase = pathBases.First();
-                    }
-
-                    return next();
-                });
+                app.UseMiddleware<PathBaseHeaderMiddleware>();
             }
 
+            app.UseMiddleware<AuthCookieMiddleware>();
             app.UseStaticFiles();
             app.UseIdentityServer();
             app.UseMvcWithDefaultRoute();
